@@ -1,59 +1,67 @@
-# Danh mục bất động sản nội bộ
+# Broker Property Catalogue
 
-Các thuật ngữ đã thống nhất cho công cụ quản lý danh mục bất động sản của nhân viên.
+Canonical business terminology. Vietnamese names preserve the language used during the interview.
 
 ## Language
 
-**Nhân viên**:
-Người dùng nội bộ quản lý danh mục bất động sản của tổ chức môi giới.
+**Employee (Nhân viên)**:
+An internal staff member who maintains the broker's property catalogue.
 
-**Broker (Đơn vị môi giới)**:
-Tổ chức quản lý danh mục các căn được chủ đầu tư giao để môi giới; thông tin nhận được có thể chưa đầy đủ.
+**Broker Organization (Đơn vị môi giới)**:
+The organization that manages units allocated by developers for brokerage; the supplied information may be incomplete.
 
-**Danh mục bất động sản**:
-Tập hợp thông tin bất động sản được tổ chức quản lý để tra cứu và cập nhật nội bộ.
+**Property Catalogue (Danh mục bất động sản)**:
+The collection of property information maintained for internal lookup and updates.
 
-**Chủ đầu tư (CĐT)**:
-Tổ chức sở hữu hoặc phát triển các dự án bất động sản trong danh mục.
+**Developer (Chủ đầu tư / CĐT)**:
+An organization that owns or develops Projects and supplies inventory information to the broker.
+_Avoid_: Software developer, customer
 
-**Dự án**:
-Tập hợp bất động sản thuộc một chủ đầu tư; có thể bao gồm các tòa nhà và các căn nhà phố, biệt thự.
+**Project (Dự án)**:
+A collection of properties owned by one Developer, containing Buildings and Property Units.
 
-**Tòa nhà/Block**:
-Một tòa nhà thuộc dự án, có số tầng xác định và chứa các căn hộ.
+**Building / Block (Tòa nhà)**:
+A building in one Project with a defined floor count and associated Apartments.
 
-**Căn**:
-Một bất động sản riêng lẻ trong danh mục, thuộc một trong ba loại: căn hộ, nhà phố hoặc biệt thự.
+**Property Unit (Căn)**:
+An individually identifiable Apartment, Townhouse or Villa in the catalogue.
+_Avoid_: Room, listing advertisement
 
-**Căn hộ**:
-Căn thuộc một tòa nhà và nằm ở một tầng xác định trong tòa nhà đó.
+**Apartment (Căn hộ)**:
+A Property Unit in a specified Building and on a specified floor.
 
-**Nhà phố**:
-Căn nhà thuộc trực tiếp dự án, có số tầng riêng.
+**Townhouse (Nhà phố)**:
+A house directly associated with a Project, optionally having its own floor count.
 
-**Biệt thự**:
-Căn biệt thự thuộc trực tiếp dự án, có số tầng riêng.
+**Villa (Biệt thự)**:
+A villa directly associated with a Project, optionally having its own floor count and area details.
 
-**Tạo căn hàng loạt**:
-Việc tạo nhiều căn cùng loại từ thông số được nhập chung và một dãy mã căn; giá của từng căn được thiết lập sau.
+**Bulk Creation (Tạo căn hàng loạt)**:
+Creation of multiple units of one type from shared information and a generated code sequence; prices are entered later.
 
-**Mã căn**:
-Mã nhận diện một căn, không trùng với mã căn khác trong cùng dự án.
+**Unit Code (Mã căn)**:
+A code that uniquely identifies a Property Unit within its Project.
 
-**Chưa có giá**:
-Tình trạng một căn chưa được nhân viên nhập giá; khác với việc căn có giá bằng không.
+**No Price Yet (Chưa có giá)**:
+The absence of a supplied unit price, distinct from a price of zero.
 
-**Đang quản lý**:
-Trạng thái căn đang nằm trong danh mục được đơn vị môi giới quản lý.
+**Managed (Đang quản lý)**:
+The unit is currently allocated to the Broker Organization's catalogue.
 
-**Ngừng quản lý**:
-Trạng thái căn không còn được đơn vị môi giới quản lý, chẳng hạn khi được giao sang một đơn vị khác.
+**Unmanaged (Ngừng quản lý)**:
+The unit is no longer allocated to the Broker Organization, such as when transferred to another broker.
 
-**Đã bán**:
-Trạng thái căn đã được ghi nhận là bán; việc ghi nhận này không bao gồm xử lý thanh toán.
+**Sold (Đã bán)**:
+The unit has been recorded as sold; this system does not process payment.
 
-**Thông tin bổ sung**:
-Thông tin mô tả căn theo cặp tên–giá trị mà nhân viên có thể thêm hoặc sửa khi nhận thêm dữ liệu.
+**Additional Information (Thông tin bổ sung)**:
+Editable named descriptive values supplied in addition to the standard unit fields.
 
-**Lịch sử trạng thái**:
-Bản ghi các lần đổi trạng thái quản lý của căn, gồm người đổi, thời điểm, trạng thái trước/sau và lý do.
+**Status History (Lịch sử trạng thái)**:
+The record of management-status changes, including actor, time, previous/new status and reason.
+
+**Admin**:
+An internal staff member who also manages accounts and backup requests.
+
+**Project Summary**:
+A dated view of units in a Project by management status and managed units awaiting a price.

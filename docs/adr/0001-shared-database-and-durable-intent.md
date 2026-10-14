@@ -1,0 +1,3 @@
+# Share one database and persist asynchronous intent
+
+For this three-person, two-to-three-week assignment, the REST API and Worker share SQL Server while the independent gRPC service only generates codes. Record asynchronous intent in a small SQL outbox alongside the originating transaction rather than attempting an atomic SQL/Redis dual write; this adds one table and relay loop, but avoids silently losing accepted creation or backup requests when Redis is unavailable. Consumers remain idempotent because publish retries can deliver duplicates; separate service-owned databases and distributed transaction infrastructure are outside the assignment scope.

@@ -2,7 +2,7 @@
 
 Build a simple internal real-estate catalogue management assignment. Follow the requirements in `PRN232 - Final Assignment.pdf`. Avoid expanding the project into a production release.
 
-The current phase is requirements discovery using Matt Pocock's grilling and domain-modeling skills. Do not implement unresolved business decisions.
+Requirements discovery using Matt Pocock's grilling and domain-modeling skills is complete. The approved design is `docs/system-design.md`; consult it before implementation. Do not implement unresolved business decisions or expand the assignment scope.
 
 ## Agent skills
 

@@ -1,6 +1,14 @@
 # Requirements discovery
 
-Status: In progress. Business model and architecture are not yet finalized.
+Status: Scope approved by the user with “Triển đi” on 14 October 2026. The completed design is in [system-design.md](system-design.md). The interview notes below are historical; pending wording in earlier rounds is superseded by later answers and the final approved scope.
+
+## Final approval
+
+- Daily backup and one asynchronous backup request per successful logical business mutation, including bulk creation as one transaction.
+- Serial execution; backup captures DB state when run, not an exact intermediate snapshot.
+- Seven successful Daily backups plus seven successful Change/Manual backups, Admin trigger and manual restore guide.
+- English documentation and white/navy/cyan PNG + SVG diagrams.
+- Application implementation remains pending; documentation and design artifacts are the current deliverable.
 
 ## Confirmed scope
 
@@ -106,6 +114,4 @@ Context; Problems; Solutions; Main Actors; Main Features; System Architecture (C
 
 ## Open decisions
 
-- Final confirmation of backup transaction granularity, asynchronous snapshot semantics, retention, restore scope and permissions.
-- Final treatment of batch numbering and concurrency/error behavior in the design document.
-- Final scope confirmation before writing the complete design document.
+No business-scope questions remain for the documentation deliverable. Routine numbering bounds, concurrency and failure handling are specified in the completed design. Exact package/image patches and actual team member names are to be filled during implementation.
