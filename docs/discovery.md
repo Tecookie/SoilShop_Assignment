@@ -12,6 +12,16 @@ Status: In progress. Business model and architecture are not yet finalized.
 - Documentation in `docs/`; images in `docs/diagrams/images/`.
 - C4 diagrams limited to Level 1 and Level 2.
 
+## Confirmed business model — round 2
+
+- Each project belongs to one developer.
+- Projects may contain buildings/blocks. Apartments belong to a building; townhouses and villas belong directly to the project.
+- Unit types: Apartment, Townhouse, Villa. High-rise/low-rise describe buildings, not unit types.
+- Building floor count differs from an apartment's floor number and a townhouse/villa's own floor count.
+- Main creation workflow: bulk creation by unit type, with support for generating a sequence of unit codes.
+- Prices are assigned after units are created; creation does not require entering each unit's price.
+- Exact sequence rules, default fields, preview behavior, and pricing workflow remain open.
+
 ## Assignment requirements
 
 Source: `PRN232 - Final Assignment.pdf`, pages 1–3.
@@ -35,9 +45,9 @@ Context; Problems; Solutions; Main Actors; Main Features; System Architecture (C
 
 ## Open decisions
 
-- Developer/project/unit relationships and any building/block hierarchy.
-- Property types, fields, and meaning of number of floors.
-- Defaults versus user-entered values; single versus batch creation.
+- Exact building fields and unit fields per type.
+- Sequence rules, bulk creation scope, defaults, and preview behavior.
+- Price assignment after creation and handling units without a price.
 - Roles, permissions, lifecycle, deletion rules, and catalogue searches.
 - Business use of gRPC, messaging, and background processing.
 - Technology choices, frontend scope, and team/time constraints.
