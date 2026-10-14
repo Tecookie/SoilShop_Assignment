@@ -23,6 +23,20 @@ Status: In progress. Business model and architecture are not yet finalized.
 - Team: 3 people. Time remaining: approximately 2–3 weeks.
 - Frontend: a simple React web application.
 
+## Confirmed functionality and architecture — round 5
+
+- Required unit identity: code, type, project, and building/floor for apartments.
+- Descriptive attributes may be unknown and left empty.
+- Additional unit information uses editable name/value pairs; no filtering or formulas on these fields in the initial scope.
+- New units default to Managed. Employees may set Unmanaged or Sold, select multiple units to stop managing, and reactivate an existing unit when reassigned.
+- Status corrections require a short reason. Keep status history including actor, timestamp, old/new status and reason.
+- Accepted bulk workflow: React input → REST API → independent gRPC numbering service → preview → confirmation → Redis Streams → .NET Worker → database → result visible in React.
+- Maximum 500 units per batch. Creation is all-or-nothing; processing status and created count are visible.
+- Accepted stack: React, ASP.NET Core, EF Core, SQL Server, Redis Streams, .NET gRPC, Docker Compose. Exact supported versions remain to be verified.
+- Employees can see the broker organization's full catalogue.
+- Search/filter by unit code, developer, project, building, type, management status, presence of price, and price range; sorting and pagination.
+- Proposed additional scheduled job (not yet confirmed): daily per-project catalogue summaries, including management-status counts and units missing a price, with a manual trigger for demonstration.
+
 ## Confirmed business model — round 2
 
 - Each project belongs to one developer.
@@ -68,9 +82,8 @@ Context; Problems; Solutions; Main Actors; Main Features; System Architecture (C
 
 ## Open decisions
 
-- Required versus optional fields and representation of flexible additional information; exact building fields.
-- Batch size, uneven floor layouts, numbering and validation edge cases.
-- Currency, price meaning, and price editing permissions.
-- Project assignment restrictions, lifecycle transitions, deletion rules, and catalogue searches.
-- Business use of gRPC, messaging, and background processing.
-- Technology choices, frontend scope, and team/time constraints.
+- Core fields for developers/projects/buildings and deletion rules.
+- Batch numbering details, price meaning/currency, and concurrency/error behavior.
+- Whether to include the proposed daily summary job and its visible result.
+- Documentation language and diagram style.
+- Final scope confirmation before writing the complete design document.

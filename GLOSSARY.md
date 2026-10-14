@@ -51,3 +51,9 @@ Trạng thái căn không còn được đơn vị môi giới quản lý, chẳ
 
 **Đã bán**:
 Trạng thái căn đã được ghi nhận là bán; việc ghi nhận này không bao gồm xử lý thanh toán.
+
+**Thông tin bổ sung**:
+Thông tin mô tả căn theo cặp tên–giá trị mà nhân viên có thể thêm hoặc sửa khi nhận thêm dữ liệu.
+
+**Lịch sử trạng thái**:
+Bản ghi các lần đổi trạng thái quản lý của căn, gồm người đổi, thời điểm, trạng thái trước/sau và lý do.
