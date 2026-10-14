@@ -51,6 +51,16 @@ Status: In progress. Business model and architecture are not yet finalized.
 - Diagrams: PNG and SVG, C4 L1/L2, conceptual ERD, physical database diagram.
 - User requested a different palette from the default cream look. Selected direction: white background, navy text, cyan accents; exact tokens will be recorded with the diagram source.
 
+## Backup trigger refinement — round 7
+
+- User requires backup after data changes, in addition to the proposed daily backup.
+- Proposed interpretation for final confirmation: enqueue a backup after each successful logical business-data transaction (catalogue create/edit/delete, price edits, status changes, additional information, account changes).
+- A bulk operation is one transaction and one backup request, not one request per row.
+- Backups run asynchronously and sequentially after commits; backup/job bookkeeping must not recursively trigger backups.
+- A change-triggered backup captures database state when the backup runs, possibly including later commits; it is not an exact snapshot of each intermediate mutation.
+- Proposed retention: 7 successful scheduled backups plus 7 successful change-triggered/manual backups in a separate Docker volume. Failed attempts do not count toward retention.
+- Proposed manual Admin trigger and README restore demonstration remain part of the final scope confirmation.
+
 ## Confirmed business model — round 2
 
 - Each project belongs to one developer.
@@ -96,6 +106,6 @@ Context; Problems; Solutions; Main Actors; Main Features; System Architecture (C
 
 ## Open decisions
 
-- Database backup schedule, storage, retention, restore scope and permissions.
+- Final confirmation of backup transaction granularity, asynchronous snapshot semantics, retention, restore scope and permissions.
 - Final treatment of batch numbering and concurrency/error behavior in the design document.
 - Final scope confirmation before writing the complete design document.
