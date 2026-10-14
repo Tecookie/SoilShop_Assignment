@@ -33,3 +33,9 @@ Căn biệt thự thuộc trực tiếp dự án, có số tầng riêng.
 
 **Tạo căn hàng loạt**:
 Việc tạo nhiều căn cùng loại từ thông số được nhập chung và một dãy mã căn; giá của từng căn được thiết lập sau.
+
+**Mã căn**:
+Mã nhận diện một căn, không trùng với mã căn khác trong cùng dự án.
+
+**Chưa có giá**:
+Tình trạng một căn chưa được nhân viên nhập giá; khác với việc căn có giá bằng không.

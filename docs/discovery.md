@@ -22,6 +22,18 @@ Status: In progress. Business model and architecture are not yet finalized.
 - Prices are assigned after units are created; creation does not require entering each unit's price.
 - Exact sequence rules, default fields, preview behavior, and pricing workflow remain open.
 
+## Confirmed business rules — round 3
+
+- Apartments: select building, start/end floor and units per floor; generate codes such as `A-0101` through `A-0510`.
+- Townhouses/villas: enter prefix, starting number and quantity; generate codes such as `NP-001` or `BT-001`.
+- Preview generated units before saving. Duplicate unit codes within the project are reported before saving.
+- A batch shares entered attributes; individual units can be edited after creation.
+- Apartment fields: usable area, bedroom count, bathroom count.
+- Townhouse fields: land area, building footprint area, own floor count, bedroom count, bathroom count.
+- Villa area details must not prevent creation when unknown. Interpretation pending clarification: retain optional area fields rather than removing them.
+- Newly created units have no price. An employee enters a unit's price later.
+- Batch pricing, price formulas, and price history have not been accepted as features.
+
 ## Assignment requirements
 
 Source: `PRN232 - Final Assignment.pdf`, pages 1–3.
@@ -45,9 +57,9 @@ Context; Problems; Solutions; Main Actors; Main Features; System Architecture (C
 
 ## Open decisions
 
-- Exact building fields and unit fields per type.
-- Sequence rules, bulk creation scope, defaults, and preview behavior.
-- Price assignment after creation and handling units without a price.
+- Required versus optional fields, especially villa area details; exact building fields.
+- Batch size, uneven floor layouts, numbering and validation edge cases.
+- Currency, price meaning, and price editing permissions.
 - Roles, permissions, lifecycle, deletion rules, and catalogue searches.
 - Business use of gRPC, messaging, and background processing.
 - Technology choices, frontend scope, and team/time constraints.
