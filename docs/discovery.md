@@ -12,6 +12,17 @@ Status: In progress. Business model and architecture are not yet finalized.
 - Documentation in `docs/`; images in `docs/diagrams/images/`.
 - C4 diagrams limited to Level 1 and Level 2.
 
+## Broker context and delivery constraints — round 4
+
+- The application serves a broker organization, not the developer's internal system.
+- Developers provide inventory and information to the broker; supplied details may be incomplete.
+- Unknown villa area details may remain empty. The user is open to additional changeable data; the exact extension mechanism is unresolved.
+- Roles accepted: Admin manages accounts and all catalogue data; Employee manages catalogue data and enters prices. No public registration.
+- Unit management statuses: Managed, Unmanaged, Sold.
+- Unmanaged includes units no longer assigned to this broker and handed to another party when the developer changes inventory allocation. Exact transition/reactivation rules remain open.
+- Team: 3 people. Time remaining: approximately 2–3 weeks.
+- Frontend: a simple React web application.
+
 ## Confirmed business model — round 2
 
 - Each project belongs to one developer.
@@ -57,9 +68,9 @@ Context; Problems; Solutions; Main Actors; Main Features; System Architecture (C
 
 ## Open decisions
 
-- Required versus optional fields, especially villa area details; exact building fields.
+- Required versus optional fields and representation of flexible additional information; exact building fields.
 - Batch size, uneven floor layouts, numbering and validation edge cases.
 - Currency, price meaning, and price editing permissions.
-- Roles, permissions, lifecycle, deletion rules, and catalogue searches.
+- Project assignment restrictions, lifecycle transitions, deletion rules, and catalogue searches.
 - Business use of gRPC, messaging, and background processing.
 - Technology choices, frontend scope, and team/time constraints.

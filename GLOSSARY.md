@@ -5,7 +5,10 @@ Các thuật ngữ đã thống nhất cho công cụ quản lý danh mục bấ
 ## Language
 
 **Nhân viên**:
-Người dùng nội bộ quản lý danh mục bất động sản của tổ chức.
+Người dùng nội bộ quản lý danh mục bất động sản của tổ chức môi giới.
+
+**Broker (Đơn vị môi giới)**:
+Tổ chức quản lý danh mục các căn được chủ đầu tư giao để môi giới; thông tin nhận được có thể chưa đầy đủ.
 
 **Danh mục bất động sản**:
 Tập hợp thông tin bất động sản được tổ chức quản lý để tra cứu và cập nhật nội bộ.
@@ -39,3 +42,12 @@ Mã nhận diện một căn, không trùng với mã căn khác trong cùng d�
 
 **Chưa có giá**:
 Tình trạng một căn chưa được nhân viên nhập giá; khác với việc căn có giá bằng không.
+
+**Đang quản lý**:
+Trạng thái căn đang nằm trong danh mục được đơn vị môi giới quản lý.
+
+**Ngừng quản lý**:
+Trạng thái căn không còn được đơn vị môi giới quản lý, chẳng hạn khi được giao sang một đơn vị khác.
+
+**Đã bán**:
+Trạng thái căn đã được ghi nhận là bán; việc ghi nhận này không bao gồm xử lý thanh toán.
