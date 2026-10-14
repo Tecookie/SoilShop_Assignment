@@ -37,6 +37,20 @@ Status: In progress. Business model and architecture are not yet finalized.
 - Search/filter by unit code, developer, project, building, type, management status, presence of price, and price range; sorting and pagination.
 - Proposed additional scheduled job (not yet confirmed): daily per-project catalogue summaries, including management-status counts and units missing a price, with a manual trigger for demonstration.
 
+## Confirmed documentation and scheduled jobs — round 6
+
+- Daily catalogue summary job accepted: 00:05 Asia/Ho_Chi_Minh, with a manual trigger. Dashboard displays the summary timestamp and counts rather than implying real-time results.
+- Database backup job requested. Storage, retention, timing, manual trigger and restore scope remain to be confirmed.
+- Developer: code/name required; contact details optional.
+- Project: code/name/developer required; address/description optional.
+- Building: code/name/project/floor count required.
+- Delete developers/projects/buildings only when they have no child records.
+- Preserve units with status history; use Unmanaged. Mistakenly created units without status history may be deleted.
+- Price is the total unit price in VND, optional at creation.
+- Final documentation language: English.
+- Diagrams: PNG and SVG, C4 L1/L2, conceptual ERD, physical database diagram.
+- User requested a different palette from the default cream look. Selected direction: white background, navy text, cyan accents; exact tokens will be recorded with the diagram source.
+
 ## Confirmed business model — round 2
 
 - Each project belongs to one developer.
@@ -82,8 +96,6 @@ Context; Problems; Solutions; Main Actors; Main Features; System Architecture (C
 
 ## Open decisions
 
-- Core fields for developers/projects/buildings and deletion rules.
-- Batch numbering details, price meaning/currency, and concurrency/error behavior.
-- Whether to include the proposed daily summary job and its visible result.
-- Documentation language and diagram style.
+- Database backup schedule, storage, retention, restore scope and permissions.
+- Final treatment of batch numbering and concurrency/error behavior in the design document.
 - Final scope confirmation before writing the complete design document.
