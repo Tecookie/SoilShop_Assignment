@@ -82,4 +82,4 @@ The user selected option A: a shop selling pre-packed bagged soil for ornamental
 
 ## Design status
 
-The approved scope is now specified in [the system design](system-design.md), including the three enrichment workflows, C4 Level 1/2 views, conceptual ERD and physical database. Schema and SQL prototypes have been verified; application implementation remains pending. Earlier interview notes above record discovery history and are superseded by explicit decisions in that design where details were subsequently resolved.
+The approved scope is now specified in [the system design](system-design.md), including the three enrichment workflows, C4 Level 1/2 views, conceptual ERD and physical database. Schema and SQL prototypes have been verified; the first runnable application increment and pending workflows are described in [implementation status](implementation.md). Earlier interview notes above record discovery history and are superseded by explicit decisions in that design where details were subsequently resolved.

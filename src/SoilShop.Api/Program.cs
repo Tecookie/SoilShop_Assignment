@@ -43,7 +43,9 @@ if (app.Configuration["Jwt:Key"] is not string signingKey || Encoding.UTF8.GetBy
 app.UseExceptionHandler();
 app.Use(async (context, next) => { context.Response.Headers["X-Content-Type-Options"] = "nosniff"; context.Response.Headers["X-Frame-Options"] = "DENY"; await next(); });
 app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization();
-app.UseSwagger(); app.UseSwaggerUI(); app.MapControllers();
+app.UseSwagger(options => options.RouteTemplate = "api/openapi/{documentName}.json");
+app.UseSwaggerUI(options => options.SwaggerEndpoint("/api/openapi/v1.json", "Soil Shop API v1"));
+app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "ready" }));
 await using (var scope = app.Services.CreateAsyncScope()) await DatabaseSetup.InitializeAsync(scope.ServiceProvider.GetRequiredService<ShopDbContext>(), app.Configuration);
 app.Run();

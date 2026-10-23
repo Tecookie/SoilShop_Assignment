@@ -1,6 +1,22 @@
-# Design Verification — 23 October 2026
+# Verification — 23 October 2026
 
 This report distinguishes tested design artifacts from an application implementation. The PostgreSQL tests use disposable isolated containers, not the user's running databases. The test containers and their own anonymous volumes are removed afterward.
+
+## Initial application increment
+
+The application now runs as six Compose services. See [implementation.md](implementation.md) for exact feature coverage and pending work.
+
+- `dotnet build SoilShop.sln` passed with zero warnings/errors; all four application Docker images built successfully.
+- `scripts/test.ps1` passed **12 tests**, using real disposable PostgreSQL 16 for HTTP integration. Coverage includes last-bag concurrent sales, duplicate confirmation, multi-line rollback, frozen prices, duplicate codes, stale catalogue edits, forbidden Employee writes, active-account checks, unexpected fields, nonwhole money, AutoMapper configuration and totals validation/overflow.
+- `scripts/browser_smoke.py` passed **nine workflow checks** against the actual Compose services: JWT login; Admin catalogue/supplier/SKU creation; six-bag receipt; two-bag sale at 110,000 VND; stock four; low-stock suggestion 26; two ledger entries; responsive viewports; sign-out and zero browser console/page errors. Form labels were corrected after the first browser run exposed ambiguous select names.
+- The API-to-calculation service calls completed using HTTP/2 gRPC, confirmed by calculation-host request logs. API outbox publication and Worker consumption are visible in their logs.
+- Two additional Redis entries carrying the same test event ID were consumed; a direct PostgreSQL query still returned exactly one active suggestion for the demo SKU.
+- OpenAPI JSON responds at `/api/openapi/v1.json` through Web. Only Web exposes a loopback host port.
+- `npm audit` and the .NET transitive vulnerable-package check reported no known vulnerabilities from their current sources on the test date.
+
+Machine-readable browser results are in [application-checks.json](application-checks.json). Screenshots show [desktop inventory](screenshots/inventory-desktop.png), [mobile inventory](screenshots/inventory-mobile.png) and [replenishment](screenshots/replenishment.png). Full transient test reports are generated under ignored `test-results/`.
+
+HTTP integration tests replace the calculation network boundary with a deterministic implementation. The browser run separately exercises the real gRPC host and Redis/Worker. These checks establish the initial increment, not every target feature or failure/recovery case.
 
 ## Database execution
 
@@ -31,4 +47,4 @@ The SQL functions in [concurrency-demo.sql](database/concurrency-demo.sql) are p
 
 ## Still pending during implementation
 
-React/API/gRPC/Worker source, EF migrations, application Dockerfiles/Compose, actual JWT/role enforcement, quote/ranking correctness, Redis crash/retry behavior, file-retention failure cases and full browser workflows. Source-backed metadata review invalidation and stock-count permissions also need application tests. A SQL prototype pass is not a deployed application test pass.
+Product recommendation ranking/review invalidation, stock-count/adjustment permissions, cancellation/reversal, draft editing/deletion, account management, suggestion conversion, scheduled/manual summaries/backups, backup retention failure cases and Redis outage/recovery tests remain pending. The earlier physical-count and backup checks below exercise SQL/design prototypes only; those application workflows are not implemented yet.

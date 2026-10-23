@@ -4,7 +4,7 @@
 
 This is the approved design for an internal shop selling pre-packed potting-soil bags. The previous real-estate work is [archived](archive/real-estate/system-design.md). Business decisions are in [gardening-discovery.md](gardening-discovery.md); terminology is in the [glossary](../GLOSSARY.md).
 
-The deliverable is documentation, diagrams and an executable PostgreSQL design baseline. No React/API/gRPC/Worker application is implemented yet. A SQL-only concurrency prototype has been tested separately; it is not evidence that the application already works.
+This document specifies the approved target scope. The first React/API/gRPC/Worker increment now runs locally; see [implementation status](implementation.md) for exactly which features are implemented and which remain pending. The earlier SQL-only design prototype remains separate evidence from application verification.
 
 ## 1. Context
 

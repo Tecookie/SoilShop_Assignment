@@ -1,6 +1,6 @@
 # Initial runnable application
 
-Status: In progress
+Status: Complete (initial runnable increment; subsequent approved workflows remain planned)
 
 Implement the approved design incrementally. This first runnable increment covers configuration, the 18-table EF model/migration, JWT login with active-account checks, Admin catalogue/SKU/supplier maintenance, Employee receipts/sales and transactional confirmation, gRPC totals, Redis outbox/low-stock consumer, React screens, and six-service Compose deployment. Verify real PostgreSQL concurrency, rollback and idempotency before browser verification.
 

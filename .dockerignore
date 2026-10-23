@@ -1,0 +1,14 @@
+**/bin
+**/obj
+**/node_modules
+**/dist
+.tools
+.git
+.env
+.env.*
+.serena
+test-results
+docs
+.scratch
+PRN232 - Final Assignment.pdf
+src/soilshop-web

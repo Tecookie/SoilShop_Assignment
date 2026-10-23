@@ -2,11 +2,27 @@
 
 Internal application for a shop that purchases pre-packed potting-soil bags and records stock receipts, counter sales and stock adjustments.
 
-**Current state: approved design complete; application implementation pending.** PostgreSQL schema, SQL concurrency/count prototypes and isolated dump/restore have been tested. This is not a deployed application.
+**Current state: first runnable application increment.** JWT login, catalogue, receipt/sale confirmation, stock history, gRPC totals and Redis/Worker low-stock suggestions run together in Docker Compose. The remaining approved workflows are listed in the [implementation guide](docs/implementation.md).
+
+## Run
+
+With Docker Desktop in Linux-container mode and PowerShell 7:
+
+```powershell
+./scripts/setup.ps1
+docker compose up -d --build
+```
+
+Open <http://localhost:8080>. Sign in with `BOOTSTRAP_USERNAME` / `BOOTSTRAP_PASSWORD` from the ignored root `.env`. Setup generates local secrets and preserves existing configuration. Credentials are not committed. See the [run/test guide](docs/implementation.md) for prerequisites, limits and subsequent work.
+
+## Source
+
+`SoilShop.sln` contains Domain, Application, Infrastructure, API, Calculation and Worker projects plus tests. React/Vite/TypeScript lives in `src/soilshop-web`. The API applies reviewed EF migrations on startup; use [ef-migrations.sql](docs/database/ef-migrations.sql) for the exported application schema.
 
 ## Documentation
 
 - [Confirmed scope and technology](docs/gardening-discovery.md).
+- [Implemented features, installation and tests](docs/implementation.md).
 - [System design](docs/system-design.md): Context, Problems, Solutions, Actors, Features, C4 C1/C2, Technology, conceptual ERD and Physical DB.
 - [Diagram gallery](docs/diagrams/index.html): C1, full C2 and focused synchronous/async C2 views, plus conceptual/physical models.
 - [PostgreSQL schema](docs/database/schema.sql) and [data dictionary](docs/database/data-dictionary.md).
@@ -23,9 +39,10 @@ React/Vite/TypeScript with plain CSS, ASP.NET Core, EF Core with Npgsql, Postgre
 - [x] New business scope and technology decisions.
 - [x] Revised English design, C4 L1/L2, conceptual ERD and PostgreSQL physical model.
 - [x] PostgreSQL schema and backup/restore guide with isolated SQL/restore checks.
-- [ ] Application source, reviewed EF migrations and demo seed data.
-- [ ] Dockerfiles and Docker Compose for all services/volumes.
-- [ ] OpenAPI/Swagger and working installation/deployment steps.
+- [x] Initial application source, reviewed EF migrations and browser-created demo records.
+- [x] Dockerfiles and Docker Compose for the current six-service increment.
+- [x] OpenAPI JSON and working local installation/deployment steps.
+- [ ] Remaining approved features, including advice, counts, cancellation, summaries and backups.
 - [ ] Integration checks, restore drill and end-to-end demonstration.
 - [ ] Named team responsibilities and presentation.
 

@@ -1,0 +1,39 @@
+{
+  "tested_on": "2026-10-23",
+  "application_tests": {
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "command": "scripts/test.ps1",
+    "database": "isolated PostgreSQL 16; calculation boundary replaced in HTTP tests"
+  },
+  "compose": {
+    "running_services": 6,
+    "real_grpc_calls_verified": true,
+    "openapi_path": "/api/openapi/v1.json"
+  },
+  "browser": {
+    "checks": [
+      "JWT login through React/Nginx/API",
+      "Admin product, supplier and sealed-package SKU creation",
+      "Receipt draft/confirm adds 6 bags using independent gRPC totals",
+      "Sale draft/confirm deducts 2 bags and freezes 110000 VND total",
+      "Live inventory shows 4 remaining bags",
+      "Responsive viewport checks at 320/768/1024/1440px",
+      "Redis/Worker creates one active suggestion for target30-current4=26 bags",
+      "Two stock movements are visible in the audit trail",
+      "Sign-out and zero browser console/page errors"
+    ],
+    "demoSkuId": 1,
+    "consoleErrors": []
+  },
+  "duplicate_delivery": {
+    "additional_entries_with_same_id": 2,
+    "active_suggestions_for_demo_sku_after_consumption": 1
+  },
+  "dependency_audits": {
+    "npm_known_vulnerabilities": 0,
+    "dotnet_known_vulnerabilities": 0
+  },
+  "limits": "This is initial-increment verification, not acceptance of pending target workflows."
+}
