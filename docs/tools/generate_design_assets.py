@@ -1,223 +1,218 @@
-"""Regenerate diagram HTML and the SQL-derived data dictionary; no application code."""
+"""Render editable diagram-design HTML from approved shop model; no application code."""
 from pathlib import Path
-import html
-import re
 import json
-import math
+from diagram_primitives import OUT, ROOT, P, esc, text, rect, label, edge, node, save, DIAGRAMS
+from schema_model import TABLES, generate
 
-ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / 'docs' / 'diagrams'
-OUT.mkdir(parents=True, exist_ok=True)
-P = {'paper':'#FFFFFF','paper-2':'#F1F5F9','ink':'#142B49','muted':'#48617C',
-     'soft':'#48617C','rule':'#D5DFEA','rule-solid':'#48617C','accent':'#007C91',
-     'accent-tint':'#E8F6FA','link':'#175E9B'}
+generate()
 
-def esc(s):
-    return html.escape(str(s), quote=True)
+def box(x,y,w,h,title,kind,lines=(),focal=False,external=False,store=False):
+    return node(x,y,w,h,title,kind,lines,focal,external,store)
 
-def text(x,y,s,size=12,color='ink',weight=400,anchor='start',mono=False):
-    family = 'Consolas, monospace' if mono else 'Segoe UI, Arial, sans-serif'
-    return f'<text x="{x}" y="{y}" font-size="{size}" fill="{P[color]}" font-weight="{weight}" text-anchor="{anchor}" font-family="{family}">{esc(s)}</text>'
+# C1 includes real offline business actors, never fake external software integrations.
+b=edge([(344,368),(576,368)],'OPERATIONS',(460,344))
+b+=edge([(800,704),(800,544)],'ADMIN',(900,620))
+b+=edge([(1200,208),(1088,208),(1088,120),(208,120),(208,280)],'SUPPLY INFO',(704,96),dashed=True)
+b+=edge([(1200,600),(1120,600),(1120,864),(208,864),(208,464)],'COUNTER SALE',(736,840),dashed=True)
+b+=box(64,280,280,184,'Employee','Person',[
+    'Receive goods and record sales','Ask for explained product advice','Count stock; review replenishment','No price override or Admin approval'])
+b+=box(576,264,448,280,'Potting Soil Shop','Software system',[
+    'One internal shop / one stock location','Catalogue + source-backed product advice','Receipts / sales with frozen price snapshots',
+    'Safe stock with traceable inventory changes','Replenishment and count approval','Scheduled reports + daily/manual backup'],True)
+b+=box(576,704,448,120,'Admin / Owner','Person',[
+    'Accounts, prices, metadata, cancellations','Count approval, adjustments and backups'])
+b+=box(1200,144,320,160,'Supplier','External person',[
+    'Delivers pre-packed bags','Provides product-label information','Offline channels; no system login'],external=True)
+b+=box(1200,520,320,160,'Walk-in Customer','External person',[
+    'Describes needs to staff','Purchases at the counter','No storefront or customer account'],external=True)
+save('c4-l1-context','C1 — System Context','Employee and Admin use the shop system; Supplier and Customer interact with staff offline.',b,
+     'Business context only. Databases, brokers and gRPC are internal containers and appear at Level 2.',
+     'Solid = application access    Dashed = offline human interaction    No supplier/payment/AI integration',1600,960)
 
-def rect(x,y,w,h,fill='paper',stroke='rule-solid',radius=6,dash=False):
-    return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}" fill="{P[fill]}" stroke="{P[stroke]}" stroke-width="1.2"'+(' stroke-dasharray="6 4"' if dash else '')+'/>'
+# C2 overview: nine nodes; protocol arrows and responsibility text enrich real boundaries.
+b=rect(304,104,1440,920,stroke='rule',dash=True)+text(328,126,'POTTING SOIL SHOP — APPLICATION BOUNDARY',9,'soft',mono=True)
+b+=edge([(248,336),(288,336),(288,392),(336,392)],'STAFF',(288,312))
+b+=edge([(248,616),(272,616),(272,472),(336,472)],'ADMIN',(312,640))
+b+=edge([(584,432),(720,432)],'REST / JWT',(652,408))
+b+=edge([(848,344),(848,280)],'GRPC',(944,312))
+b+=edge([(816,576),(816,768)],'EF / NPGSQL',(912,672))
+b+=edge([(1040,392),(1136,392),(1136,208),(1248,208)],'XADD',(1152,184))
+b+=edge([(1392,344),(1392,280)],'READ / ACK',(1488,312))
+b+=edge([(1248,500),(1152,500),(1152,840),(1040,840)],'EF / PGDUMP',(1224,680))
+b+=edge([(1408,576),(1408,768)],'ARCHIVE I/O',(1528,672))
+b+=box(40,264,208,144,'Employee','Person',['Sales / receipts','Advice / counts'])
+b+=box(40,544,208,144,'Admin','Person',['Approvals / pricing','Accounts / backups'])
+b+=box(336,344,248,184,'React Web','Container',['React + Vite + TypeScript','Nginx /api proxy','Forms, advice and history','Polling reports and job results'])
+b+=box(720,344,320,232,'REST API','Container',[
+    'ASP.NET Core + EF / AutoMapper','JWT and role enforcement','Service-owned business transitions',
+    'Atomic stock / ledger / outbox','Quote and advice orchestration','Hosted outbox relay = producer'],True)
+b+=box(720,136,320,144,'Advisory & Calculation','Container',['.NET gRPC / Protobuf / HTTP2','CalculateTotals + RecommendProducts','Stateless rules; no DB access'])
+b+=box(1248,136,304,144,'Redis Streams','Container',['Consumer groups + pending ACK','AOF / persistent volume','At-least-once event delivery'])
+b+=box(1248,344,304,232,'Background Worker','Container',[
+    '.NET Worker / consumer','Low-stock recheck + suggestions','Report generation and refresh',
+    'Serial pg_dump + file retention','Schedules + retry / reconciliation','No sale stock deductions'])
+b+=box(720,768,320,184,'PostgreSQL','Database',[
+    'Catalogue / slips / stock versions','Ledger, counts and replenishment','Outbox / summaries / backup runs'],True,store=True)
+b+=box(1248,768,304,184,'Backup Archive Volume','File store',[
+    'Worker writes .dump archives','7 successful files total','Daily + Admin manual trigger'],store=True)
+save('c4-l2-containers','C2 — Complete Container View','Two internal roles access Web/API; API calls stateless gRPC, commits PostgreSQL transactions and publishes durable outbox events to Redis for Worker follow-up.',b,
+     'Six executing services plus one file store. Direct responses are implicit; focused C2 views explain synchronous and async paths.',
+     'Arrows = connection initiator or file writer    Dashed box = system boundary    No extra component-level boxes',1800,1120)
 
-def label(x,y,s):
-    # Labels sit on opaque masks, at least 8px clear of connector strokes.
-    w = max(40,len(s)*6.3+16)
-    return f'<rect x="{x-w/2}" y="{y-12}" width="{w}" height="20" fill="{P["paper"]}"/>'+text(x,y+2,s,9,'muted',anchor='middle',mono=True)
+b=edge([(304,424),(400,424)],'STAFF INTENT',(352,400))
+b+=edge([(640,424),(800,424)],'REST / JWT',(720,400))
+b+=edge([(960,344),(960,280)],'GRPC / HTTP2',(1072,312))
+b+=edge([(928,560),(928,704)],'TRANSACTION',(1040,632))
+b+=box(64,344,240,160,'Employee / Admin','People',['Select need or SKU quantities','Review quote / confirmation','Handle 409 conflict feedback'])
+b+=box(400,344,240,160,'React Web','Container',['Advice reasons and source','Sale / receipt draft forms','Stock-count approval UI'])
+b+=box(800,344,320,216,'REST API','Container',[
+    '1. Load trusted prices / metadata','2. Call RPC outside stock locks','3. Lock document + ordered SKUs','4. Recheck price / guarded stock','5. Commit slip + ledger + outbox'],True)
+b+=box(800,136,320,144,'Advisory & Calculation','Container',['Calculate whole-VND totals','Rank positive metadata matches','Return reasons + rule version'])
+b+=box(800,704,320,144,'PostgreSQL','Database',['Conditional stock update + versions','All lines succeed or all roll back'],store=True)
+b+=text(1200,384,'LAST BAG',14,'accent',600)+text(1200,412,'Two confirmations, one bag:',12)+text(1200,436,'one commit, one 409 conflict.',12)
+b+=text(64,720,'NO RESERVATION IN DRAFT',14,'accent',600)+text(64,748,'A repeated action key returns the recorded result.',12)+text(64,772,'Advice availability is rechecked when the sale commits.',12)
+save('c4-l2-synchronous','C2 — Advice and Synchronous Stock','A filtered Level 2 perspective shows direct Web/API/gRPC/PostgreSQL requests and where atomic stock correctness is enforced.',b,
+     'Same containers as overview; workflow notes are responsibilities, not C4 components. No Redis dependency for sale acceptance.',
+     'API → gRPC returns totals/reasons    API → PostgreSQL commits authoritative business state',1600,960)
 
-def rounded(points,r=8):
-    d=f'M {points[0][0]},{points[0][1]}'
-    for i in range(1,len(points)-1):
-        a,b,c=points[i-1],points[i],points[i+1]
-        if (a[0]==b[0]==c[0]) or (a[1]==b[1]==c[1]):
-            d+=f' L {b[0]},{b[1]}'
-            continue
-        before=(b[0]+math.copysign(r,a[0]-b[0]) if a[0]!=b[0] else b[0],
-                b[1]+math.copysign(r,a[1]-b[1]) if a[1]!=b[1] else b[1])
-        after=(b[0]+math.copysign(r,c[0]-b[0]) if c[0]!=b[0] else b[0],
-               b[1]+math.copysign(r,c[1]-b[1]) if c[1]!=b[1] else b[1])
-        d+=f' L {before[0]},{before[1]} Q {b[0]},{b[1]} {after[0]},{after[1]}'
-    return d+f' L {points[-1][0]},{points[-1][1]}'
+b=edge([(344,424),(480,424)],'XADD',(412,400))
+b+=edge([(928,424),(760,424)],'READ / ACK',(844,400))
+b+=edge([(344,500),(400,500),(400,752),(928,752)],'DURABLE INTENT',(648,728))
+b+=edge([(1024,544),(1024,680)],'EF / PGDUMP',(1136,616))
+b+=edge([(1088,344),(1088,272)],'FILE WRITE',(1200,308))
+b+=box(64,344,280,200,'REST API','Container',[
+    'Business TX writes outbox row','Hosted relay publishes XADD','Mark published only after send','Manual summary / backup request'],True)
+b+=box(480,344,280,200,'Redis Streams','Container',[
+    'InventoryChanged / job requests','Consumer group and pending list','Reclaim after crash; ACK last','No business stock authority'])
+b+=box(928,344,304,200,'Background Worker','Container',[
+    'Read current stock and thresholds','Upsert one active suggestion','Daily/manual reports and backups','Idempotent handling + reconciliation'],True)
+b+=box(928,680,304,144,'PostgreSQL','Database',['Outbox / suggestion and job state','Consistent report snapshot'],store=True)
+b+=box(928,128,304,144,'Backup Archive Volume','File store',['pg_dump custom format','Retain seven successful archives'],store=True)
+b+=text(64,176,'ASYNCHRONOUS FOLLOW-UP',14,'accent',600)+text(64,204,'Redis delay does not undo or delay a completed sale.',12)+text(64,228,'Duplicate delivery must not duplicate suggestions or jobs.',12)
+save('c4-l2-asynchronous','C2 — Async Replenishment and Backups','A filtered Level 2 perspective shows API outbox publishing, Redis consumption, persistent job state and Worker-owned backup archives.',b,
+     'Daily schedules also run inside Worker. Worker writes dump files; PostgreSQL is queried over its normal connection.',
+     'XADD = API producer    READ / ACK = Worker consumer    DB intent and consumer results survive process restarts',1600,960)
 
-def edge(points,lab=None,at=None,arrow=True,dashed=False,accent=False):
-    color=P['accent' if accent else 'muted']
-    a=f'<path d="{rounded(points)}" fill="none" stroke="{color}" stroke-width="1.5"'
-    if arrow: a+=' marker-end="url(#arrow)"'
-    if dashed: a+=' stroke-dasharray="6 4"'
-    return a+'/>'+ (label(*at,lab) if lab else '')
+# Conceptual trading view: 8 nodes / 9 relationships, with line entities explicit.
+def ent(x,y,name,lines=(),focal=False): return box(x,y,240,112,name,'Entity',lines,focal)
+b=edge([(304,200),(400,200)],'1 / 0..N',(352,178),arrow=False)
+b+=edge([(640,200),(736,200)],'1 / 0..N',(688,178),arrow=False)
+b+=edge([(976,200),(1072,200)],'N / 1',(1024,178),arrow=False)
+b+=edge([(520,256),(520,432)],'1 / 0..N',(584,344),arrow=False)
+b+=edge([(640,488),(736,488)],'N / 1',(688,466),arrow=False)
+b+=edge([(1192,256),(1192,432)],'N / 1',(1256,344),arrow=False)
+b+=ent(64,144,'Product',['Source-backed soil metadata'])
+b+=ent(400,144,'SKU',['Package, price and bag stock'],True)
+b+=ent(736,144,'Receipt Line',['Actual cost and bag quantity'])
+b+=ent(1072,144,'Purchase Receipt',['Draft / Confirmed / Cancelled'])
+b+=ent(400,432,'Sale Line',['Frozen price and quantity'])
+b+=ent(736,432,'Sales Slip',['Staff records counter sale'])
+b+=ent(1072,432,'Supplier',['Offline goods / label source'])
+save('erd-trading','Conceptual ERD — Catalogue and Trading','Products have SKUs; purchase and sale lines reference SKUs; receipts belong to Suppliers.',b,
+     'Read each label from first named/source endpoint to second. Drafts may have zero lines; confirmed slips require at least one.',
+     'Product → SKU    SKU → Receipt/Sale lines    Lines → document    Supplier → receipts',1440,720)
 
-def node(x,y,w,h,name,tag,lines=(),focal=False,external=False,store=False):
-    body=rect(x,y,w,h,'accent-tint' if focal else 'paper','accent' if focal else 'rule-solid',8,dash=external)
-    if store:
-        body+=f'<path d="M{x},{y+16} Q{x+w/2},{y+32} {x+w},{y+16}" stroke="{P["muted"]}" fill="none"/>'
-    body+=text(x+16,y+36 if store else y+24,tag.upper(),9,'soft',mono=True)
-    body+=text(x+16,y+56 if store else y+48,name,16,weight=600)
-    for i,s in enumerate(lines): body+=text(x+16,y+(76 if store else 68)+i*16,s,11,'muted')
-    return body
+# Conceptual inventory view; identity links to actor/master data are tabulated in the document.
+b=edge([(304,200),(400,200)],'1 / 0..N',(352,178),arrow=False)
+b+=edge([(640,200),(736,200)],'1 / 0..1',(688,178),arrow=False)
+b+=edge([(976,200),(1072,200)],'1 / 1',(1024,178),arrow=False)
+b+=edge([(184,256),(184,432)],'1 / 0..N',(248,344),arrow=False)
+b+=edge([(304,488),(400,488)],'1 / 0..1',(352,466),arrow=False)
+b+=edge([(184,144),(184,112),(1192,112),(1192,144)],'1 / 0..N',(688,90),arrow=False)
+b+=ent(64,144,'SKU',['Current stock + stock version'],True)
+b+=ent(400,144,'Stock Count',['Expected vs actual; review'])
+b+=ent(736,144,'Stock Adjustment',['Approved discrepancy / damage'])
+b+=ent(1072,144,'Stock Movement',['Immutable signed stock audit'])
+b+=ent(64,432,'Restock Suggestion',['One active item per SKU'])
+b+=ent(400,432,'Receipt Draft',['Conversion does not add stock'])
+b+=ent(880,432,'Plant / Use Tag',['Source-backed product labels'])
+b+=ent(1200,432,'Product',['Optional metadata'])
+b+=edge([(1120,488),(1200,488)],'N / M',(1160,466),arrow=False)
+save('erd-operations','Conceptual ERD — Advice and Stock Control','A SKU has physical counts and replenishment suggestions; accepted discrepancies become adjustments and ledger entries; products carry use tags.',b,
+     'Count may yield zero or one adjustment. Each adjustment has one ledger entry; other movements originate from receipts/sales.',
+     'Actor, Supplier and SKU references are detailed in the relationship table and physical model.',1520,720)
 
-DIAGRAMS=[]
-def save(slug,title,desc,body,caption,legend='Solid: connection / relationship    Dashed: offline or system boundary'):
-    w,h=1280,720
-    svg=(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" role="img" aria-labelledby="{slug}-title {slug}-desc">'
-         f'<title id="{slug}-title">{esc(title)}</title><desc id="{slug}-desc">{esc(desc)}</desc>'
-         f'<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 Z" fill="{P["muted"]}"/></marker></defs>'
-         f'<rect width="1280" height="720" fill="{P["paper"]}"/>'
-         +text(40,40,title,28,weight=600)+text(40,64,'BROKER PROPERTY CATALOGUE / PRN232 / DESIGN',9,'soft',mono=True)
-         +body+f'<line x1="40" y1="656" x2="1240" y2="656" stroke="{P["rule"]}"/>'
-         +text(40,680,legend,11,'muted')+text(40,704,caption,11,'muted')+'</svg>')
-    document=(f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{esc(title)}</title>'
-              '<style>body{margin:0;background:#fff;color:#142B49;font-family:Segoe UI,Arial,sans-serif}main{max-width:1320px;margin:24px auto;padding:16px;min-width:0}.diagram-container{width:100%;overflow-x:auto}svg{display:block;width:1280px;min-width:1280px}p{line-height:1.6}a{color:#175E9B}@media print{.diagram-container{overflow-x:visible}svg{width:100%;min-width:0}}</style></head>'
-              f'<body><main><div class="diagram-container">{svg}</div><p>{esc(desc)}</p><p><a href="index.html">All diagrams</a> · <a href="images/{slug}.svg">SVG</a> · <a href="images/{slug}.png">PNG</a></p></main></body></html>')
-    (OUT/f'{slug}.html').write_text(document,encoding='utf-8')
-    DIAGRAMS.append((slug,title,desc))
-
-# C4 L1: offline developer information is represented as a person relationship.
-b=edge([(352,248),(440,248),(440,280),(536,280)],'MAINTAINS',(440,230))
-b+=edge([(352,472),(456,472),(456,364),(536,364)],'ADMINISTERS',(400,400))
-b+=edge([(1008,272),(920,272),(920,200),(352,200)],'OFFLINE DATA',(752,182),dashed=True)
-b+=node(112,160,240,128,'Employee','Person',['Inventory, prices and status'])
-b+=node(112,400,240,128,'Admin','Person',['Accounts and backup requests'])
-b+=node(536,216,320,204,'Broker Property Catalogue','Software system',['Internal inventory for one broker','Bulk creation and missing details','Status history, summaries, backups'],focal=True)
-b+=node(1008,224,224,144,'Property Developer','External person',['Allocations and details','No login or API integration'],external=True)
-save('c4-l1-context','C4 Level 1 — System Context','Employees and Admin use the internal catalogue; developers supply information offline to employees.',b,'Developers are catalogue stakeholders, not connected software systems.')
-
-# C4 L2: one combined staff node keeps the container view focused on deployments.
-b=rect(224,88,832,544,stroke='rule',dash=True)+text(240,108,'BROKER PROPERTY CATALOGUE — CONTAINERS',9,'soft',mono=True)
-b+=edge([(200,348),(240,348)],'WEB',(220,326))
-b+=edge([(408,348),(464,348)],'REST/JSON',(436,326))
-b+=edge([(560,296),(560,232)],'GRPC/HTTP2',(628,264))
-b+=edge([(528,416),(528,508)],'EF / TDS',(576,464))
-b+=edge([(890,296),(890,232)],'STREAMS',(956,264))
-b+=edge([(800,380),(724,380),(724,552),(660,552)],'EF / TDS',(776,466))
-b+=edge([(660,584),(800,584)],'BACKUP',(740,612))
-b+=edge([(920,416),(920,508)],'PRUNE FILES',(984,464))
-b+=node(40,296,160,120,'Staff','People',['Admin + Employee'])
-b+=node(240,296,168,120,'React Web','Container',['React / Nginx','Forms and polling'])
-b+=node(464,296,196,120,'REST API','Container',['ASP.NET Core','JWT / CRUD / outbox'],focal=True)
-b+=node(464,120,196,112,'Numbering Service','Container',['.NET gRPC','Stateless previews'])
-b+=node(800,296,180,120,'Worker','Container',['.NET BackgroundService','Relay + job handlers'])
-b+=node(800,120,180,112,'Redis Streams','Container',['XADD / XREADGROUP','Async work delivery'])
-b+=node(464,508,196,120,'SQL Server','Database',['EF Core + job state'],focal=True,store=True)
-b+=node(800,508,180,120,'Backup Files','File store',['Named volume / .bak'],store=True)
-save('c4-l2-containers','C4 Level 2 — Containers','React calls the REST API, the API calls gRPC and SQL, and the Worker relays and consumes Redis work while SQL writes backup files.',b,'Worker produces + consumes streams. API records requests in SQL outbox; no direct API–Worker call.','Arrows: initiator of connection / file write    Boundary: application scope    Staff = Admin + Employee')
-
-# Conceptual model: entity relationships, no operational tables or SQL types.
-def entity(x,y,name,lines,focal=False):
-    return node(x,y,240,108,name,'Entity',lines,focal=focal)
-b=edge([(304,176),(400,176)],'1 / 0..N',(352,154),arrow=False)
-b+=edge([(640,176),(832,176)],'1 / 0..N',(736,154),arrow=False)
-b+=edge([(512,232),(512,348)],'1 / 0..N',(576,292),arrow=False)
-b+=edge([(832,208),(744,208),(744,388),(640,388)],'0..1 / 0..N',(816,300),arrow=False)
-b+=edge([(400,396),(304,396)],'1 / 0..N',(352,374),arrow=False)
-b+=edge([(640,428),(832,428)],'1 / 0..N',(736,408),arrow=False)
-b+=edge([(952,540),(952,456)],'1 / 0..N',(1020,500),arrow=False)
-b+=entity(64,124,'Developer',['Supplies inventory'])
-b+=entity(400,124,'Project',['Owned by one Developer'])
-b+=entity(832,124,'Building',['In one Project; floor count'])
-b+=entity(400,348,'Property Unit',['Apartment / Townhouse / Villa','Optional details and price'],True)
-b+=entity(64,348,'Additional Information',['Editable name–value pairs'])
-b+=entity(832,348,'Status Change',['From / to / reason / time'])
-b+=entity(832,540,'Staff Account',['Actor who changes status'])
-save('erd-conceptual','Conceptual ERD — Business Catalogue','Developers own Projects; Units belong to Projects, Apartments also belong to Buildings, and Units have additional information and status changes.',b,'Building is required only for Apartments; its Project must equal the Unit’s Project.','Read 1 / 0..N as parent / children. Building edge: each Unit has 0..1 Building; each Building has 0..N Units.')
-
-# Derive column inventory directly from baseline SQL.
-sql=(ROOT/'docs/database/schema.sql').read_text(encoding='utf-8')
-TABLES={}
-for match in re.finditer(r'CREATE TABLE dbo\.(\w+) \(\n(.*?)\n\);',sql,re.S):
-    name,body=match.groups()
-    cols=[]
-    for line in body.splitlines():
-        m=re.match(r'    (\w+) ((?:nvarchar|varchar|decimal|datetime2)\([^)]*\)|\w+) (.*)',line)
-        if m and m[1]!='CONSTRAINT':
-            col,typ,rest=m.groups()
-            cols.append({'name':col,'type':typ,'nullable':not bool(re.search(r'\bNOT NULL\b',rest)),'pk':'PRIMARY KEY' in rest,'definition':line.strip().rstrip(',')})
-    TABLES[name]={'columns':cols,'definition':body}
-assert len(TABLES)==12, f'Expected 12 tables, got {len(TABLES)}'
-dictionary=['# Physical Database Data Dictionary','','SQL Server baseline: `BrokerCatalogue`. Generated from [schema.sql](schema.sql). All foreign keys use NO ACTION unless explicitly marked CASCADE. Operational EventId/OperationId references are enforced by handlers, not polymorphic SQL foreign keys.','','Unknown descriptive values use NULL. UTC timestamps use datetime2(3); rowversion is a concurrency token, not a date. The Services reject fractional VND before SQL conversion.','']
-for name,t in TABLES.items():
-    dictionary+=['## '+name,'','| Column | SQL type | Nullable | Definition / inline constraint |','|---|---|---|---|']
-    for c in t['columns']:
-        dictionary.append(f'| {c["name"]} | `{c["type"]}` | {"Yes" if c["nullable"] else "No"} | `{c["definition"]}` |')
-    dictionary+=['','Table-level constraints:','','```sql',t['definition'],'```','']
-dictionary+=['## Indexes','','```sql',sql[sql.index('CREATE INDEX IX_Projects'):sql.index('-- Service invariants')].replace('\nGO\n','\n'),'```','','## Service-level invariants','',sql[sql.index('-- Service invariants'):].replace('-- ','- ')]
-(ROOT/'docs/database/data-dictionary.md').write_text('\n'.join(dictionary),encoding='utf-8')
-(OUT/'schema-metadata.json').write_text(json.dumps(TABLES,indent=2),encoding='utf-8')
-
-def table(x,y,name,fields,focal=False):
+def table(x,y,name,fields):
     cols={c['name']:c for c in TABLES[name]['columns']}
     omitted=len(cols)-len(fields)
-    height=48+24*len(fields)+(32 if omitted else 8)
-    result=rect(x,y,320,height)
-    result+=rect(x,y,320,48,'accent-tint' if focal else 'paper-2','accent' if focal else 'rule-solid',0)
-    result+=text(x+12,y+18,'TABLE',8,'soft',mono=True)+text(x+12,y+38,'dbo.'+name,14,weight=600)
+    h=48+24*len(fields)+(32 if omitted else 8)
+    result=rect(x,y,336,h)+rect(x,y,336,48,'paper-2',radius=0)
+    result+=text(x+12,y+18,'TABLE',8,'soft',mono=True)+text(x+12,y+38,name,14,weight=600)
     for i,f in enumerate(fields):
         c=cols[f]; yy=y+48+24*i
-        if i%2==0: result+=f'<rect x="{x+1}" y="{yy}" width="318" height="24" fill="{P["paper-2"]}"/>'
-        result+=text(x+12,yy+16,f,12,weight=600)+text(x+308,yy+16,c['type']+(' ?' if c['nullable'] else ''),9,'muted',anchor='end',mono=True)
-        if c['pk']: result+=text(x+164,yy+16,'PK',8,'soft',mono=True)
+        if i%2==0: result+=f'<rect x="{x+1}" y="{yy}" width="334" height="24" fill="{P["paper-2"]}"/>'
+        result+=text(x+12,yy+16,f,12,weight=600)+text(x+324,yy+16,c['type']+(' ?' if c['nullable'] else ''),9,'muted',anchor='end',mono=True)
+        if f=='id': result+=text(x+208,yy+16,'PK',8,'soft',mono=True)
+        elif any(link[0]==f for link in TABLES[name]['foreign_keys']): result+=text(x+208,yy+16,'FK',8,'soft',mono=True)
     if omitted: result+=text(x+12,y+48+24*len(fields)+20,f'+ {omitted} more columns — see dictionary',9,'muted',mono=True)
     return result
 
-def db_edge(points,at,action='NO ACTION'):
-    return edge(points,action,at,accent=action=='CASCADE')
-
-def physical(slug,title,desc,edges,tables,caption):
-    b=''.join(db_edge(*e) for e in edges)
+def physical(slug,title,description,tables,edges,caption,w=1440,h=720):
+    b=''.join(edge(points,action,at) for points,at,action in edges)
     b+=''.join(table(*t) for t in tables)
-    save(slug,title,desc,b,caption,'FK arrows: child column → parent key    NO ACTION = restrict deletion    ? = nullable; all columns in dictionary')
+    save(slug,title,description,b,caption,'FK: child column → parent key    RESTRICT preserves referenced history    ? = nullable',w,h)
 
-physical('db-catalogue','Physical DB — Master Catalogue','Projects reference Developers and Buildings reference Projects; deletion is restricted.',[
-    ([(480,204),(432,204),(432,180),(384,180)],(432,162)),
-    ([(896,204),(848,204),(848,180),(800,180)],(848,162))], [
-    (64,120,'Developers',['Id','Code','Name','ContactName','Email','Phone']),
-    (480,120,'Projects',['Id','DeveloperId','Code','Name','Address']),
-    (896,120,'Buildings',['Id','ProjectId','Code','Name','FloorCount','Classification'])],
-    'Unique codes: Developer and Project globally; Building within Project. Building also exposes unique (ProjectId, Id).')
+physical('db-catalogue','Physical DB — Products and SKU Stock','SKUs reference Products and an optional preferred Supplier.',[
+    (40,144,'products',['id','code','name','source_reference','reviewed_by','drainage','water_retention']),
+    (552,144,'skus',['id','product_id','preferred_supplier_id','code','stock_qty','stock_version','sale_price_vnd']),
+    (1064,144,'suppliers',['id','code','name','is_active'])],[
+    ([(552,228),(464,228),(464,204),(376,204)],(464,180),'RESTRICT'),
+    ([(888,252),(976,252),(976,204),(1064,204)],(976,180),'RESTRICT')],
+    'SKU stock/version are Service-controlled. Products.reviewed_by also references users; see full dictionary.')
 
-physical('db-unit-location','Physical DB — Unit Location','Units reference Projects and Buildings with a same-Project composite constraint.',[
-    ([(480,204),(432,204),(432,180),(384,180)],(432,162)),
-    ([(800,228),(848,228),(848,180),(896,180)],(848,162))], [
-    (64,120,'Projects',['Id','Code','Name']),
-    (480,120,'Units',['Id','ProjectId','BuildingId','Code','UnitType','FloorNumber','PriceVnd']),
-    (896,120,'Buildings',['Id','ProjectId','Code','FloorCount'])],
-    'Building link is composite: Units(ProjectId, BuildingId) → Buildings(ProjectId, Id). Only Apartments have a Building.')
+physical('db-purchases','Physical DB — Purchase Receipts','Lines reference Receipt and SKU; historical receipt headers reference Supplier and staff.',[
+    (40,144,'purchase_receipts',['id','supplier_id','status','confirmed_at','total_vnd','confirmation_key']),
+    (552,144,'purchase_receipt_lines',['id','receipt_id','sku_id','quantity','unit_cost_vnd']),
+    (1064,144,'skus',['id','code','stock_qty','stock_version'])],[
+    ([(552,228),(464,228),(464,204),(376,204)],(464,180),'CASCADE'),
+    ([(888,252),(976,252),(976,204),(1064,204)],(976,180),'RESTRICT')],
+    'CASCADE is used only for eligible draft deletion. Confirmed header/lines are immutable through Services.')
 
-physical('db-unit-audit','Physical DB — Details and Status History','UnitAttributes cascade on eligible Unit deletion; immutable history restricts Unit and actor deletion.',[
-    ([(384,204),(432,204),(432,172),(480,172)],(432,150),'CASCADE'),
-    ([(896,204),(848,204),(848,188),(800,188)],(848,164)),
-    ([(1216,228),(1240,228),(1240,500),(1216,500)],(1184,392))], [
-    (64,120,'UnitAttributes',['Id','UnitId','Name','Value'],True),
-    (480,120,'Units',['Id','Code','ManagementStatus','PriceVnd','Version']),
-    (896,120,'UnitStatusHistory',['Id','UnitId','ChangedByUserId','OldStatus','NewStatus','Reason','ChangedAtUtc']),
-    (896,440,'Users',['Id','Username','Role','IsActive'])],
-    'Service permits Unit deletion only before any status history exists. Each status update and history row commit together.')
+physical('db-sales','Physical DB — Sale Snapshots','Sale lines reference a Sales document and SKU; confirmed prices remain frozen.',[
+    (40,144,'sales',['id','status','created_by','confirmation_key','total_vnd','cancellation_key','cancel_reason']),
+    (552,144,'sale_lines',['id','sale_id','sku_id','quantity','unit_price_vnd','sku_label_snapshot']),
+    (1064,144,'skus',['id','code','sale_price_vnd','stock_qty'])],[
+    ([(552,228),(464,228),(464,204),(376,204)],(464,180),'CASCADE'),
+    ([(888,252),(976,252),(976,204),(1064,204)],(976,180),'RESTRICT')],
+    'Action-key unique indexes + locked document state prevent repeated deductions and cancellations.')
 
-physical('db-batches','Physical DB — Bulk Creation','Accepted UnitBatches reference staff; created Units retain their originating Batch.',[
-    ([(480,228),(432,228),(432,180),(384,180)],(432,156)),
-    ([(896,204),(848,204),(848,180),(800,180)],(848,156))], [
-    (64,120,'Users',['Id','Username','Role']),
-    (480,120,'UnitBatches',['Id','RequestId','RequestedByUserId','ProjectId','BuildingId','Status','RequestedCount']),
-    (896,120,'Units',['Id','OriginBatchId','Code','ProjectId','UnitType'])],
-    'Batch also references Project and optional Building, as defined in SQL. PayloadJson holds immutable accepted unit data.')
+physical('db-inventory','Physical DB — Stocktaking and Audit','Counts and adjustments reference SKU; an approved nonzero count creates at most one adjustment.',[
+    (40,144,'skus',['id','stock_qty','stock_version']),
+    (552,144,'stock_counts',['id','sku_id','expected_qty','expected_stock_version','actual_qty','status','reviewed_by']),
+    (1064,144,'stock_adjustments',['id','sku_id','stock_count_id','delta_qty','request_key','created_by']),
+    (1064,448,'stock_movements',['id','adjustment_id','sku_id','kind','delta_qty','balance_after','stock_version_after'])],[
+    ([(552,228),(464,228),(464,204),(376,204)],(464,180),'RESTRICT'),
+    ([(1064,252),(976,252),(976,204),(888,204)],(976,180),'RESTRICT'),
+    ([(1400,532),(1432,532),(1432,204),(1400,204)],(1368,404),'RESTRICT')],
+    'Adjustment SKU/actor and ledger SKU/document/actor links are in SQL. Unique stock_count_id prevents duplicate approval.',1480,800)
 
-physical('db-summaries','Physical DB — Project Summaries','Each ProjectSummary belongs to one Project and one SummaryRun.',[
-    ([(480,204),(432,204),(432,180),(384,180)],(432,156)),
-    ([(800,228),(848,228),(848,180),(896,180)],(848,156))], [
-    (64,120,'Projects',['Id','Code','Name']),
-    (480,120,'ProjectSummaries',['Id','ProjectId','SummaryRunId','TotalCount','ManagedCount','SoldCount','ManagedWithoutPriceCount']),
-    (896,120,'SummaryRuns',['Id','EventId','ScheduledDate','RequestedByUserId','Status','AsOfUtc'])],
-    'Unique (SummaryRunId, ProjectId); one scheduled run per local date. SummaryRuns also has an optional Users FK.')
+physical('db-replenishment','Physical DB — Replenishment','Suggestion references SKU, optional Supplier and a linked receipt draft.',[
+    (40,144,'skus',['id','stock_qty','low_stock_threshold','target_stock','preferred_supplier_id']),
+    (552,144,'restock_suggestions',['id','sku_id','receipt_id','supplier_id','observed_qty','suggested_qty','status']),
+    (1064,144,'purchase_receipts',['id','supplier_id','status'])],[
+    ([(552,228),(464,228),(464,204),(376,204)],(464,180),'RESTRICT'),
+    ([(888,252),(976,252),(976,204),(1064,204)],(976,180),'RESTRICT')],
+    'A partial unique index allows only one Open/ReceiptDrafted suggestion per SKU; conversion adds no stock.')
 
-physical('db-operations','Physical DB — Outbox and Backups','Outbox carries durable intent; BackupRuns store execution and retention state and optionally reference requesting staff.',[
-    ([(800,228),(848,228),(848,180),(896,180)],(848,156))], [
-    (64,120,'OutboxMessages',['Id','Kind','OperationId','OccurredAtUtc','PublishedAtUtc','PublishAttempts']),
-    (480,120,'BackupRuns',['Id','EventId','RequestedByUserId','TriggerKind','Status','FileName','Retained']),
-    (896,120,'Users',['Id','Username','Role'])],
-    'EventId corresponds to Outbox Id by handler rule, not a SQL FK. Separate Daily vs Change/Manual retention pools.')
+physical('db-tags','Physical DB — Metadata Tags and Review','Product/tag associations support structured advisory metadata; source review belongs to staff.',[
+    (40,144,'products',['id','source_reference','reviewed_by','reviewed_at','ph_min','ph_max']),
+    (552,144,'product_plant_tags',['id','product_id','plant_tag_id']),
+    (1064,144,'plant_tags',['id','code','name']),
+    (40,448,'users',['id','username','role','is_active'])],[
+    ([(552,228),(464,228),(464,204),(376,204)],(464,180),'CASCADE'),
+    ([(888,252),(976,252),(976,204),(1064,204)],(976,180),'RESTRICT'),
+    ([(40,252),(16,252),(16,508),(40,508)],(96,404),'RESTRICT')],
+    'Metadata can be unknown. Users review supplied labels; a review is not independent lab certification.')
 
-links=''.join(f'<article><h2><a href="{s}.html">{esc(t)}</a></h2><p>{esc(d)}</p><a href="{s}.html"><img src="images/{s}.png" alt="{esc(t)}" loading="lazy"></a><p><a href="images/{s}.svg">SVG</a> · <a href="images/{s}.png">PNG</a></p></article>' for s,t,d in DIAGRAMS)
-(OUT/'index.html').write_text('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Broker Catalogue — Diagrams</title><style>body{font-family:Segoe UI,Arial,sans-serif;color:#142b49;background:#fff;margin:32px}main{max-width:1280px;margin:auto}h1{font-size:32px}a{color:#175e9b}article{border-top:1px solid #d5dfea;padding:24px 0}img{max-width:100%;border:1px solid #d5dfea}p{line-height:1.6}</style></head><body><main><h1>Broker Catalogue — Design Diagrams</h1><p>C4 Level 1 and Level 2 only. Business ERD and physical subsystems. White / navy / cyan; offline system typography.</p>'+links+'</main></body></html>',encoding='utf-8')
-(OUT/'manifest.json').write_text(json.dumps([{'slug':s,'title':t,'description':d} for s,t,d in DIAGRAMS],indent=2),encoding='utf-8')
-print(f'Generated {len(DIAGRAMS)} HTML diagrams and dictionary for {len(TABLES)} tables.')
+physical('db-background','Physical DB — Reports, Outbox and Backup','Timestamped summaries reference per-SKU snapshots; outbox/job state supports async handling.',[
+    (40,144,'outbox_messages',['id','kind','payload','published_at','attempts']),
+    (552,144,'daily_summaries',['id','business_date','status','revenue_vnd','sold_bags','snapshot_at']),
+    (1064,144,'daily_sku_snapshots',['id','summary_id','sku_id','stock_qty']),
+    (40,448,'backup_runs',['id','kind','scheduled_date','requested_by','status','filename','retained'])],[
+    ([(1064,228),(976,228),(976,204),(888,204)],(976,180),'CASCADE')],
+    'Snapshot SKU and BackupRun requester links are in SQL. Outbox JSON operation references are not SQL foreign keys.',1440,800)
+
+gallery=''.join(f'<article><h2><a href="{s}.html">{esc(t)}</a></h2><p>{esc(d)}</p><a href="{s}.html"><img src="images/{s}.png" alt="{esc(t)}" loading="lazy"></a><p><a href="images/{s}.svg">SVG</a> · <a href="images/{s}.png">PNG</a> · {w}×{h} vector canvas</p></article>' for s,t,d,w,h in DIAGRAMS)
+(OUT/'index.html').write_text('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Potting Soil Shop — Design Gallery</title><style>body{font-family:Segoe UI,Arial,sans-serif;color:#142b49;margin:32px}main{max-width:1600px;margin:auto}a{color:#175e9b}article{border-top:1px solid #d5dfea;padding:24px 0}img{max-width:100%;border:1px solid #d5dfea}p{line-height:1.6}</style></head><body><main><h1>Potting Soil Shop — Design Gallery</h1><p>C1 context, C2 overview plus synchronous/async perspectives; conceptual ERDs and physical subsystems. No C3/C4 diagrams.</p>'+gallery+'</main></body></html>',encoding='utf-8')
+(OUT/'manifest.json').write_text(json.dumps([dict(slug=s,title=t,description=d,width=w,height=h) for s,t,d,w,h in DIAGRAMS],indent=2)+'\n',encoding='utf-8')
+print(f'Generated {len(DIAGRAMS)} self-contained HTML diagram sources.')

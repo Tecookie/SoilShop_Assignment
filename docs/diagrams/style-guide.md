@@ -1,4 +1,4 @@
-# Broker Catalogue Diagram Style
+# Potting Soil Shop Diagram Style
 
 Custom project-local tokens approved during requirements discovery; no global skill styling is overwritten.
 
@@ -15,6 +15,6 @@ Custom project-local tokens approved during requirements discovery; no global sk
 
 Font source: system (offline portable). Names: Segoe UI / Arial; technical labels: Consolas / monospace. No network font requests. This is a project-specific typography choice; images are rendered with the available Windows fonts.
 
-Canvas: 1280×720, exported PNG at 2×. Architecture uses the presentation ramp; Physical DB uses the documented column-row sizes. SVGs preserve accessible titles/descriptions. Sources are self-contained HTML; SVG/PNG are generated exports.
+Canvas: content-sized horizontal figures, 1440–1800 pixels wide; exact dimensions are in manifest.json. PNG exports are 2×. Architecture has detailed responsibility text and separate synchronous/async Level 2 perspectives; Physical DB uses fixed 24px column rows. SVGs preserve accessible titles/descriptions. Sources are self-contained HTML; SVG/PNG are generated exports.
 
 Architecture and conceptual diagrams retain all modeled relationships. Physical diagrams show at most seven columns per table plus an explicit overflow count; all columns/constraints are in the data dictionary. Outbox EventId correspondence is not drawn as a database FK because no such SQL constraint exists.

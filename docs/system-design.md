@@ -1,327 +1,350 @@
-# Broker Property Catalogue — System Design
+# Potting Soil Shop — System Design
 
-**PRN232 Final Assignment · Approved scope · 14 October 2026**
+**PRN232 Final Assignment · 23 October 2026 · English design baseline**
 
-This document specifies an assignment-sized system for a three-person team working over approximately two to three weeks. It describes the intended implementation; the application has not been built yet. The approved interview decisions are preserved in [discovery.md](discovery.md). Implementation details below resolve routine design choices within that scope.
+This is the approved design for an internal shop selling pre-packed potting-soil bags. The previous real-estate work is [archived](archive/real-estate/system-design.md). Business decisions are in [gardening-discovery.md](gardening-discovery.md); terminology is in the [glossary](../GLOSSARY.md).
+
+The deliverable is documentation, diagrams and an executable PostgreSQL design baseline. No React/API/gRPC/Worker application is implemented yet. A SQL-only concurrency prototype has been tested separately; it is not evidence that the application already works.
 
 ## 1. Context
 
-A real-estate broker receives inventories from property developers and manages the units allocated to its organization. Developer-provided information can be incomplete: area measurements, bedroom counts, garden area, and other attributes may arrive later. Employees need to create many units quickly, update their details and prices, and record when units are sold or transferred away from the broker.
+The shop buys pre-packed soil or growing-media bags from suppliers and sells them at a counter. Staff use a private web application to receive goods, advise customers, record sales, monitor stock and count physical bags. Customers and suppliers communicate with staff offline; neither has a system account or integration.
 
-The catalogue represents **one broker organization**. Developers are catalogue entities and sources of information; they do not log into this application. Employees enter the supplied data manually. There is no developer-system integration and no customer portal.
+One Product can have multiple SKUs, such as a 5 kg bag and a 10 kg bag. Each SKU has its own stock, price, package amount/unit, warning threshold and target stock. Package sizes measured in kg and litres are independent; the system does not convert mass to volume. The shop has one stock location and does not mix or repack soil.
 
-The domain hierarchy is:
-
-- One Developer owns zero or more Projects; each Project has exactly one Developer.
-- One Project contains zero or more Buildings and Property Units.
-- An Apartment belongs to exactly one Building in the same Project.
-- A Townhouse or Villa belongs directly to a Project and has no Building association in this version.
-- A Building's floor count, an Apartment's floor number, and a house's own floor count are separate concepts.
+The original delivery constraint was a three-person team and approximately two to three weeks. No revised deadline has been supplied. The implementation plan below orders thin, demonstrable capabilities rather than promising a new calendar deadline.
 
 ## 2. Problems
 
-| Problem | Effect on broker employees |
+| Problem | Consequence |
 |---|---|
-| Repeated manual entry for large inventories | Creating hundreds of units takes time and produces inconsistent codes. |
-| Incomplete details from developers | Requiring every measurement prevents employees from recording otherwise valid units. |
-| Prices are supplied after allocation | A missing price can be mistaken for a zero price or block creation. |
-| Allocation changes and sales lack a trace | Employees cannot explain who changed management status or why. |
-| Catalogue statistics require manual counting | Employees cannot quickly see managed inventory and units awaiting a price. |
-| Changes are not backed up consistently | The team cannot demonstrate recovery of its catalogue database. |
+| Two staff members sell the last bag concurrently | A read-then-write implementation can oversell or lose an update. |
+| Product information arrives incomplete | Mandatory scientific measurements block catalogue entry; invented values mislead advice. |
+| Staff cannot explain which product matches a request | Product search becomes guesswork or a large list of names. |
+| Low-stock alerts have no follow-up | Staff still manually calculate how many bags to replenish. |
+| Physical bag counts differ from the system | Direct counter edits hide reasons and can overwrite newer sales. |
+| Prices change and documents are corrected | Old transactions must retain their original meaning and stock effects. |
+| Reports and backups depend on manual effort | The team cannot demonstrate reliable background work or recovery. |
 
 ## 3. Solutions
 
-Provide a small React application backed by a layered ASP.NET Core REST API. Employees maintain developers, projects and buildings; preview generated codes; create up to 500 units per batch; add missing details; enter prices; and change management status with an audit trail.
+Use a React internal web application, a layered REST API, an independent gRPC host for calculations/advice, PostgreSQL, Redis Streams and one .NET Worker deployment. The API performs stock-changing business transactions synchronously. Redis carries post-commit events and background requests; the Worker does not decide whether a counter sale has enough stock.
 
-An independent gRPC service generates deterministic unit codes. Redis Streams carries asynchronous work. A .NET Worker creates batches, produces project summaries, and requests SQL Server backups after successful business-data mutations and on a daily schedule.
+The three approved additions turn the catalogue into an operating workflow:
 
-Unknown descriptive values are stored as `NULL`, not invented zeroes. Flexible extra details are editable name/value pairs. The design uses one relational database and one Worker deployment to keep the scope achievable.
+1. **Explainable product advice:** rank available SKUs against staff-selected needs using known, source-backed metadata; return reasons, not just scores.
+2. **Replenishment:** transform a low-stock condition into a calculated suggestion, then into a receipt draft that staff can review before goods arrive.
+3. **Stocktaking approval:** compare a physical count to a captured stock/version; an Admin approves a safe correction with history, or requests a recount if intervening movements made it stale.
 
-### Scope boundaries
+### Included scope
 
-Included: internal catalogue management, Admin/Employee login, unit generation, pricing entry, status history, summaries, backups, Docker Compose and assignment demonstration.
+Products/SKUs and metadata, suppliers, Admin/Employee accounts, receipt and sale drafts/confirmation/cancellation, stock ledger and adjustments, product advice, replenishment suggestions, stocktaking, summaries, daily/manual backups, search/filter/sort/pagination and a Docker-based demonstration.
 
-Excluded: payments, deposits, contracts, customer CRM, commission accounting, price formulas, price history, developer integration, image uploads, cloud backup, multi-tenant brokerage accounts, full dynamic field-definition systems, per-project permissions, and production operations. Marking a unit Sold records a catalogue status only.
+### Excluded scope
+
+Customer storefront/accounts, online shopping cart, payment gateway, shipping, credit/debt, partial returns/exchanges, mixing/repacking, loose-weight sales, multiple warehouses, lot/expiry tracking, tax/accounting profit, staff discount overrides, AI/LLM models, automated supplier purchasing, cloud backups and production-scale infrastructure.
 
 ## 4. Main Actors
 
-| Actor | Responsibilities and permissions |
+| Actor | Responsibilities |
 |---|---|
-| Employee | View all catalogue data; CRUD developers/projects/buildings; preview and submit batches; edit unit details/additional information; enter or correct prices; change status; view status history and project summaries; request a summary refresh. |
-| Admin | All Employee capabilities, plus create/update/deactivate accounts, request backups, and inspect backup results. |
-| Developer / CĐT | External business stakeholder that supplies unit information and allocation changes through existing offline channels. Not an application account. |
+| Employee | View active products/stock, receive goods, draft/confirm sales, request product advice, submit physical counts, review suggestions, convert suggestions to receipt drafts, view reports and operational results allowed by role. |
+| Admin / owner | All Employee functions; maintain products/prices/metadata/suppliers/accounts; cancel confirmed sales/receipts; approve/reject counts; create reasoned direct adjustments; request/view backups. |
+| Walk-in Customer | Describes needs and buys from staff offline. No login or direct API access. |
+| Supplier | Delivers pre-packed goods and product-label information offline. No supplier portal or automatic order API. |
 
-Worker and gRPC services are technical elements, not human business actors. There is no public registration. Seed the first Admin using deployment configuration; hash passwords with ASP.NET Core's password hasher. Login returns a short-lived JWT. Validate signature, issuer, audience, expiry and role on the API. A deactivated user is rejected by authenticated endpoints even if an earlier token has not expired; check active account state. Do not expose hashes or log credentials/tokens.
+Sales and stock tasks are Employee activities, not additional permission roles. Everyone belongs to one shop; there is no per-project or per-branch authorization model.
 
-## 5. Main Features
+Login uses JWT bearer authentication and a standard password hasher; public registration is absent. Admin creates/deactivates accounts. Check active account state on authenticated calls, not only the token's unexpired signature. Validate issuer, audience, expiry and role; never expose password hashes or log tokens. Keep at least one active Admin. Bootstrap credentials come from deployment configuration, not committed seed passwords.
 
-### 5.1 Master data
+## 5. Main Features and Business Rules
 
-| Entity | Required information | Optional information |
+### 5.1 Product, SKU and metadata
+
+| Level | Data | Required / interpretation |
 |---|---|---|
-| Developer | Code, name | Contact name, email, phone |
-| Project | Code, name, Developer | Address, description |
-| Building | Code, name, Project, floor count | Classification: HighRise or LowRise |
+| Product | Code, name, active flag | Required identity; normalize/trim codes, enforce case-insensitive uniqueness. |
+| Product | Brand, manufacturer, ingredients, storage note | Optional supplied descriptions. |
+| Product | Plant/use tags | Staff-curated labels based on product information, not an invented botanical taxonomy. |
+| Product | Drainage and water retention | Optional Low/Medium/High; NULL means unknown. |
+| Product | pH minimum/maximum | Both NULL, or both supplied and ordered within 0–14. Display source-provided values only; pH is not scored by the initial advisory rule. |
+| Product | Source reference, reviewed-by, reviewed-at | Record the label/document/supplier supporting advisory data and the curator; do not claim independent lab certification. |
+| SKU | Code, package amount, unit (kg/L), Product | Required, positive package amount; each distinct package is independently stocked. |
+| SKU | Sale price, reference purchase cost | Positive whole VND; reference cost may be unknown. Actual receipt prices are separate historical values. No inventory valuation/profit calculation. |
+| SKU | Stock quantity, stock version | Nonnegative integer bags; server-controlled, never editable through catalogue DTOs. |
+| SKU | Low-stock threshold, target stock | Nonnegative threshold and target greater than threshold. Defaults 5 and 30 are configurable demo choices. |
+| SKU | Preferred supplier | Optional. Staff must select an active supplier before generating a receipt draft. |
 
-Developer and Project codes are unique within this broker catalogue. Building codes are unique within their Project. The user selects building classification if known; the application does not infer a regulatory height threshold.
+Unknown is not zero, Low or False. A product with incomplete metadata can still be sold. Advice eligibility requires an active product, active in-stock SKU, a recorded source and a reviewer; unavailable metadata simply contributes no matching points.
 
-Delete a Developer only if it has no Projects; a Project only if it has no Buildings, Units or retained Batch records; a Building only if it has no Units or retained Batch records. Return a clear conflict message rather than deleting children. Historical summary snapshots also restrict Project deletion. Users are deactivated, not physically deleted.
+Changing an advisory field, tag or source clears the previous review until Admin reviews the updated metadata. Perform the change and review invalidation in one transaction, incrementing Product.version; never present newly edited values under an old review timestamp. Advice responses carry the product metadata version and generation time alongside rule version.
 
-### 5.2 Unit fields and missing information
+Advice-relevant fields are structured columns/relations so filters have defined meaning. Do not add an unrestricted JSON rule engine. Source text and notes are plain text, rendered safely. Representative metadata concepts are supported by [NC State Extension](https://content.ces.ncsu.edu/extension-gardener-handbook/18-plants-grown-in-containers); actual product values must come from the shop's supplied information, not that general reference.
 
-All units require code, type and Project. Apartments additionally require Building and floor number. Management status defaults to Managed. Descriptive values remain optional for every type because the broker may not receive complete information.
+Deactivate master data that has history. Physical deletion is limited to unreferenced records with zero stock; historical receipts, sales and ledger references restrict deletion. Admin can remove an unused product-tag association. A referenced SKU's package identity cannot be changed into a different product/package; create a new SKU instead.
 
-| Field | Apartment | Townhouse | Villa |
-|---|---|---|---|
-| Usable area, m² | Optional | Not used | Not used |
-| Land area, m² | Not used | Optional | Optional |
-| Building footprint area, m² | Not used | Optional | Optional |
-| Own floor count | Not used | Optional | Optional |
-| Bedroom / bathroom count | Optional | Optional | Optional |
-| Garden area, m² | Not used | Not used | Optional |
-| Total price, VND | Initially empty; entered later | Initially empty; entered later | Initially empty; entered later |
-| Additional information | Editable name/value pairs | Editable name/value pairs | Editable name/value pairs |
+### 5.2 Explainable product advice
 
-Area values, when supplied, must be positive. Room counts can be zero but not negative; a supplied own floor count must be positive. A supplied garden area can be zero. No rule compares garden/footprint area to land area because supplied measurements may use different definitions. Label footprint area explicitly to avoid confusing it with the sum of all floor areas.
+**Input:** optional plant/use tag, desired drainage/water retention, package unit/amount and maximum per-bag budget. At least one advisory preference must be supplied. The budget is for one sellable bag, not a whole planting project.
 
-Additional names are unique within a unit, with trimmed case-insensitive comparison. Store values as plain text; do not execute them or inject HTML. No filtering, typed formulas or custom-field schema is provided. A batch may share an initial set of extra fields, copied separately to each unit.
+1. API loads eligible catalogue candidates and applies hard constraints: active, current stock greater than zero, selected package constraints and current sale price within budget.
+2. API sends only required candidate metadata/IDs to the existing independent gRPC host. That service has no database access.
+3. Rule version `advice-v1`: matching selected plant/use tag earns 3 points; drainage match 2; water-retention match 2. An unselected criterion earns no points. Unknown or unmatched metadata earns zero points.
+4. Return up to three positive-score matches, ordered by score descending, price ascending and SKU ID ascending. Each result includes matched criteria, missing relevant data and rule version. No positive match means **Insufficient matching information**, not a fabricated recommendation.
+5. React shows explanation and data source. Staff can select a result to add the SKU to a sale draft. Advice does not reserve stock or guarantee horticultural outcomes; confirmation rechecks price and inventory.
 
-### 5.3 Bulk generation and preview
+Example output: “Matches selected use tag and drainage preference; 5 L package is within budget; retention data unavailable.” All sample products in the demo are fictional labelled fixtures.
 
-**Apartments:** choose Project/Building, start floor, end floor, units per floor and shared optional attributes. Codes use the building code, a separator and zero-padded floor/unit sequence: `A-0101`, `A-0102`, …, `A-0510`. Use at least two digits for each numeric part and widen consistently for larger numbers. Restrict the initial version to floors and units-per-floor in 1–99, with floor range inside the Building's floor count; total units must be 1–500. Floor numbering is numeric and continuous; basements, skipped floors and irregular per-floor layouts can be handled as separate batches or subsequent edits within supported bounds.
+The gRPC service also exposes `CalculateTotals`, multiplying validated quantities by authoritative prices and summing line totals. Use integer VND in Protobuf with checked arithmetic; reject overflow and totals outside `numeric(18,0)` rather than rounding or truncating. No promotion, tax or custom discount engine is included.
 
-**Townhouses/Villas:** choose Project, a prefix, start number, quantity and shared attributes. Codes such as `NP-001`–`NP-020` or `BT-001`–`BT-010` use at least three digits, widening consistently if the end number is larger. Allow positive starting numbers, quantity 1–500 and a final code length of at most 50 characters. Prefixes contain letters, digits and hyphens; normalize codes to uppercase and trim spaces.
+### 5.3 Purchase receipts
 
-The gRPC service accepts a numbering specification and returns the generated codes and apartment floor numbers. It has no database and does not decide availability. The REST API validates parent relationships, field values and duplicate codes against SQL Server. Preview does not reserve codes or create units; changing input invalidates the preview.
+Employee creates a Draft containing one active Supplier and SKU lines. A SKU appears only once per document; duplicate selections merge quantities. Each line has positive integer quantity and actual positive whole-VND purchase unit cost. Unknown costs may remain NULL in a Draft, but confirmation requires every cost and at least one line. Default safety limit: 100 lines per receipt/sale.
 
-Confirmation submits the specification and a client request identifier. The API generates/validates the canonical preview again and stores the accepted immutable unit payload as JSON in a Batch record; this prevents trusting a tampered preview. Return `202 Accepted` with the Batch resource URL. Request identifiers are unique: a replay with the same request and user returns the existing Batch; a replay with different payload is a conflict.
+Confirmation locks the document and SKU rows, computes totals through gRPC from accepted costs, adds quantities, appends Purchase movements and an InventoryChanged outbox event in one transaction. Header and lines become immutable. Changing the SKU's reference cost later never edits the receipt.
 
-The Worker creates all units in one SQL transaction. It rechecks parent existence, floor bounds and code uniqueness at execution time. A concurrent request may therefore pass preview but fail during creation. On failure create no units, set Batch Failed and record a readable cause. On success set Completed and the created count in the same transaction. React polls the Batch endpoint while the page is open. The status is Queued, Processing, Completed or Failed; duplicate delivery must not create a second set of units.
+Admin cancellation requires a reason and enough current stock to subtract every original quantity. It is all-or-nothing, appends PurchaseCancel ledger entries, marks Cancelled and emits InventoryChanged once. It does not identify which original physical bags remain, since lot tracking is excluded. If insufficient stock exists, cancellation fails without changing anything; a legitimate physical discrepancy is handled through a reasoned adjustment, not forced negative stock.
 
-### 5.4 Prices
+### 5.4 Counter sales, prices and cancellation
 
-New units have `PriceVnd = NULL` and display **No price yet**. An Employee edits a unit's total price after creation. Store whole VND using `decimal(18,0)`; a known price must be greater than zero. Reject negative, zero or fractional VND rather than silently rounding. Clearing a mistaken price restores `NULL`. No automatic area multiplication, mass pricing or price-history feature is required.
+Drafts have no stock reservation. Employee selects active SKUs/quantities and sees current prices/totals. The server does not accept client-supplied unit prices, totals, role or status as authoritative. AutoMapper profiles explicitly ignore those trusted fields.
 
-### 5.5 Management status and history
+At confirmation the API calls gRPC using fresh database prices, then opens the stock transaction and verifies the prices have not changed since that call. A changed price or stale expected total returns 409 with a refreshed quote, requiring the user to review. A temporary gRPC outage returns 503 before committing stock; there is no silent calculation fallback that bypasses the demonstrated RPC boundary.
 
-| Status | Meaning |
+Successful confirmation freezes sale unit prices, display labels, total, actor and time. Changing catalogue prices does not change historical sales. Admin can cancel the whole confirmed sale once, with reason; restore the original quantities, append SaleCancel ledger entries and keep original sale data. Deactivation of a product does not prevent reversing a legitimate existing transaction. No partial returns or payment/refund processing is represented.
+
+### 5.5 Last-bag concurrency and idempotency
+
+Example: two employees both see one bag; both draft sales. One database transaction commits the bag deduction; the other gets an insufficient-stock conflict and remains Draft.
+
+Use one PostgreSQL transaction for document state, stock rows, frozen totals, ledger and outbox. Lock the document (`SELECT ... FOR UPDATE`); lock affected SKUs in ascending ID order. After checking current prices, apply a conditional deduction for each SKU:
+
+```sql
+UPDATE skus
+SET stock_qty = stock_qty - @quantity,
+    stock_version = stock_version + 1
+WHERE id = @sku_id AND is_active AND stock_qty >= @quantity
+RETURNING stock_qty, stock_version;
+```
+
+These are parameter placeholders for the application. Zero returned rows means conflict; roll back all previous line changes. Do not perform a standalone stock read followed by an unconditional update. The stock CHECK constraint is a second safety net. PostgreSQL's Read Committed behavior re-evaluates an UPDATE predicate after waiting for a competing update; see [transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html).
+
+Require a client-generated action key for confirmation/cancellation and persist it with the state transition. A repeat of an already successful same action returns its recorded result/current document without changing stock again. A key reused for a different payload/document is rejected by validation/uniqueness. Locking document state also prevents two different keys from confirming or cancelling the same slip twice. Retry complete transactions only for transient database conflicts; no automatic retry changes the user's requested quantity.
+
+`version` bigint is an application-managed optimistic token for mutable catalogue/documents. `stock_version` advances on stock movements only and protects counts. Neither is a SQL Server rowversion or a date. EF `ExecuteUpdate` must be explicitly enclosed in the transaction and checked for affected-row count; it does not automatically apply tracked concurrency rules. [EF documentation](https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete)
+
+The [SQL-only executable prototype](database/concurrency-demo.sql) and [runtime report](database/runtime-checks.json) demonstrate the database pattern in an isolated PostgreSQL 16 container. They do not implement the application endpoints or gRPC quote-validation logic.
+
+### 5.6 Stocktaking, approval and direct adjustments
+
+Employee opens a SKU's count screen and captures expected quantity and stock_version. After physically counting, the employee submits actual quantity, captured values and a reason. API checks that the version still matches; if it changed during counting, require a recount. A Pending count itself never changes stock.
+
+Admin review can Reject with a note or Approve. Approval locks the count and SKU, compares the captured stock_version again, and calculates `delta = actual - expected`. A stale count becomes RecountRequired; it must not overwrite sales that occurred since counting. A nonzero approved discrepancy creates one StockAdjustment and one ledger movement; zero discrepancy approves the count with no stock mutation. Unique stock_count_id on adjustments and the state transition prevent duplicate application.
+
+Direct Admin adjustments are also allowed for known damage/loss/opening stock. They require a signed nonzero delta and reason, must preserve nonnegative stock, and append ledger/outbox records atomically. Stock corrections are immutable; reverse an incorrect adjustment with another reasoned adjustment rather than editing ledger history.
+
+### 5.7 Low stock → replenishment → receipt draft
+
+After an inventory change, API's outbox relay publishes an event. Worker reads fresh PostgreSQL stock/thresholds rather than trusting stale stock in the event payload.
+
+- If an active SKU is at/below threshold, calculate `suggested = max(0, target_stock - stock_qty)` and upsert one active suggestion. E.g. 4 bags in stock, target 30 → 26 suggested bags.
+- Open suggestions update when stock changes; duplicate delivery does not create another alert. An increase above the warning threshold resolves an Open suggestion. The UI treats active suggestions as the low-stock notification inbox; no separate push server is needed.
+- Employee chooses a supplier and converts an Open suggestion to a purchase-receipt Draft. Pre-fill suggested quantity and reference cost if known; allow staff to edit the Draft. Store the link and mark ReceiptDrafted in the same transaction, so double-clicking returns the same Draft.
+- While the linked receipt is Draft, keep the suggestion active to suppress duplicates. Worker closes that suggestion when the receipt becomes Confirmed/Cancelled; if stock remains low, it can open a fresh suggestion.
+- Deleting a linked receipt Draft first clears its link and resets the suggestion to Open in the same transaction. No stock changes. This avoids leaving an active suggestion pointing to a deleted Draft.
+- Conversion does not send an order, reserve supplier goods or add stock. Only physically received goods confirmed on the receipt increase stock.
+
+No preferred supplier means the suggestion is still visible, but conversion requires staff to select an active supplier. Inactive suppliers/products must not be chosen for new transactions. Existing historical records remain readable.
+
+### 5.8 Daily summary and background scheduling
+
+At 00:05 Asia/Ho_Chi_Minh generate a report for the previous Vietnam business date. Sales counts/revenue/bags use sales confirmed in that local-day UTC interval that are still Confirmed at report generation. Cancelled sales are excluded on recomputation. This is a shop operational report, not accounting recognition or a cash ledger.
+
+Store `business_date` and `snapshot_at`. The SKU stock snapshot represents current stock when the job runs, **not reconstructed historical closing stock**. Label it accordingly. Earlier reports are timestamped snapshots and may become stale after later cancellations; staff can explicitly refresh a selected date. Do not silently describe a cached report as live.
+
+Use a consistent PostgreSQL REPEATABLE READ transaction for report values and SKU snapshots. Upsert one report per date; replace its per-SKU rows atomically, not append duplicates. A failed refresh shows its error without publishing a partially completed snapshot. On restart, the Worker checks persisted state and catches up the previous day's report if missing; there is no unbounded historical backfill.
+
+### 5.9 PostgreSQL backup and restore
+
+At 00:15 Vietnam time, and on an Admin manual request, create one queued BackupRun. Exactly one scheduled request per local date. A serial Worker loop runs PostgreSQL `pg_dump -Fc --no-owner --no-acl` into a separate backup volume; keep the latest **seven successful files total**, across daily and manual triggers. This replaces the old project's per-change backup requirement.
+
+Use a PostgreSQL client matching the server major version. The Worker writes the archive, not the database server process. Generate filenames internally; never accept paths or process arguments from the browser. Use process argument arrays, exit codes, fixed connection configuration and secrets via environment/secret files; do not log passwords. Check `pg_restore --list` before marking successful, and perform an actual isolated restore drill for the assignment. Prune older successful files only after new success; failed jobs preserve previous good backups. A dump's completion status is recorded after the archive is taken, so restored operational state can show a formerly running job.
+
+There is no per-mutation backup, WAL archiving, point-in-time recovery or cloud replication. Local volumes remain vulnerable to whole-host loss. See the [backup/restore guide](backup-and-restore.md) and official [pg_dump](https://www.postgresql.org/docs/current/app-pgdump.html) / [pg_restore](https://www.postgresql.org/docs/current/app-pgrestore.html) documentation.
+
+## 6. System Architecture (C4 Level 1 and Level 2)
+
+### 6.1 C1 — System Context
+
+![C1 System Context](diagrams/images/c4-l1-context.png)
+
+C1 shows Admin and Employee responsibilities and the offline Supplier/Walk-in Customer interactions. Customers and suppliers do not have software access. Redis, PostgreSQL and gRPC are internal containers and therefore belong on C2, not C1.
+
+### 6.2 C2 — Complete Container View
+
+![C2 Container Overview](diagrams/images/c4-l2-containers.png)
+
+| Container/store | Responsibilities and contracts |
 |---|---|
-| Managed | The unit is currently allocated to this broker's catalogue. |
-| Unmanaged | The unit is no longer allocated to this broker, including transfer to another broker. |
-| Sold | An Employee has recorded that the unit was sold. |
+| React Web / Nginx | JWT login, catalogue/metadata forms, advice with reasons, receipt/sale drafts, confirmation feedback, stock counts, Admin review, replenishment inbox, reports/backup results. Proxies `/api`. |
+| ASP.NET Core REST API | JWT/roles, Controllers → Services → Repositories, trusted state transitions, transactional stock/ledger/outbox, AutoMapper DTO boundaries, advice/quote orchestration. Hosted outbox relay is the Redis producer. |
+| Advisory & Calculation gRPC | Stateless `CalculateTotals` and `RecommendProducts`; deterministic rules/version, no persistence and no direct PostgreSQL/Redis calls. |
+| .NET Worker | Redis consumer, current-state low-stock checks, suggestion lifecycle, daily/manual report generation, serial daily/manual pg_dump and retention. |
+| PostgreSQL | Authoritative catalogue, stock/version, slips/price snapshots, ledger, count approval, suggestions, outbox and job/report records. Shared by API and Worker for this assignment. |
+| Redis Streams | Consumer-group message delivery; AOF/volume enabled. Not the source of truth for available bags. |
+| Backup File Store | Named Docker volume with `.dump` archives, written and pruned by Worker. A file store, not an extra microservice. |
 
-Employees may change between these statuses, including correcting a mistaken Sold status. Require a nonempty reason and record actor, UTC time, old/new status. A no-op status submission produces no history or backup event. Multi-select status changes are one transaction, up to 500 units; either all selected versions match and all changes succeed, or none do.
+Six executing deployments (Web, API, gRPC, Worker, PostgreSQL, Redis) plus the backup volume are sufficient. C2's richer responsibility text and labelled relationships describe these real boundaries; no invented payment/email/AI service has been added.
 
-Initial creation sets Managed without adding a status-history row. A mistakenly created unit may be physically deleted only while it has no status-history records. Deletion removes its additional information and triggers a backup request. Once it has history, preserve the unit and use Unmanaged. Status history is immutable through application endpoints. React sends the SQL rowversion on updates/deletes; stale edits return `409 Conflict` and require a reload.
+### 6.3 C2 — Synchronous Advice and Sale View
 
-### 5.6 Search and catalogue pages
+![C2 Synchronous View](diagrams/images/c4-l2-synchronous.png)
 
-Search by code and filter by Developer, Project, Building, type, status, price presence and total price range. No-price rows are excluded from numeric price ranges. Sort by code, creation time or price, with `Id` as a stable tie-breaker; explicitly place missing prices last. Default page size 20, maximum 100. The API accepts only allowlisted sort fields.
+React sends staff intent to API; API loads current catalogue/prices, calls gRPC and returns advice/quote. A sale confirmation then validates the quote against locked current rows and commits all stock/document effects in PostgreSQL. The network RPC is outside the stock-lock transaction, with a short deadline. Replies are implicit on directed request arrows and spelled out in the figure's responsibility notes.
 
-React screens: login; developers; projects; buildings; unit catalogue; batch wizard/preview; Batch progress; unit details with price, attributes and history; summary dashboard; and Admin account/backup pages. All authenticated users see the same organization's catalogue. All dates are stored in UTC and displayed in Vietnam time.
+### 6.4 C2 — Async Replenishment, Reports and Backups
 
-### 5.7 Daily and manual project summaries
+![C2 Async View](diagrams/images/c4-l2-asynchronous.png)
 
-At **00:05 Asia/Ho_Chi_Minh**, the Worker computes project totals, Managed/Unmanaged/Sold counts, and Managed units without a price. Count units directly, avoiding joins that multiply rows through attributes/history. Produce all projects' rows for one SummaryRun in a consistent SQL snapshot transaction; enable `ALLOW_SNAPSHOT_ISOLATION` during database setup. A manual refresh creates another run.
+The SQL outbox closes the gap between a committed stock change and Redis publishing. The API relay sends with XADD then records publication. Worker consumes with XREADGROUP, commits an idempotent result, then XACKs. A publish/mark or consume/ACK crash can cause duplicates; unique suggestion/run identities and fresh stock reads make repeated handling safe.
 
-Dashboard reads the latest completed run and displays its `AsOfUtc`; it is not presented as live data. Projects added afterward display **Awaiting summary**. `SummaryRuns` provides status/error visibility. One successful scheduled run is allowed for each Vietnam calendar date; retry an unfinished/failed run rather than creating duplicates. For a single Worker, a timer checks local date/time and persisted run state; a restart after the scheduled time performs the day's missed run.
+Pending messages are reclaimed with XAUTOCLAIM after a configured idle timeout. Retry transient failures with backoff, persist/log terminal errors, and do not trim unprocessed stream records. For this assignment, one Worker instance owns stateful low-stock handling and serial backups. API mutations emit InventoryChanged; Admin threshold/target/product availability changes emit the same recheck event even without a stock movement.
 
-### 5.8 Backup after changes, daily backup and recovery
+On startup and a small periodic reconciliation, Worker rechecks active SKUs and nonterminal BackupRuns. This repairs stale alerts or queued backups after broker loss. Redis retention and reconciliation do not replace PostgreSQL correctness. Summaries and backups run in independent hosted loops so a long dump does not block the low-stock consumer.
 
-Back up the entire SQL Server database at **00:15 Asia/Ho_Chi_Minh**, on Admin request, and after each successful logical transaction changing business data: accounts, Developers, Projects, Buildings, Units, prices, attributes or management status. One 500-unit batch produces one backup request after its creation transaction. No changes means no backup event. Initial seed/migration is followed by an explicit baseline backup.
-
-Record a BackupRequested outbox event in the same transaction as a business change. Summary snapshots, Batch progress, outbox delivery bookkeeping and BackupRun updates do not trigger change backups; otherwise backup completion would cause an endless loop. Manual and scheduled requests have their own events. The Worker processes backup requests sequentially, without merging change requests. A backlog is visible in the Admin page.
-
-The API returns business success after the data commit, without waiting for the backup. Backup failure does not undo the business operation. A backup captures the SQL Server state while it executes and can include later commits; it is **not** a precise snapshot immediately after each edit. There is no point-in-time recovery guarantee and no transaction-log backup chain in this assignment.
-
-Use full `COPY_ONLY` backups with checksums and unique server-generated filenames. The SQL Server process writes `.bak` files to `/var/opt/mssql/backup`, mounted from a separate Docker named volume. The Worker mounts that volume at the same path for retention cleanup; both containers need appropriate access. Keep backup credentials separate from normal API credentials. SQL Server's backup permission is required; do not give the normal API login `sysadmin`.
-
-Verify completed files with `RESTORE VERIFYONLY ... WITH CHECKSUM`. This is a file/readability check, not a substitute for restoring and checking data. Mark a BackupRun successful only after backup and verification succeed. Keep **7 successful daily files and 7 successful change/manual files**; remove older files only after a new verified backup and record their `Retained = 0`. Never count failed attempts in the retention limit or delete the last good backup because a new attempt failed.
-
-BackupRun is keyed by its event ID to tolerate repeated delivery. On interrupted attempts, retry to a new unique filename and clean orphan files only after verified success. The database copy may contain the current backup's Running record because the completion update occurs afterward; this is expected. Local backups share the host's failure domain. See [backup-and-restore.md](backup-and-restore.md) for SQL templates and a restore drill.
-
-## 6. System Architecture (C4)
-
-### Level 1 — System Context
-
-![System Context](diagrams/images/c4-l1-context.png)
-
-Admin and Employee use the Broker Property Catalogue. The Developer is shown as an external stakeholder supplying data offline to employees, not as a connected software integration. There are no external software systems in the approved scope.
-
-### Level 2 — Container
-
-![Container diagram](diagrams/images/c4-l2-containers.png)
-
-| Container / store | Responsibility |
-|---|---|
-| React Web, served by Nginx | Internal forms, previews, status polling, catalogue and dashboard; `/api` proxy to REST API. |
-| ASP.NET Core REST API | JWT, authorization, validation, CRUD, preview orchestration, durable job requests, queries. |
-| Numbering gRPC Service | Stateless deterministic code generation; internal HTTP/2 endpoint. |
-| .NET Worker | Outbox relay, Redis consumer groups, bulk creation, scheduled/manual summaries and serial backups. |
-| SQL Server | Catalogue, accounts, audit history, Batch records, summaries, outbox and backup results. |
-| Redis Streams | Asynchronous delivery of Batch, Summary and Backup requests. |
-| Backup Volume | Durable `.bak` files; mounted into SQL Server and Worker. A file store, not an independently executing service. |
-
-The Worker is both a **producer** (outbox relay publishes using XADD) and a **consumer** (XREADGROUP dispatches jobs); business requests originate in the API or Worker transaction. Diagram arrows distinguish who initiates a connection from where records move. SQL Server creates backup files; Worker cleans old files. Redis has its own volume with AOF enabled, but SQL remains the authoritative job/request record.
-
-REST API internals use **API → Services → Repository**. Controllers map HTTP; Services enforce business rules and transaction boundaries; Repositories use EF Core. Shared domain/persistence libraries can be reused by API and Worker, without creating separate deployments. No C4 Level 3 or Level 4 is included.
-
-### Reliable asynchronous workflow
-
-1. API stores Batch/summary request or commits a business mutation together with an OutboxMessage.
-2. Worker relay reads unsent outbox rows, publishes to the appropriate Redis Stream, then marks publication. Failure between publish and marking can cause duplicates.
-3. Consumer reads messages in a named consumer group. Payloads carry IDs; the Worker loads authoritative data from SQL.
-4. Handler uses the Batch/Run's durable identity and SQL transaction to avoid repeated effects. ACK only after durable completion or recorded terminal failure.
-5. Reclaim messages pending after a crash using XAUTOCLAIM. Retry transient failures with backoff; after three attempts record Failed and expose the error. Manual retry reuses the operation identity; do not blindly create a new batch.
-6. On startup, reconcile nonterminal SQL operations and republish if necessary, even if an old outbox row says Published. This prevents Redis loss leaving jobs silently stuck. An active operation lease/heartbeat distinguishes a slow job from a crashed one.
-
-One Worker instance is sufficient. Use independent hosted loops/scopes for relay, bulk jobs, summaries and serial backups so a slow backup does not stop catalogue creation. The application promises idempotent business effects under at-least-once delivery, not exactly-once messaging.
+Only Level 1 and Level 2 C4 views exist. The additional Level 2 views are filtered perspectives on the same containers, not component diagrams.
 
 ## 7. Technology
 
-| Technology | Selected baseline | Reason |
-|---|---|---|
-| .NET / ASP.NET Core | .NET 10 LTS | Meets .NET 8-or-later requirement; longer supported window than .NET 8. |
-| Persistence | EF Core 10 + SQL Server provider | Align major version with runtime; relational validation and transactions. |
-| Database | SQL Server 2022 Developer, Linux container | Local assignment development; shared database for API/Worker. |
-| Frontend | React + TypeScript, Vite | Small forms/dashboard; no SSR requirement. |
-| Authentication | JWT bearer + ASP.NET password hashing | Explicit assignment requirement and simple internal roles. |
-| Messaging | Redis 7.x Streams + StackExchange.Redis | Consumer groups and reclaiming pending work. |
-| RPC | Grpc.AspNetCore, Grpc.Net.Client, Protobuf | Independent code generator callable by REST API. |
-| Background jobs | .NET Worker / BackgroundService | One deployment with small hosted loops, no additional scheduler platform. |
-| Local deployment | Docker Desktop Linux containers + Compose | Six executing services: Web, API, gRPC, Worker, SQL and Redis. |
-| API documentation | OpenAPI/Swagger UI | Interactive API demonstration and JWT testing. |
+| Area | Selected design baseline |
+|---|---|
+| Frontend | React + Vite + TypeScript; plain CSS and reusable components; no Ant Design. |
+| Backend | .NET 10 LTS / ASP.NET Core Web API; DI, validation, exception middleware, structured logs. |
+| Persistence | EF Core 10 + Npgsql EF provider 10; migrations and exported PostgreSQL SQL scripts. |
+| Database | PostgreSQL 16 baseline; native numeric/timestamptz/jsonb, explicit bigint version fields. |
+| Mapping | AutoMapper for explicit DTO/entity profiles; ignore trusted fields. Document installed version/license configuration; secrets stay outside source. |
+| RPC | Grpc.AspNetCore / Grpc.Net.Client / Protobuf; internal HTTP/2 endpoint. |
+| Messaging | Redis 7.x Streams, consumer groups, AOF and persistent volume. |
+| Background | .NET Worker / BackgroundService; small hosted loops, no scheduler platform dependency. |
+| Authentication | JWT bearer, Admin/Employee roles, password hashing, active-account check. |
+| Local deployment | Docker Desktop Linux containers and Compose; private service network and separate PG/Redis/backup volumes. |
+| Verification | xUnit integration tests against PostgreSQL during implementation; browser flow checks; restore drill. |
 
-Pin exact supported package/image patch versions and lockfiles during implementation; do not invent current patch numbers in this design. Verify .NET 10 support on lab machines at kickoff; .NET 8 is a compatible course fallback if required, but its support ends 10 November 2026 according to the [official .NET policy](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core).
+The Npgsql provider supports [EF Core 10](https://www.npgsql.org/efcore/release-notes/10.0.html). Pin compatible patch versions/images during implementation. AutoMapper's current [license configuration](https://docs.automapper.io/en/stable/License-configuration.html) must be documented rather than hidden by suppressing logs. No package installation or license purchase is performed by this document.
 
-SQL data, Redis data and backup files use separate named volumes. Nginx exposes the Web locally and proxies `/api`; SQL/Redis/gRPC remain internal by default. For local container communication, configure the gRPC endpoint explicitly as HTTP/2 without TLS; public TLS/gRPC exposure is outside this demo. [Microsoft's gRPC guidance](https://learn.microsoft.com/en-us/aspnet/core/grpc/aspnetcore?view=aspnetcore-10.0) documents this protocol requirement.
-
-Configuration contains connection strings, JWT settings, `Asia/Ho_Chi_Minh`, stream/group names, 500-unit batch cap and retention limits. Use `.env.example` placeholders, never committed real secrets. DI supplies scoped DbContexts inside each job, structured logging includes operation/event IDs, and API exception middleware emits ProblemDetails without SQL traces.
+Expose Web locally; keep Redis/PostgreSQL/gRPC internal unless a development tool explicitly needs a port. Configure gRPC as HTTP/2-only for the private plaintext demo endpoint; use HTTPS when exposing beyond the local demo. No database access from React, direct user-supplied SQL sort fragments, HTML metadata injection or subprocess shell concatenation.
 
 ## 8. ERD (Conceptual)
 
-![Conceptual ERD](diagrams/images/erd-conceptual.png)
+![Trading conceptual ERD](diagrams/images/erd-trading.png)
 
-This figure models the business catalogue only. Operational tables for reliable processing and backups are separate physical concerns.
+![Inventory/advice conceptual ERD](diagrams/images/erd-operations.png)
 
-| Relationship | Cardinality / rule |
+| Relationship | Cardinality / meaning |
 |---|---|
-| Developer → Project | 1 → 0..many; a Project has one Developer. |
-| Project → Building | 1 → 0..many; a Building has one Project. |
-| Project → Property Unit | 1 → 0..many; every Unit has one Project. |
-| Building → Property Unit | 1 → 0..many Apartments; a Unit has 0..1 Building, required for Apartments. |
-| Property Unit → Additional Information | 1 → 0..many name/value records. |
-| Property Unit → Status Change | 1 → 0..many immutable changes. |
-| Staff Account → Status Change | 1 → 0..many; every change has one actor. |
+| Product → SKU | 1 → 0..many; a SKU has exactly one Product. |
+| Product ↔ Plant/Use Tag | Many-to-many through product_plant_tags; tags describe supplied suitability. |
+| Supplier → Purchase Receipt | 1 → 0..many; a Receipt has one Supplier. |
+| Receipt → Receipt Line → SKU | Receipt has 0..many Draft lines, at least one when Confirmed; each line references one SKU. |
+| Sale → Sale Line → SKU | Same line cardinality; no Customer account is required. |
+| SKU → Stock Count / Stock Movement / Suggestion | Each SKU has historical records; each record concerns one SKU. |
+| Stock Count → Stock Adjustment | 0..1 Adjustment; zero-discrepancy approvals need no movement. |
+| Suggestion → Purchase Receipt | 0..1 linked draft receipt per suggestion in this simple conversion flow. |
+| User → Documents / Count Decisions | One account can act on many records; every business action records its actor. |
 
-Apartment, Townhouse and Villa are Unit categories with different applicable fields. They do not require three independently maintained tables or APIs. No Customer, Contract or Payment entity exists.
+The two figures separate trading from inventory/advisory concepts to avoid a dense graph. They are conceptual ERDs, not C4 Level 3.
 
 ## 9. Physical DB
 
-SQL Server database: **BrokerCatalogue**. The full baseline DDL is [database/schema.sql](database/schema.sql); the readable table/column dictionary is [database/data-dictionary.md](database/data-dictionary.md). It is a design baseline, not a substitute for reviewed EF Core migrations.
+The generated [PostgreSQL schema](database/schema.sql), [data dictionary](database/data-dictionary.md) and schema metadata share one source: `docs/tools/schema_model.py`. The baseline has **18 tables**, with no extension required. It has executed successfully on PostgreSQL 16 in an isolated test container. Review this design against actual EF migrations when implementation starts.
 
-![Catalogue tables](diagrams/images/db-catalogue.png)
-
-![Unit location constraints](diagrams/images/db-unit-location.png)
-
-![Unit attributes and status history](diagrams/images/db-unit-audit.png)
-
-![Bulk creation tables](diagrams/images/db-batches.png)
-
-![Project summary tables](diagrams/images/db-summaries.png)
-
-![Outbox and backup tables](diagrams/images/db-operations.png)
-
-Diagrams intentionally show key columns only; the dictionary and SQL include every column. Physical connectors attach FK columns to referenced key columns and are labelled `NO ACTION` or `CASCADE`.
-
-| Table | Purpose |
+| Tables | Role |
 |---|---|
-| Users | Staff credentials, role, active flag; referenced actors cannot be deleted. |
-| Developers | Developer master data. |
-| Projects | Projects with Developer ownership. |
-| Buildings | Building floor count/classification; composite key supports same-Project Unit/Batch validation. |
-| UnitBatches | Durable accepted creation payload, request identity, progress/error/lease. |
-| Units | Common unit fields and nullable type-specific fields, status, price, origin Batch. |
-| UnitAttributes | Flexible names and values; unique per Unit. |
-| UnitStatusHistory | Old/new status, reason, actor and change timestamp. |
-| SummaryRuns | Scheduled/manual run identity, timestamp and outcome. |
-| ProjectSummaries | Project counts attached to one completed run. |
-| OutboxMessages | Durable asynchronous intent written with its triggering transaction. |
-| BackupRuns | Event identity, trigger kind, filename, verification state, lease, retained flag/error. |
+| users, suppliers | Internal roles and supply-side catalogue. |
+| products, plant_tags, product_plant_tags, skus | Metadata, tags, package/price identity, stock and concurrency tokens. |
+| purchase_receipts, purchase_receipt_lines | Receipt state and actual historical prices. |
+| sales, sale_lines | Sale state and frozen sale prices/display labels. |
+| stock_counts, stock_adjustments, stock_movements | Physical-count workflow, immutable corrections and complete stock audit trail. |
+| restock_suggestions | Idempotent low-stock inbox and receipt-draft conversion. |
+| outbox_messages | Transactional intent to publish stock/background requests. |
+| daily_summaries, daily_sku_snapshots | Timestamped operational reports and inventory at generation. |
+| backup_runs | Scheduled/manual archive requests, results, retention metadata. |
 
-### Constraints and consistency
+![Catalogue and metadata tables](diagrams/images/db-catalogue.png)
+![Trading receipt tables](diagrams/images/db-purchases.png)
+![Trading sale tables](diagrams/images/db-sales.png)
+![Inventory approval tables](diagrams/images/db-inventory.png)
+![Replenishment tables](diagrams/images/db-replenishment.png)
+![Reporting and backup tables](diagrams/images/db-background.png)
+![Product tag tables](diagrams/images/db-tags.png)
 
-- Use `int IDENTITY` entity keys, `uniqueidentifier` request/event IDs, `datetime2(3)` UTC times, `decimal(12,2)` areas and `decimal(18,0)` prices.
-- `rowversion` on mutable catalogue/account records and operational runs supports concurrency; it is not a timestamp.
-- Unique `(ProjectId, Code)` prevents duplicate Units even when two workers race.
-- Composite FK `(ProjectId, BuildingId)` ensures a Unit/Batch's Building belongs to its Project. Simple Project FK still covers direct Project units when BuildingId is NULL.
-- Unit type CHECK constrains apartment Building/Floor and nulls inapplicable fields; separate checks validate supplied numeric values.
-- Status is a constrained string, independent from nullable price.
-- SQL FKs default to `NO ACTION`; attributes cascade only when an eligible Unit is deleted. History prevents Unit deletion. Service code enforces the broader eligibility rule in the same transaction.
-- Summary row uniqueness `(SummaryRunId, ProjectId)` and scheduled run keys prevent duplicate rows/runs.
-- Outbox and payload JSON CHECKs reject malformed JSON, but Services still validate payload structure and business meaning.
-- Normalize/trim codes before persistence; SQL case-insensitive collation and unique constraints provide a backstop. Keep location identifiers/type stable after creation; correcting those identities is done by deleting an eligible mistake and recreating, rather than rewriting historical ownership.
-- Index Project/status/type and price for catalogue queries; Unit/time for history; publication state/time for relay; run status/time for operations. Measure before adding more indexes.
+Physical figures show key columns and selected FK edges; overflow counts and captions disclose omitted details. The dictionary lists every column, CHECK, FK and index. Names are PostgreSQL snake_case. All FKs restrict deletion except explicitly shown child cascades; Services allow deleting document drafts only, never confirmed history.
 
-## 10. API Surface and Service Contracts
+Unique action keys, one active suggestion per SKU, one adjustment per count and one movement per source/SKU/action support idempotent behavior. `stock_qty >= 0` is enforced in PostgreSQL. Cross-table rules—line completeness, sums, state-transition legality, same-SKU count adjustments and ledger correctness—are enforced by Services in the same transaction, not falsely claimed as row-local CHECKs. Whole VND must be validated before PostgreSQL numeric conversion.
 
-| Resource / operation | Methods and behavior |
+## 10. API and Screen Map
+
+| Screen / resource | Main operations |
 |---|---|
-| `/api/auth/login` | POST credentials → JWT and role; invalid credentials 401. |
-| `/api/users` | Admin GET/POST; PUT by ID; deactivate via PATCH active flag. |
-| `/api/developers`, `/api/projects`, `/api/buildings` | GET list/detail, POST, PUT and DELETE with validation/restrict rules. |
-| `/api/unit-previews` | POST numbering specification and shared fields → validated preview, no Units created. |
-| `/api/unit-batches` | POST confirmed input/request ID → 202; GET by ID → progress/error. |
-| `/api/unit-batches/{id}/retry` | POST retry a failed transient operation using the same accepted payload. |
-| `/api/units` | GET searchable paginated catalogue; detail GET/PUT; eligible DELETE. Creation is through Batches. |
-| `/api/units/{id}/price` | PATCH whole VND or NULL with rowversion. |
-| `/api/unit-status-changes` | POST selected Unit IDs, expected versions, target status and reason; atomic, max 500. |
-| `/api/units/{id}/status-history` | GET read-only audit list. |
-| `/api/units/{id}/attributes` | GET, PUT full validated name/value list; one transaction. |
-| `/api/summary-runs` | POST refresh → 202; GET run status. |
-| `/api/project-summaries` | GET latest completed snapshot. |
-| `/api/backups` | Admin POST manual request → 202; GET run list/status. No file download or restore endpoint. |
+| Login / `/api/auth/login` | JWT login; no public registration. |
+| Accounts / `/api/users` | Admin create/update/deactivate; protect last Admin. |
+| Catalogue / `/api/products`, `/api/skus`, `/api/plant-tags` | Admin master CRUD, metadata review/source and pricing; Employee search/read. |
+| Suppliers / `/api/suppliers` | Admin master CRUD; Employee selects/reads supplier. |
+| Advice / `/api/product-advice` | POST preferences → ranked IDs/reasons, then add chosen SKU to Draft. |
+| Purchase receipts / `/api/purchase-receipts` | Draft CRUD; confirm; Admin cancel; frozen history read. |
+| Sales / `/api/sales` | Draft CRUD; quote; confirm; Admin cancel. |
+| Stock ledger / `/api/stock-movements` | Read-only history by SKU, date, kind, actor/reference. |
+| Counts / `/api/stock-counts` | Capture snapshot, submit physical result; Admin approve/reject/recount. |
+| Adjustments / `/api/stock-adjustments` | Admin reasoned signed correction; immutable afterward. |
+| Replenishment / `/api/restock-suggestions` | List, refresh current suggestions, convert to one receipt Draft. |
+| Reports / `/api/daily-summaries` | Date-based read, manual refresh request and status. |
+| Backup / `/api/backups` | Admin list, manual request and result; no restore/download endpoint. |
 
-gRPC contract: `UnitNumbering.GeneratePreview(specification)` → repeated `{code, floorNumber?}`. Include type, buildingCode for Apartments, start/end floors, unitsPerFloor or prefix/startNumber/quantity. Client deadline: 5 seconds; generator errors map to 400, temporary unavailability to 503. It does not access SQL or assign prices.
+Lists support meaningful search/filter/sort/pagination. Product filters: name/code/tag/known drainage/retention/active; SKU filters: Product, package unit/amount, price range, availability/low-stock. Documents filter by code, status, date and creator; receipts also by Supplier. Default page 20/max 100 and allowlisted sort fields with ID tie-breakers. Operational times are UTC timestamptz; display in Vietnam time.
 
-Redis streams: `catalogue:units`, `catalogue:summaries`, `catalogue:backups`; respective consumer groups. Messages contain EventId, OperationId, schema version and kind. Keep accepted JSON payload in SQL, not an untrusted message body. ACK completed work; retain stream entries through pending processing and trim only safe acknowledged history. Never use a trimming limit that removes unhandled messages.
+Errors: 400 for invalid quantities/metadata, 401/403 for auth, 404 for missing resource, 409 for stale data, conflicting document state, duplicate conversion or insufficient stock, 503 for unavailable gRPC. Use ProblemDetails and correlation IDs; suppress database traces from UI. Normal business conflicts must not generate an unhandled server exception.
 
-## 11. Assignment Traceability and Verification Plan
+## 11. Demonstration and Assignment Coverage
 
-| PDF requirement | Design evidence | Demonstration / meaningful check |
-|---|---|---|
-| REST API + core CRUD | Master-data and Unit endpoints; layered API | Create/edit/search/delete eligible data; show restricted deletion. |
-| JWT | Admin/Employee roles | Login; anonymous rejection; Employee denied backup/account management. |
-| Searching/filtering/sorting/pagination | Catalogue endpoint | Missing-price filter, project/status filters, stable pages. |
-| EF Core + relational DB | Physical schema + migrations | Inspect FKs; reject cross-Project Building and duplicate codes. |
-| Independent gRPC service | UnitNumbering container | Show API-to-gRPC preview; stop generator and observe 503 without creating Units. |
-| Producer + consumer | Outbox relay XADD and Worker XREADGROUP | Publish/consume a Batch; inspect group; retry duplicate safely. |
-| Background job | Bulk creation, summaries, backups | Return 202, show completion; run summary and backup manually. |
-| Containerization/deployment | Compose topology | Start all containers and demonstrate internal connections. |
-| End-to-end business workflow | Developer → Project → Building → Batch → price/status → summary/backup | One complete flow with PNG architecture explanation. |
-| Source/DB scripts/Dockerfiles/OpenAPI/README | Delivery checklist | Verify all artifacts are submitted. |
+1. Admin creates a Product, source-backed tags and 5 kg/10 kg SKUs; leaves an unknown measurement NULL.
+2. Employee receives stock with real line prices and confirms a receipt; inspect movement history.
+3. Employee requests advice; show explanations and gRPC request/response logs.
+4. Two employee sessions try to confirm the last bag; exactly one succeeds, the other sees a conflict. Retry the winning action; no double deduction.
+5. Redis event consumption opens/updates a low-stock suggestion; convert it to a receipt Draft without adding stock.
+6. Employee counts a mismatch; Admin approves a valid discrepancy. Demonstrate another count becoming stale after a sale.
+7. Admin cancels a sale and a sufficiently stocked receipt; show immutable originals and reverse movements.
+8. Run manual summary and backup; inspect timestamps/results. Restore archive into a separate database and compare data.
 
-Required integration scenarios: duplicate code after preview produces zero partial inserts; re-delivered completed Batch creates no duplicates; SQL commit followed by Redis outage eventually processes from outbox; stale rowversion rejects an overwrite; status audit and status update commit together; no-price differs from zero; backup failure leaves a visible error and does not create recursive requests; restore to an isolated database reproduces known unit counts/details. Automated checks should target these boundaries rather than every trivial getter.
+| PDF requirement | Evidence in this design |
+|---|---|
+| ASP.NET Core REST CRUD / layering | Master and Draft CRUD; Controller → Service → Repository; OpenAPI. |
+| JWT / search/filter/sort/pagination | Role policy and resource list contracts. |
+| EF Core / relational DB / DI / config / logs / exceptions | Npgsql/PostgreSQL schema and API/Worker service boundaries. |
+| Independent gRPC communication | Advice and totals service invoked by API. |
+| Broker producer and consumer | API outbox relay XADD; Worker XREADGROUP/XACK. |
+| Background service | Replenishment processing, summaries, daily/manual backups. |
+| Docker or cloud deployment | Six services in Compose, shared persistent volumes. |
+| End-to-end workflow | Receive → advise → sell → replenish → count/reconcile. |
+| Deliverables | Source/migrations/SQL, Dockerfiles/Compose, OpenAPI, README and presentation checklist remain tracked. |
 
-## 12. Three-Person Delivery Plan
+## 12. Implementation Sequence and Responsibilities
 
-| Owner | Primary work | Integration responsibility |
-|---|---|---|
-| Member A | REST API, JWT, Services/Repository, EF schema/migrations | Shared DTOs, DB constraints and API contracts. |
-| Member B | React screens, catalogue filters, preview/Batch progress | API integration and end-to-end demo flow. |
-| Member C | gRPC generator, Redis/Worker, summaries/backups, Docker | Reliable async processing and restore drill. |
+| Owner | Primary responsibility |
+|---|---|
+| Member A | API, JWT, EF/Npgsql migrations, transaction/ledger/count approval and AutoMapper contracts. |
+| Member B | React screens, table/form components, advice/reasons, document wizard and conflict UX. |
+| Member C | gRPC totals/advice, Redis relay/consumer integration, reports/backups and Compose/restore demo. |
 
-Week 1: agree DTOs and schema, start Compose infrastructure, login/master CRUD, gRPC preview, basic React pages. Week 2: bulk jobs/outbox/idempotency, prices/status audit, summary/backup jobs, UI integration. Optional Week 3: fix integration failures, restore test, documentation, presentation. Freeze new features after Week 2; prioritize a complete working flow.
+Slice 1: Compose infrastructure, auth, catalogue/SKU metadata and DB constraints. Slice 2: receipts/sales, immutable snapshots, last-bag/idempotency verification. Slice 3: advice and explanation UI; low-stock suggestions and draft conversion. Slice 4: physical counts/Admin approval and adjustments. Slice 5: reports/backup/restore, browser integration and presentation. Each slice must demonstrate a complete user behavior; do not build every screen before testing a transaction.
+
+Required application tests include concurrent last-bag sales, partial multi-line rollback, duplicate confirmation/cancellation/adjustment, stale count submission/approval, duplicate restock conversion, source-missing advice, price changes during confirmation, and broker interruption/recovery. The existing SQL prototype validates only the database subset; see [verification](verification.md).
 
 ## 13. Technical References
 
-The PDF determines the assignment requirements. External sources below support technology behavior, not business scope:
-
-- [.NET support policy](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) — runtime baseline.
-- [ASP.NET Core gRPC](https://learn.microsoft.com/en-us/aspnet/core/grpc/aspnetcore?view=aspnetcore-10.0) — HTTP/2 server configuration.
-- [EF Core transactions](https://learn.microsoft.com/en-us/ef/core/saving/transactions) — atomic SaveChanges and transaction boundaries.
-- [.NET Worker Services](https://learn.microsoft.com/en-us/dotnet/core/extensions/workers) — hosted background processing.
-- [Redis Streams](https://redis.io/docs/latest/develop/data-types/streams/) and [XAUTOCLAIM](https://redis.io/docs/latest/commands/xautoclaim/) — groups, pending delivery and recovery.
-- [SQL Server copy-only backups](https://learn.microsoft.com/en-us/sql/relational-databases/backup-restore/copy-only-backups-sql-server?view=sql-server-ver17) — backup mode.
-- [SQL Server Linux backup/restore](https://learn.microsoft.com/en-us/sql/linux/business-continuity/backup-restore/database-backup-restore?view=sql-server-ver17) — server-side disk paths.
-- [RESTORE VERIFYONLY](https://learn.microsoft.com/en-us/sql/t-sql/statements/restore-statements-verifyonly-transact-sql?view=sql-server-ver17) — verification limitations.
+- [PostgreSQL transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html).
+- [EF Core ExecuteUpdate concurrency and transactions](https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete).
+- [Npgsql EF Core 10 provider](https://www.npgsql.org/efcore/release-notes/10.0.html).
+- [Redis consumer groups](https://redis.io/docs/latest/commands/xreadgroup/) and [pending reclaim](https://redis.io/docs/latest/commands/xautoclaim/).
+- [PostgreSQL pg_dump](https://www.postgresql.org/docs/current/app-pgdump.html) and [pg_restore](https://www.postgresql.org/docs/current/app-pgrestore.html).
+- [AutoMapper license configuration](https://docs.automapper.io/en/stable/License-configuration.html).
+- [Container growing-media properties, NC State Extension](https://content.ces.ncsu.edu/extension-gardener-handbook/18-plants-grown-in-containers).

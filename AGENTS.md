@@ -1,8 +1,16 @@
 # Assignment agent instructions
 
-Build a simple internal real-estate catalogue management assignment. Follow the requirements in `PRN232 - Final Assignment.pdf`. Avoid expanding the project into a production release.
+Build a simple internal PRN232 application for a shop selling pre-packed potting-soil bags purchased from suppliers. No customer-facing storefront, soil mixing, repacking or loose-weight sales. Follow the requirements in `PRN232 - Final Assignment.pdf`. Avoid expanding the project into a production release.
 
-Requirements discovery using Matt Pocock's grilling and domain-modeling skills is complete. The approved design is `docs/system-design.md`; consult it before implementation. Do not implement unresolved business decisions or expand the assignment scope.
+Requirements discovery using Matt Pocock's grilling and domain-modeling skills is recorded in `docs/gardening-discovery.md` and the root `GLOSSARY.md`. The completed approved design is `docs/system-design.md`, including product advice with source-backed metadata, replenishment suggestions and stocktaking approval. Consult it before implementation. The previous real-estate artifacts are historical material under `docs/archive/real-estate/`; do not treat that archive as approved decisions for the new domain.
+
+## Technology
+
+- PostgreSQL with EF Core and the Npgsql provider; use EF migrations and export SQL scripts.
+- React + Vite + TypeScript; omit Ant Design and start with plain CSS/reusable React components.
+- Use AutoMapper for entity/DTO mapping, keeping trusted stock/status/role/totals under Service control.
+- Layered ASP.NET Core REST API, independent gRPC calculation service, .NET Worker, Redis Streams and Docker Compose.
+- Backup daily plus manual Admin trigger; retain 7 successful PostgreSQL backups. No backup after every mutation.
 
 ## Agent skills
 

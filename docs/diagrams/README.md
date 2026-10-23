@@ -1,26 +1,32 @@
-# Diagram Sources and Exports
+# Potting Soil Shop — Diagrams
 
-The gallery is [index.html](index.html). Every figure has a self-contained HTML source plus PNG (2560×1440) and SVG exports in `images/`.
+Open the [gallery](index.html). All figures have editable self-contained HTML sources, offline SVG exports and PNG exports at 2× in `images/`. Canvas dimensions are recorded per figure in `manifest.json`.
 
-| Figure | Model |
+| Source | Meaning |
 |---|---|
-| c4-l1-context | C4 System Context |
-| c4-l2-containers | C4 Container |
-| erd-conceptual | Business entities/cardinality |
-| db-catalogue | Developer / Project / Building |
-| db-unit-location | Unit → Project / Building |
-| db-unit-audit | Unit details, history and actors |
-| db-batches | Batch request and Unit origin |
-| db-summaries | Project snapshot and SummaryRun |
-| db-operations | Outbox and BackupRun |
+| [c4-l1-context.html](c4-l1-context.html) | Admin/Employee access and offline Supplier/Customer context. |
+| [c4-l2-containers.html](c4-l2-containers.html) | All six executing services plus backup store, responsibilities, protocol links and application boundary. |
+| [c4-l2-synchronous.html](c4-l2-synchronous.html) | Same Level 2 containers, focused on advice/quotes and atomic stock confirmation. |
+| [c4-l2-asynchronous.html](c4-l2-asynchronous.html) | Same Level 2 containers, focused on outbox producer, broker, Worker, reports and archives. |
+| [erd-trading.html](erd-trading.html) | Conceptual product/SKU/receipt/sale relationships. |
+| [erd-operations.html](erd-operations.html) | Conceptual count/adjustment/movement/replenishment and metadata relationships. |
 
-The [Structurizr workspace](workspace.dsl) contains only C4 Context/Container views. HTML figures are designed with diagram-design, independently of Structurizr's automatic layout. Staff roles are combined into one Staff box on the container figure; the DSL keeps their individual relationships. Offline developer-to-employee information is explicit on L1, not an API integration. Physical figures deliberately omit non-key columns and cross-subsystem edges where their captions disclose them; the full [SQL](../database/schema.sql) and [dictionary](../database/data-dictionary.md) are authoritative.
+Physical database figures are `db-catalogue`, `db-purchases`, `db-sales`, `db-inventory`, `db-replenishment`, `db-tags` and `db-background`. They show selected columns/FKs; captions disclose omitted cross-subsystem references and the dictionary contains the full schema.
 
-## Regeneration
+## C4 fidelity
 
-1. Run `python docs/tools/generate_design_assets.py` from the repository root.
-2. Export each HTML figure with the installed diagram-design helper: `python <skill-directory>/scripts/export_svg.py <source.html> <images/output.svg> --system-fonts`.
-3. Run `node docs/tools/render_design_assets.cjs` with Playwright available. The script defaults to installed Chrome; set `DESIGN_BROWSER_CHANNEL=msedge` for Edge. If Node resolves no local Playwright module, set `CODEX_DESIGN_NODE_MODULES` to the bundled Node module directory returned by Codex workspace dependencies.
-4. Run diagram-design's `scripts/self_check.py` for each figure and inspect the rendered images.
+The [Structurizr workspace](workspace.dsl) has exactly one System Context view and three Container perspectives. There are no component/deployment/code views. The synchronous HTML view combines Admin/Employee into one People box for readability; the DSL preserves separate actor nodes. All container/store identities are shared across C2 views. Responsibilities listed inside a container are descriptive text, not extra C3 nodes.
 
-Project-local colors and system-font choices are recorded in [style-guide.md](style-guide.md). No global skill profile is modified.
+Offline supplier/customer interactions are human context, not software integrations. API hosts the outbox publisher; Worker consumes Redis and writes backups. PostgreSQL does not write Worker archive paths. gRPC has no database access. Return values are implicit on request arrows and described inside nodes/captions.
+
+The HTML/SVG layout is authored with diagram-design; the canonical C4 model is in Structurizr DSL. Both express the same boundaries. Docker Structurizr validation succeeded; visual layout is verified from the HTML exports rather than generated PlantUML.
+
+## Regenerate
+
+1. `python docs/tools/generate_design_assets.py` generates schema/dictionary and HTML/manifest from the approved models.
+2. Export each figure using the installed diagram-design `scripts/export_svg.py <source.html> <images/output.svg> --system-fonts` helper.
+3. `node docs/tools/render_design_assets.cjs` renders with installed Chrome and Playwright. Set `CODEX_DESIGN_NODE_MODULES` if using bundled Node modules; set `DESIGN_BROWSER_CHANNEL=msedge` to use Edge.
+4. Run `python docs/tools/validate_design_assets.py` and diagram-design `scripts/self_check.py` for all figure sources. Inspect the PNG files after changing geometry.
+5. `python docs/tools/verify_postgres_design.py` runs the isolated database checks using an existing `postgres:16-alpine` image, then removes only its own temporary container/volume.
+
+Project colors remain white/navy/cyan from the approved custom style; no global skill profile is changed. System fonts are intentional for portable offline rendering.

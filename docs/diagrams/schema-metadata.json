@@ -1,916 +1,1615 @@
 {
-  "Users": {
+  "users": {
+    "description": "Internal Admin/Employee accounts; deactivate instead of deleting referenced actors.",
     "columns": [
       {
-        "name": "Id",
-        "type": "int",
+        "name": "id",
+        "type": "integer",
         "nullable": false,
-        "pk": true,
-        "definition": "Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_Users PRIMARY KEY"
+        "default": null,
+        "identity": true
       },
       {
-        "name": "Username",
-        "type": "nvarchar(100)",
+        "name": "username",
+        "type": "varchar(100)",
         "nullable": false,
-        "pk": false,
-        "definition": "Username nvarchar(100) NOT NULL CONSTRAINT UQ_Users_Username UNIQUE"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "DisplayName",
-        "type": "nvarchar(150)",
+        "name": "display_name",
+        "type": "varchar(150)",
         "nullable": false,
-        "pk": false,
-        "definition": "DisplayName nvarchar(150) NOT NULL"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "PasswordHash",
-        "type": "nvarchar(500)",
+        "name": "password_hash",
+        "type": "text",
         "nullable": false,
-        "pk": false,
-        "definition": "PasswordHash nvarchar(500) NOT NULL"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "Role",
+        "name": "role",
         "type": "varchar(16)",
         "nullable": false,
-        "pk": false,
-        "definition": "Role varchar(16) NOT NULL CONSTRAINT CK_Users_Role CHECK (Role IN ('Admin','Employee'))"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "IsActive",
-        "type": "bit",
+        "name": "is_active",
+        "type": "boolean",
         "nullable": false,
-        "pk": false,
-        "definition": "IsActive bit NOT NULL CONSTRAINT DF_Users_Active DEFAULT 1"
+        "default": "true",
+        "identity": false
       },
       {
-        "name": "CreatedAtUtc",
-        "type": "datetime2(3)",
+        "name": "created_at",
+        "type": "timestamptz",
         "nullable": false,
-        "pk": false,
-        "definition": "CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Users_Created DEFAULT SYSUTCDATETIME()"
+        "default": "now()",
+        "identity": false
       },
       {
-        "name": "Version",
-        "type": "rowversion",
-        "nullable": false,
-        "pk": false,
-        "definition": "Version rowversion NOT NULL"
-      }
-    ],
-    "definition": "    Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_Users PRIMARY KEY,\n    Username nvarchar(100) NOT NULL CONSTRAINT UQ_Users_Username UNIQUE,\n    DisplayName nvarchar(150) NOT NULL,\n    PasswordHash nvarchar(500) NOT NULL,\n    Role varchar(16) NOT NULL CONSTRAINT CK_Users_Role CHECK (Role IN ('Admin','Employee')),\n    IsActive bit NOT NULL CONSTRAINT DF_Users_Active DEFAULT 1,\n    CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Users_Created DEFAULT SYSUTCDATETIME(),\n    Version rowversion NOT NULL"
-  },
-  "Developers": {
-    "columns": [
-      {
-        "name": "Id",
-        "type": "int",
-        "nullable": false,
-        "pk": true,
-        "definition": "Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_Developers PRIMARY KEY"
-      },
-      {
-        "name": "Code",
-        "type": "nvarchar(50)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Code nvarchar(50) NOT NULL CONSTRAINT UQ_Developers_Code UNIQUE"
-      },
-      {
-        "name": "Name",
-        "type": "nvarchar(200)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Name nvarchar(200) NOT NULL"
-      },
-      {
-        "name": "ContactName",
-        "type": "nvarchar(150)",
-        "nullable": true,
-        "pk": false,
-        "definition": "ContactName nvarchar(150) NULL"
-      },
-      {
-        "name": "Email",
-        "type": "nvarchar(254)",
-        "nullable": true,
-        "pk": false,
-        "definition": "Email nvarchar(254) NULL"
-      },
-      {
-        "name": "Phone",
-        "type": "nvarchar(30)",
-        "nullable": true,
-        "pk": false,
-        "definition": "Phone nvarchar(30) NULL"
-      },
-      {
-        "name": "CreatedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": false,
-        "pk": false,
-        "definition": "CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Developers_Created DEFAULT SYSUTCDATETIME()"
-      },
-      {
-        "name": "Version",
-        "type": "rowversion",
-        "nullable": false,
-        "pk": false,
-        "definition": "Version rowversion NOT NULL"
-      }
-    ],
-    "definition": "    Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_Developers PRIMARY KEY,\n    Code nvarchar(50) NOT NULL CONSTRAINT UQ_Developers_Code UNIQUE,\n    Name nvarchar(200) NOT NULL,\n    ContactName nvarchar(150) NULL,\n    Email nvarchar(254) NULL,\n    Phone nvarchar(30) NULL,\n    CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Developers_Created DEFAULT SYSUTCDATETIME(),\n    Version rowversion NOT NULL"
-  },
-  "Projects": {
-    "columns": [
-      {
-        "name": "Id",
-        "type": "int",
-        "nullable": false,
-        "pk": true,
-        "definition": "Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_Projects PRIMARY KEY"
-      },
-      {
-        "name": "DeveloperId",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "DeveloperId int NOT NULL"
-      },
-      {
-        "name": "Code",
-        "type": "nvarchar(50)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Code nvarchar(50) NOT NULL CONSTRAINT UQ_Projects_Code UNIQUE"
-      },
-      {
-        "name": "Name",
-        "type": "nvarchar(200)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Name nvarchar(200) NOT NULL"
-      },
-      {
-        "name": "Address",
-        "type": "nvarchar(500)",
-        "nullable": true,
-        "pk": false,
-        "definition": "Address nvarchar(500) NULL"
-      },
-      {
-        "name": "Description",
-        "type": "nvarchar(2000)",
-        "nullable": true,
-        "pk": false,
-        "definition": "Description nvarchar(2000) NULL"
-      },
-      {
-        "name": "CreatedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": false,
-        "pk": false,
-        "definition": "CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Projects_Created DEFAULT SYSUTCDATETIME()"
-      },
-      {
-        "name": "Version",
-        "type": "rowversion",
-        "nullable": false,
-        "pk": false,
-        "definition": "Version rowversion NOT NULL"
-      }
-    ],
-    "definition": "    Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_Projects PRIMARY KEY,\n    DeveloperId int NOT NULL,\n    Code nvarchar(50) NOT NULL CONSTRAINT UQ_Projects_Code UNIQUE,\n    Name nvarchar(200) NOT NULL,\n    Address nvarchar(500) NULL,\n    Description nvarchar(2000) NULL,\n    CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Projects_Created DEFAULT SYSUTCDATETIME(),\n    Version rowversion NOT NULL,\n    CONSTRAINT FK_Projects_Developer FOREIGN KEY (DeveloperId) REFERENCES dbo.Developers(Id)"
-  },
-  "Buildings": {
-    "columns": [
-      {
-        "name": "Id",
-        "type": "int",
-        "nullable": false,
-        "pk": true,
-        "definition": "Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_Buildings PRIMARY KEY"
-      },
-      {
-        "name": "ProjectId",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "ProjectId int NOT NULL"
-      },
-      {
-        "name": "Code",
-        "type": "nvarchar(40)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Code nvarchar(40) NOT NULL"
-      },
-      {
-        "name": "Name",
-        "type": "nvarchar(200)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Name nvarchar(200) NOT NULL"
-      },
-      {
-        "name": "FloorCount",
-        "type": "smallint",
-        "nullable": false,
-        "pk": false,
-        "definition": "FloorCount smallint NOT NULL CONSTRAINT CK_Buildings_Floors CHECK (FloorCount BETWEEN 1 AND 99)"
-      },
-      {
-        "name": "Classification",
-        "type": "varchar(16)",
-        "nullable": true,
-        "pk": false,
-        "definition": "Classification varchar(16) NULL CONSTRAINT CK_Buildings_Class CHECK (Classification IN ('HighRise','LowRise'))"
-      },
-      {
-        "name": "CreatedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": false,
-        "pk": false,
-        "definition": "CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Buildings_Created DEFAULT SYSUTCDATETIME()"
-      },
-      {
-        "name": "Version",
-        "type": "rowversion",
-        "nullable": false,
-        "pk": false,
-        "definition": "Version rowversion NOT NULL"
-      }
-    ],
-    "definition": "    Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_Buildings PRIMARY KEY,\n    ProjectId int NOT NULL,\n    Code nvarchar(40) NOT NULL,\n    Name nvarchar(200) NOT NULL,\n    FloorCount smallint NOT NULL CONSTRAINT CK_Buildings_Floors CHECK (FloorCount BETWEEN 1 AND 99),\n    Classification varchar(16) NULL CONSTRAINT CK_Buildings_Class CHECK (Classification IN ('HighRise','LowRise')),\n    CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Buildings_Created DEFAULT SYSUTCDATETIME(),\n    Version rowversion NOT NULL,\n    CONSTRAINT UQ_Buildings_ProjectCode UNIQUE (ProjectId,Code),\n    CONSTRAINT UQ_Buildings_ProjectId UNIQUE (ProjectId,Id),\n    CONSTRAINT FK_Buildings_Project FOREIGN KEY (ProjectId) REFERENCES dbo.Projects(Id)"
-  },
-  "UnitBatches": {
-    "columns": [
-      {
-        "name": "Id",
-        "type": "uniqueidentifier",
-        "nullable": false,
-        "pk": true,
-        "definition": "Id uniqueidentifier NOT NULL CONSTRAINT PK_UnitBatches PRIMARY KEY"
-      },
-      {
-        "name": "RequestId",
-        "type": "uniqueidentifier",
-        "nullable": false,
-        "pk": false,
-        "definition": "RequestId uniqueidentifier NOT NULL CONSTRAINT UQ_UnitBatches_Request UNIQUE"
-      },
-      {
-        "name": "RequestedByUserId",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "RequestedByUserId int NOT NULL"
-      },
-      {
-        "name": "ProjectId",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "ProjectId int NOT NULL"
-      },
-      {
-        "name": "BuildingId",
-        "type": "int",
-        "nullable": true,
-        "pk": false,
-        "definition": "BuildingId int NULL"
-      },
-      {
-        "name": "UnitType",
-        "type": "varchar(16)",
-        "nullable": false,
-        "pk": false,
-        "definition": "UnitType varchar(16) NOT NULL CONSTRAINT CK_UnitBatches_Type CHECK (UnitType IN ('Apartment','Townhouse','Villa'))"
-      },
-      {
-        "name": "PayloadJson",
-        "type": "nvarchar(max)",
-        "nullable": false,
-        "pk": false,
-        "definition": "PayloadJson nvarchar(max) NOT NULL CONSTRAINT CK_UnitBatches_Json CHECK (ISJSON(PayloadJson)=1)"
-      },
-      {
-        "name": "RequestedCount",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "RequestedCount int NOT NULL CONSTRAINT CK_UnitBatches_Count CHECK (RequestedCount BETWEEN 1 AND 500)"
-      },
-      {
-        "name": "CreatedCount",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "CreatedCount int NOT NULL CONSTRAINT DF_UnitBatches_CreatedCount DEFAULT 0"
-      },
-      {
-        "name": "Status",
-        "type": "varchar(16)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Status varchar(16) NOT NULL CONSTRAINT DF_UnitBatches_Status DEFAULT 'Queued'"
-      },
-      {
-        "name": "Attempts",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "Attempts int NOT NULL CONSTRAINT DF_UnitBatches_Attempts DEFAULT 0"
-      },
-      {
-        "name": "ErrorMessage",
-        "type": "nvarchar(2000)",
-        "nullable": true,
-        "pk": false,
-        "definition": "ErrorMessage nvarchar(2000) NULL"
-      },
-      {
-        "name": "CreatedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": false,
-        "pk": false,
-        "definition": "CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_UnitBatches_Created DEFAULT SYSUTCDATETIME()"
-      },
-      {
-        "name": "StartedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": true,
-        "pk": false,
-        "definition": "StartedAtUtc datetime2(3) NULL"
-      },
-      {
-        "name": "CompletedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": true,
-        "pk": false,
-        "definition": "CompletedAtUtc datetime2(3) NULL"
-      },
-      {
-        "name": "LeaseUntilUtc",
-        "type": "datetime2(3)",
-        "nullable": true,
-        "pk": false,
-        "definition": "LeaseUntilUtc datetime2(3) NULL"
-      },
-      {
-        "name": "Version",
-        "type": "rowversion",
-        "nullable": false,
-        "pk": false,
-        "definition": "Version rowversion NOT NULL"
-      }
-    ],
-    "definition": "    Id uniqueidentifier NOT NULL CONSTRAINT PK_UnitBatches PRIMARY KEY,\n    RequestId uniqueidentifier NOT NULL CONSTRAINT UQ_UnitBatches_Request UNIQUE,\n    RequestedByUserId int NOT NULL,\n    ProjectId int NOT NULL,\n    BuildingId int NULL,\n    UnitType varchar(16) NOT NULL CONSTRAINT CK_UnitBatches_Type CHECK (UnitType IN ('Apartment','Townhouse','Villa')),\n    PayloadJson nvarchar(max) NOT NULL CONSTRAINT CK_UnitBatches_Json CHECK (ISJSON(PayloadJson)=1),\n    RequestedCount int NOT NULL CONSTRAINT CK_UnitBatches_Count CHECK (RequestedCount BETWEEN 1 AND 500),\n    CreatedCount int NOT NULL CONSTRAINT DF_UnitBatches_CreatedCount DEFAULT 0,\n    Status varchar(16) NOT NULL CONSTRAINT DF_UnitBatches_Status DEFAULT 'Queued',\n    Attempts int NOT NULL CONSTRAINT DF_UnitBatches_Attempts DEFAULT 0,\n    ErrorMessage nvarchar(2000) NULL,\n    CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_UnitBatches_Created DEFAULT SYSUTCDATETIME(),\n    StartedAtUtc datetime2(3) NULL,\n    CompletedAtUtc datetime2(3) NULL,\n    LeaseUntilUtc datetime2(3) NULL,\n    Version rowversion NOT NULL,\n    CONSTRAINT CK_UnitBatches_Status CHECK (Status IN ('Queued','Processing','Completed','Failed')),\n    CONSTRAINT CK_UnitBatches_CreatedCount CHECK (CreatedCount BETWEEN 0 AND RequestedCount),\n    CONSTRAINT CK_UnitBatches_Atomic CHECK ((Status='Completed' AND CreatedCount=RequestedCount) OR (Status<>'Completed' AND CreatedCount=0)),\n    CONSTRAINT CK_UnitBatches_Attempts CHECK (Attempts>=0),\n    CONSTRAINT CK_UnitBatches_Building CHECK ((UnitType='Apartment' AND BuildingId IS NOT NULL) OR (UnitType IN ('Townhouse','Villa') AND BuildingId IS NULL)),\n    CONSTRAINT FK_UnitBatches_User FOREIGN KEY (RequestedByUserId) REFERENCES dbo.Users(Id),\n    CONSTRAINT FK_UnitBatches_Project FOREIGN KEY (ProjectId) REFERENCES dbo.Projects(Id),\n    CONSTRAINT FK_UnitBatches_Building FOREIGN KEY (ProjectId,BuildingId) REFERENCES dbo.Buildings(ProjectId,Id)"
-  },
-  "Units": {
-    "columns": [
-      {
-        "name": "Id",
-        "type": "int",
-        "nullable": false,
-        "pk": true,
-        "definition": "Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_Units PRIMARY KEY"
-      },
-      {
-        "name": "ProjectId",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "ProjectId int NOT NULL"
-      },
-      {
-        "name": "BuildingId",
-        "type": "int",
-        "nullable": true,
-        "pk": false,
-        "definition": "BuildingId int NULL"
-      },
-      {
-        "name": "OriginBatchId",
-        "type": "uniqueidentifier",
-        "nullable": false,
-        "pk": false,
-        "definition": "OriginBatchId uniqueidentifier NOT NULL"
-      },
-      {
-        "name": "Code",
-        "type": "nvarchar(50)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Code nvarchar(50) NOT NULL"
-      },
-      {
-        "name": "UnitType",
-        "type": "varchar(16)",
-        "nullable": false,
-        "pk": false,
-        "definition": "UnitType varchar(16) NOT NULL"
-      },
-      {
-        "name": "FloorNumber",
-        "type": "smallint",
-        "nullable": true,
-        "pk": false,
-        "definition": "FloorNumber smallint NULL"
-      },
-      {
-        "name": "OwnFloorCount",
-        "type": "smallint",
-        "nullable": true,
-        "pk": false,
-        "definition": "OwnFloorCount smallint NULL"
-      },
-      {
-        "name": "UsableArea",
-        "type": "decimal(12,2)",
-        "nullable": true,
-        "pk": false,
-        "definition": "UsableArea decimal(12,2) NULL"
-      },
-      {
-        "name": "LandArea",
-        "type": "decimal(12,2)",
-        "nullable": true,
-        "pk": false,
-        "definition": "LandArea decimal(12,2) NULL"
-      },
-      {
-        "name": "FootprintArea",
-        "type": "decimal(12,2)",
-        "nullable": true,
-        "pk": false,
-        "definition": "FootprintArea decimal(12,2) NULL"
-      },
-      {
-        "name": "GardenArea",
-        "type": "decimal(12,2)",
-        "nullable": true,
-        "pk": false,
-        "definition": "GardenArea decimal(12,2) NULL"
-      },
-      {
-        "name": "BedroomCount",
-        "type": "smallint",
-        "nullable": true,
-        "pk": false,
-        "definition": "BedroomCount smallint NULL"
-      },
-      {
-        "name": "BathroomCount",
-        "type": "smallint",
-        "nullable": true,
-        "pk": false,
-        "definition": "BathroomCount smallint NULL"
-      },
-      {
-        "name": "PriceVnd",
-        "type": "decimal(18,0)",
-        "nullable": true,
-        "pk": false,
-        "definition": "PriceVnd decimal(18,0) NULL"
-      },
-      {
-        "name": "ManagementStatus",
-        "type": "varchar(16)",
-        "nullable": false,
-        "pk": false,
-        "definition": "ManagementStatus varchar(16) NOT NULL CONSTRAINT DF_Units_Status DEFAULT 'Managed'"
-      },
-      {
-        "name": "CreatedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": false,
-        "pk": false,
-        "definition": "CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Units_Created DEFAULT SYSUTCDATETIME()"
-      },
-      {
-        "name": "UpdatedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": false,
-        "pk": false,
-        "definition": "UpdatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Units_Updated DEFAULT SYSUTCDATETIME()"
-      },
-      {
-        "name": "Version",
-        "type": "rowversion",
-        "nullable": false,
-        "pk": false,
-        "definition": "Version rowversion NOT NULL"
-      }
-    ],
-    "definition": "    Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_Units PRIMARY KEY,\n    ProjectId int NOT NULL,\n    BuildingId int NULL,\n    OriginBatchId uniqueidentifier NOT NULL,\n    Code nvarchar(50) NOT NULL,\n    UnitType varchar(16) NOT NULL,\n    FloorNumber smallint NULL,\n    OwnFloorCount smallint NULL,\n    UsableArea decimal(12,2) NULL,\n    LandArea decimal(12,2) NULL,\n    FootprintArea decimal(12,2) NULL,\n    GardenArea decimal(12,2) NULL,\n    BedroomCount smallint NULL,\n    BathroomCount smallint NULL,\n    PriceVnd decimal(18,0) NULL,\n    ManagementStatus varchar(16) NOT NULL CONSTRAINT DF_Units_Status DEFAULT 'Managed',\n    CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Units_Created DEFAULT SYSUTCDATETIME(),\n    UpdatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_Units_Updated DEFAULT SYSUTCDATETIME(),\n    Version rowversion NOT NULL,\n    CONSTRAINT UQ_Units_ProjectCode UNIQUE (ProjectId,Code),\n    CONSTRAINT CK_Units_Type CHECK (UnitType IN ('Apartment','Townhouse','Villa')),\n    CONSTRAINT CK_Units_Status CHECK (ManagementStatus IN ('Managed','Unmanaged','Sold')),\n    CONSTRAINT CK_Units_TypeFields CHECK (\n        (UnitType='Apartment' AND BuildingId IS NOT NULL AND FloorNumber IS NOT NULL AND OwnFloorCount IS NULL AND LandArea IS NULL AND FootprintArea IS NULL AND GardenArea IS NULL)\n        OR (UnitType='Townhouse' AND BuildingId IS NULL AND FloorNumber IS NULL AND UsableArea IS NULL AND GardenArea IS NULL)\n        OR (UnitType='Villa' AND BuildingId IS NULL AND FloorNumber IS NULL AND UsableArea IS NULL)),\n    CONSTRAINT CK_Units_Floor CHECK (FloorNumber IS NULL OR FloorNumber BETWEEN 1 AND 99),\n    CONSTRAINT CK_Units_OwnFloor CHECK (OwnFloorCount IS NULL OR OwnFloorCount>0),\n    CONSTRAINT CK_Units_UsableArea CHECK (UsableArea IS NULL OR UsableArea>0),\n    CONSTRAINT CK_Units_LandArea CHECK (LandArea IS NULL OR LandArea>0),\n    CONSTRAINT CK_Units_FootprintArea CHECK (FootprintArea IS NULL OR FootprintArea>0),\n    CONSTRAINT CK_Units_GardenArea CHECK (GardenArea IS NULL OR GardenArea>=0),\n    CONSTRAINT CK_Units_Bedrooms CHECK (BedroomCount IS NULL OR BedroomCount>=0),\n    CONSTRAINT CK_Units_Bathrooms CHECK (BathroomCount IS NULL OR BathroomCount>=0),\n    CONSTRAINT CK_Units_Price CHECK (PriceVnd IS NULL OR PriceVnd>0),\n    CONSTRAINT FK_Units_Project FOREIGN KEY (ProjectId) REFERENCES dbo.Projects(Id),\n    CONSTRAINT FK_Units_Building FOREIGN KEY (ProjectId,BuildingId) REFERENCES dbo.Buildings(ProjectId,Id),\n    CONSTRAINT FK_Units_Batch FOREIGN KEY (OriginBatchId) REFERENCES dbo.UnitBatches(Id)"
-  },
-  "UnitAttributes": {
-    "columns": [
-      {
-        "name": "Id",
-        "type": "int",
-        "nullable": false,
-        "pk": true,
-        "definition": "Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_UnitAttributes PRIMARY KEY"
-      },
-      {
-        "name": "UnitId",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "UnitId int NOT NULL"
-      },
-      {
-        "name": "Name",
-        "type": "nvarchar(100)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Name nvarchar(100) NOT NULL"
-      },
-      {
-        "name": "Value",
-        "type": "nvarchar(1000)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Value nvarchar(1000) NOT NULL"
-      }
-    ],
-    "definition": "    Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_UnitAttributes PRIMARY KEY,\n    UnitId int NOT NULL,\n    Name nvarchar(100) NOT NULL,\n    Value nvarchar(1000) NOT NULL,\n    CONSTRAINT UQ_UnitAttributes_Name UNIQUE (UnitId,Name),\n    CONSTRAINT CK_UnitAttributes_Name CHECK (LEN(LTRIM(RTRIM(Name)))>0),\n    CONSTRAINT FK_UnitAttributes_Unit FOREIGN KEY (UnitId) REFERENCES dbo.Units(Id) ON DELETE CASCADE"
-  },
-  "UnitStatusHistory": {
-    "columns": [
-      {
-        "name": "Id",
+        "name": "version",
         "type": "bigint",
         "nullable": false,
-        "pk": true,
-        "definition": "Id bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_UnitStatusHistory PRIMARY KEY"
-      },
-      {
-        "name": "UnitId",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "UnitId int NOT NULL"
-      },
-      {
-        "name": "ChangedByUserId",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "ChangedByUserId int NOT NULL"
-      },
-      {
-        "name": "OldStatus",
-        "type": "varchar(16)",
-        "nullable": false,
-        "pk": false,
-        "definition": "OldStatus varchar(16) NOT NULL"
-      },
-      {
-        "name": "NewStatus",
-        "type": "varchar(16)",
-        "nullable": false,
-        "pk": false,
-        "definition": "NewStatus varchar(16) NOT NULL"
-      },
-      {
-        "name": "Reason",
-        "type": "nvarchar(500)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Reason nvarchar(500) NOT NULL"
-      },
-      {
-        "name": "ChangedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": false,
-        "pk": false,
-        "definition": "ChangedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_UnitStatusHistory_Changed DEFAULT SYSUTCDATETIME()"
+        "default": "1",
+        "identity": false
       }
     ],
-    "definition": "    Id bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_UnitStatusHistory PRIMARY KEY,\n    UnitId int NOT NULL,\n    ChangedByUserId int NOT NULL,\n    OldStatus varchar(16) NOT NULL,\n    NewStatus varchar(16) NOT NULL,\n    Reason nvarchar(500) NOT NULL,\n    ChangedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_UnitStatusHistory_Changed DEFAULT SYSUTCDATETIME(),\n    CONSTRAINT CK_UnitStatusHistory_Status CHECK (OldStatus IN ('Managed','Unmanaged','Sold') AND NewStatus IN ('Managed','Unmanaged','Sold') AND OldStatus<>NewStatus),\n    CONSTRAINT CK_UnitStatusHistory_Reason CHECK (LEN(LTRIM(RTRIM(Reason)))>0),\n    CONSTRAINT FK_UnitStatusHistory_Unit FOREIGN KEY (UnitId) REFERENCES dbo.Units(Id),\n    CONSTRAINT FK_UnitStatusHistory_User FOREIGN KEY (ChangedByUserId) REFERENCES dbo.Users(Id)"
-  },
-  "SummaryRuns": {
-    "columns": [
-      {
-        "name": "Id",
-        "type": "uniqueidentifier",
-        "nullable": false,
-        "pk": true,
-        "definition": "Id uniqueidentifier NOT NULL CONSTRAINT PK_SummaryRuns PRIMARY KEY"
-      },
-      {
-        "name": "EventId",
-        "type": "uniqueidentifier",
-        "nullable": false,
-        "pk": false,
-        "definition": "EventId uniqueidentifier NOT NULL CONSTRAINT UQ_SummaryRuns_Event UNIQUE"
-      },
-      {
-        "name": "ScheduledDate",
-        "type": "date",
-        "nullable": true,
-        "pk": false,
-        "definition": "ScheduledDate date NULL"
-      },
-      {
-        "name": "RequestedByUserId",
-        "type": "int",
-        "nullable": true,
-        "pk": false,
-        "definition": "RequestedByUserId int NULL"
-      },
-      {
-        "name": "Status",
-        "type": "varchar(16)",
-        "nullable": false,
-        "pk": false,
-        "definition": "Status varchar(16) NOT NULL CONSTRAINT DF_SummaryRuns_Status DEFAULT 'Queued'"
-      },
-      {
-        "name": "AsOfUtc",
-        "type": "datetime2(3)",
-        "nullable": true,
-        "pk": false,
-        "definition": "AsOfUtc datetime2(3) NULL"
-      },
-      {
-        "name": "CreatedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": false,
-        "pk": false,
-        "definition": "CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_SummaryRuns_Created DEFAULT SYSUTCDATETIME()"
-      },
-      {
-        "name": "CompletedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": true,
-        "pk": false,
-        "definition": "CompletedAtUtc datetime2(3) NULL"
-      },
-      {
-        "name": "Attempts",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "Attempts int NOT NULL CONSTRAINT DF_SummaryRuns_Attempts DEFAULT 0"
-      },
-      {
-        "name": "LeaseUntilUtc",
-        "type": "datetime2(3)",
-        "nullable": true,
-        "pk": false,
-        "definition": "LeaseUntilUtc datetime2(3) NULL"
-      },
-      {
-        "name": "ErrorMessage",
-        "type": "nvarchar(2000)",
-        "nullable": true,
-        "pk": false,
-        "definition": "ErrorMessage nvarchar(2000) NULL"
-      },
-      {
-        "name": "Version",
-        "type": "rowversion",
-        "nullable": false,
-        "pk": false,
-        "definition": "Version rowversion NOT NULL"
-      }
+    "foreign_keys": [],
+    "checks": [
+      "role IN ('Admin','Employee')",
+      "length(trim(username)) > 0"
     ],
-    "definition": "    Id uniqueidentifier NOT NULL CONSTRAINT PK_SummaryRuns PRIMARY KEY,\n    EventId uniqueidentifier NOT NULL CONSTRAINT UQ_SummaryRuns_Event UNIQUE,\n    ScheduledDate date NULL,\n    RequestedByUserId int NULL,\n    Status varchar(16) NOT NULL CONSTRAINT DF_SummaryRuns_Status DEFAULT 'Queued',\n    AsOfUtc datetime2(3) NULL,\n    CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_SummaryRuns_Created DEFAULT SYSUTCDATETIME(),\n    CompletedAtUtc datetime2(3) NULL,\n    Attempts int NOT NULL CONSTRAINT DF_SummaryRuns_Attempts DEFAULT 0,\n    LeaseUntilUtc datetime2(3) NULL,\n    ErrorMessage nvarchar(2000) NULL,\n    Version rowversion NOT NULL,\n    CONSTRAINT CK_SummaryRuns_Status CHECK (Status IN ('Queued','Processing','Completed','Failed')),\n    CONSTRAINT CK_SummaryRuns_Attempts CHECK (Attempts>=0),\n    CONSTRAINT FK_SummaryRuns_User FOREIGN KEY (RequestedByUserId) REFERENCES dbo.Users(Id)"
+    "unique": [
+      "username"
+    ]
   },
-  "ProjectSummaries": {
+  "suppliers": {
+    "description": "Sources of pre-packed bags; no external integration.",
     "columns": [
       {
-        "name": "Id",
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "code",
+        "type": "varchar(40)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "name",
+        "type": "varchar(200)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "contact_note",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": false,
+        "default": "true",
+        "identity": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      },
+      {
+        "name": "version",
         "type": "bigint",
         "nullable": false,
-        "pk": true,
-        "definition": "Id bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_ProjectSummaries PRIMARY KEY"
-      },
-      {
-        "name": "SummaryRunId",
-        "type": "uniqueidentifier",
-        "nullable": false,
-        "pk": false,
-        "definition": "SummaryRunId uniqueidentifier NOT NULL"
-      },
-      {
-        "name": "ProjectId",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "ProjectId int NOT NULL"
-      },
-      {
-        "name": "TotalCount",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "TotalCount int NOT NULL"
-      },
-      {
-        "name": "ManagedCount",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "ManagedCount int NOT NULL"
-      },
-      {
-        "name": "UnmanagedCount",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "UnmanagedCount int NOT NULL"
-      },
-      {
-        "name": "SoldCount",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "SoldCount int NOT NULL"
-      },
-      {
-        "name": "ManagedWithoutPriceCount",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "ManagedWithoutPriceCount int NOT NULL"
+        "default": "1",
+        "identity": false
       }
     ],
-    "definition": "    Id bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_ProjectSummaries PRIMARY KEY,\n    SummaryRunId uniqueidentifier NOT NULL,\n    ProjectId int NOT NULL,\n    TotalCount int NOT NULL,\n    ManagedCount int NOT NULL,\n    UnmanagedCount int NOT NULL,\n    SoldCount int NOT NULL,\n    ManagedWithoutPriceCount int NOT NULL,\n    CONSTRAINT UQ_ProjectSummaries_RunProject UNIQUE (SummaryRunId,ProjectId),\n    CONSTRAINT CK_ProjectSummaries_Counts CHECK (TotalCount>=0 AND ManagedCount>=0 AND UnmanagedCount>=0 AND SoldCount>=0 AND TotalCount=ManagedCount+UnmanagedCount+SoldCount AND ManagedWithoutPriceCount BETWEEN 0 AND ManagedCount),\n    CONSTRAINT FK_ProjectSummaries_Run FOREIGN KEY (SummaryRunId) REFERENCES dbo.SummaryRuns(Id),\n    CONSTRAINT FK_ProjectSummaries_Project FOREIGN KEY (ProjectId) REFERENCES dbo.Projects(Id)"
+    "foreign_keys": [],
+    "checks": [],
+    "unique": [
+      "code"
+    ]
   },
-  "OutboxMessages": {
+  "products": {
+    "description": "Soil offering and optional source-backed advice metadata.",
     "columns": [
       {
-        "name": "Id",
-        "type": "uniqueidentifier",
+        "name": "id",
+        "type": "integer",
         "nullable": false,
-        "pk": true,
-        "definition": "Id uniqueidentifier NOT NULL CONSTRAINT PK_OutboxMessages PRIMARY KEY"
+        "default": null,
+        "identity": true
       },
       {
-        "name": "Kind",
-        "type": "varchar(32)",
+        "name": "code",
+        "type": "varchar(40)",
         "nullable": false,
-        "pk": false,
-        "definition": "Kind varchar(32) NOT NULL"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "OperationId",
-        "type": "uniqueidentifier",
+        "name": "name",
+        "type": "varchar(200)",
         "nullable": false,
-        "pk": false,
-        "definition": "OperationId uniqueidentifier NOT NULL"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "PayloadJson",
-        "type": "nvarchar(max)",
-        "nullable": false,
-        "pk": false,
-        "definition": "PayloadJson nvarchar(max) NOT NULL"
-      },
-      {
-        "name": "OccurredAtUtc",
-        "type": "datetime2(3)",
-        "nullable": false,
-        "pk": false,
-        "definition": "OccurredAtUtc datetime2(3) NOT NULL CONSTRAINT DF_OutboxMessages_Occurred DEFAULT SYSUTCDATETIME()"
-      },
-      {
-        "name": "PublishedAtUtc",
-        "type": "datetime2(3)",
+        "name": "brand",
+        "type": "varchar(150)",
         "nullable": true,
-        "pk": false,
-        "definition": "PublishedAtUtc datetime2(3) NULL"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "PublishAttempts",
-        "type": "int",
-        "nullable": false,
-        "pk": false,
-        "definition": "PublishAttempts int NOT NULL CONSTRAINT DF_OutboxMessages_Attempts DEFAULT 0"
-      },
-      {
-        "name": "ErrorMessage",
-        "type": "nvarchar(2000)",
+        "name": "manufacturer",
+        "type": "varchar(150)",
         "nullable": true,
-        "pk": false,
-        "definition": "ErrorMessage nvarchar(2000) NULL"
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "ingredients",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "drainage",
+        "type": "varchar(12)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "water_retention",
+        "type": "varchar(12)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "ph_min",
+        "type": "numeric(4,2)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "ph_max",
+        "type": "numeric(4,2)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "storage_note",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "source_reference",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "reviewed_by",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "reviewed_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": false,
+        "default": "true",
+        "identity": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      },
+      {
+        "name": "version",
+        "type": "bigint",
+        "nullable": false,
+        "default": "1",
+        "identity": false
       }
     ],
-    "definition": "    Id uniqueidentifier NOT NULL CONSTRAINT PK_OutboxMessages PRIMARY KEY,\n    Kind varchar(32) NOT NULL,\n    OperationId uniqueidentifier NOT NULL,\n    PayloadJson nvarchar(max) NOT NULL,\n    OccurredAtUtc datetime2(3) NOT NULL CONSTRAINT DF_OutboxMessages_Occurred DEFAULT SYSUTCDATETIME(),\n    PublishedAtUtc datetime2(3) NULL,\n    PublishAttempts int NOT NULL CONSTRAINT DF_OutboxMessages_Attempts DEFAULT 0,\n    ErrorMessage nvarchar(2000) NULL,\n    CONSTRAINT CK_OutboxMessages_Kind CHECK (Kind IN ('BatchRequested','SummaryRequested','BackupRequested')),\n    CONSTRAINT CK_OutboxMessages_Json CHECK (ISJSON(PayloadJson)=1),\n    CONSTRAINT CK_OutboxMessages_Attempts CHECK (PublishAttempts>=0)"
+    "foreign_keys": [
+      [
+        "reviewed_by",
+        "users",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "drainage IS NULL OR drainage IN ('Low','Medium','High')",
+      "water_retention IS NULL OR water_retention IN ('Low','Medium','High')",
+      "(ph_min IS NULL AND ph_max IS NULL) OR (ph_min IS NOT NULL AND ph_max IS NOT NULL AND ph_min BETWEEN 0 AND 14 AND ph_max BETWEEN ph_min AND 14)",
+      "(reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)"
+    ],
+    "unique": [
+      "code"
+    ]
   },
-  "BackupRuns": {
+  "plant_tags": {
+    "description": "Staff-curated label/use tags, not an agronomic taxonomy.",
     "columns": [
       {
-        "name": "Id",
-        "type": "uniqueidentifier",
+        "name": "id",
+        "type": "integer",
         "nullable": false,
-        "pk": true,
-        "definition": "Id uniqueidentifier NOT NULL CONSTRAINT PK_BackupRuns PRIMARY KEY"
+        "default": null,
+        "identity": true
       },
       {
-        "name": "EventId",
-        "type": "uniqueidentifier",
+        "name": "code",
+        "type": "varchar(40)",
         "nullable": false,
-        "pk": false,
-        "definition": "EventId uniqueidentifier NOT NULL CONSTRAINT UQ_BackupRuns_Event UNIQUE"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "TriggerKind",
+        "name": "name",
+        "type": "varchar(100)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      }
+    ],
+    "foreign_keys": [],
+    "checks": [],
+    "unique": [
+      "code"
+    ]
+  },
+  "product_plant_tags": {
+    "description": "Product-to-use-tag association.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "product_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "plant_tag_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      }
+    ],
+    "foreign_keys": [
+      [
+        "product_id",
+        "products",
+        "id",
+        "CASCADE"
+      ],
+      [
+        "plant_tag_id",
+        "plant_tags",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [],
+    "unique": [
+      "product_id,plant_tag_id"
+    ]
+  },
+  "skus": {
+    "description": "Independent packaging, price and single-location bag stock.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "product_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "package_amount",
+        "type": "numeric(10,2)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "package_unit",
+        "type": "varchar(8)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "sale_price_vnd",
+        "type": "numeric(18,0)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "reference_cost_vnd",
+        "type": "numeric(18,0)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "stock_qty",
+        "type": "integer",
+        "nullable": false,
+        "default": "0",
+        "identity": false
+      },
+      {
+        "name": "stock_version",
+        "type": "bigint",
+        "nullable": false,
+        "default": "0",
+        "identity": false
+      },
+      {
+        "name": "low_stock_threshold",
+        "type": "integer",
+        "nullable": false,
+        "default": "5",
+        "identity": false
+      },
+      {
+        "name": "target_stock",
+        "type": "integer",
+        "nullable": false,
+        "default": "30",
+        "identity": false
+      },
+      {
+        "name": "preferred_supplier_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": false,
+        "default": "true",
+        "identity": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      },
+      {
+        "name": "version",
+        "type": "bigint",
+        "nullable": false,
+        "default": "1",
+        "identity": false
+      }
+    ],
+    "foreign_keys": [
+      [
+        "product_id",
+        "products",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "preferred_supplier_id",
+        "suppliers",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "package_unit IN ('kg','L')",
+      "package_amount > 0",
+      "sale_price_vnd > 0",
+      "reference_cost_vnd IS NULL OR reference_cost_vnd > 0",
+      "stock_qty >= 0",
+      "stock_version >= 0",
+      "low_stock_threshold >= 0 AND target_stock > low_stock_threshold"
+    ],
+    "unique": [
+      "code",
+      "product_id,package_amount,package_unit"
+    ]
+  },
+  "purchase_receipts": {
+    "description": "Draft/Confirmed/Cancelled inbound document; actual costs are historical snapshots.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "supplier_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "status",
         "type": "varchar(16)",
         "nullable": false,
-        "pk": false,
-        "definition": "TriggerKind varchar(16) NOT NULL"
+        "default": "'Draft'",
+        "identity": false
       },
       {
-        "name": "ScheduledDate",
+        "name": "created_by",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      },
+      {
+        "name": "confirmed_by",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "confirmed_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "confirmation_key",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "total_vnd",
+        "type": "numeric(18,0)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "cancelled_by",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "cancelled_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "cancellation_key",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "cancel_reason",
+        "type": "varchar(500)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "version",
+        "type": "bigint",
+        "nullable": false,
+        "default": "1",
+        "identity": false
+      }
+    ],
+    "foreign_keys": [
+      [
+        "supplier_id",
+        "suppliers",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "created_by",
+        "users",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "confirmed_by",
+        "users",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "cancelled_by",
+        "users",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "status IN ('Draft','Confirmed','Cancelled')",
+      "total_vnd IS NULL OR total_vnd >= 0",
+      "(status='Draft' AND confirmed_at IS NULL AND confirmed_by IS NULL AND confirmation_key IS NULL AND total_vnd IS NULL AND cancelled_at IS NULL AND cancelled_by IS NULL AND cancellation_key IS NULL AND cancel_reason IS NULL) OR (status='Confirmed' AND confirmed_at IS NOT NULL AND confirmed_by IS NOT NULL AND confirmation_key IS NOT NULL AND total_vnd IS NOT NULL AND cancelled_at IS NULL AND cancelled_by IS NULL AND cancellation_key IS NULL AND cancel_reason IS NULL) OR (status='Cancelled' AND confirmed_at IS NOT NULL AND confirmed_by IS NOT NULL AND confirmation_key IS NOT NULL AND total_vnd IS NOT NULL AND cancelled_at IS NOT NULL AND cancelled_by IS NOT NULL AND cancellation_key IS NOT NULL AND cancel_reason IS NOT NULL AND length(trim(cancel_reason))>0)"
+    ],
+    "unique": [
+      "code"
+    ]
+  },
+  "purchase_receipt_lines": {
+    "description": "One SKU per receipt; unknown cost allowed in draft only.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "receipt_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "sku_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "quantity",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "unit_cost_vnd",
+        "type": "numeric(18,0)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      }
+    ],
+    "foreign_keys": [
+      [
+        "receipt_id",
+        "purchase_receipts",
+        "id",
+        "CASCADE"
+      ],
+      [
+        "sku_id",
+        "skus",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "quantity > 0",
+      "unit_cost_vnd IS NULL OR unit_cost_vnd > 0"
+    ],
+    "unique": [
+      "receipt_id,sku_id"
+    ]
+  },
+  "sales": {
+    "description": "Counter sale; no customer account/payment gateway; confirmed data is immutable.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "status",
+        "type": "varchar(16)",
+        "nullable": false,
+        "default": "'Draft'",
+        "identity": false
+      },
+      {
+        "name": "created_by",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      },
+      {
+        "name": "confirmed_by",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "confirmed_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "confirmation_key",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "total_vnd",
+        "type": "numeric(18,0)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "cancelled_by",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "cancelled_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "cancellation_key",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "cancel_reason",
+        "type": "varchar(500)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "version",
+        "type": "bigint",
+        "nullable": false,
+        "default": "1",
+        "identity": false
+      }
+    ],
+    "foreign_keys": [
+      [
+        "created_by",
+        "users",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "confirmed_by",
+        "users",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "cancelled_by",
+        "users",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "status IN ('Draft','Confirmed','Cancelled')",
+      "total_vnd IS NULL OR total_vnd >= 0",
+      "(status='Draft' AND confirmed_at IS NULL AND confirmed_by IS NULL AND confirmation_key IS NULL AND total_vnd IS NULL AND cancelled_at IS NULL AND cancelled_by IS NULL AND cancellation_key IS NULL AND cancel_reason IS NULL) OR (status='Confirmed' AND confirmed_at IS NOT NULL AND confirmed_by IS NOT NULL AND confirmation_key IS NOT NULL AND total_vnd IS NOT NULL AND cancelled_at IS NULL AND cancelled_by IS NULL AND cancellation_key IS NULL AND cancel_reason IS NULL) OR (status='Cancelled' AND confirmed_at IS NOT NULL AND confirmed_by IS NOT NULL AND confirmation_key IS NOT NULL AND total_vnd IS NOT NULL AND cancelled_at IS NOT NULL AND cancelled_by IS NOT NULL AND cancellation_key IS NOT NULL AND cancel_reason IS NOT NULL AND length(trim(cancel_reason))>0)"
+    ],
+    "unique": [
+      "code"
+    ]
+  },
+  "sale_lines": {
+    "description": "Frozen SKU price at confirmation, quantity and display snapshot.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "sale_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "sku_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "quantity",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "unit_price_vnd",
+        "type": "numeric(18,0)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "sku_label_snapshot",
+        "type": "varchar(300)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      }
+    ],
+    "foreign_keys": [
+      [
+        "sale_id",
+        "sales",
+        "id",
+        "CASCADE"
+      ],
+      [
+        "sku_id",
+        "skus",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "quantity > 0",
+      "unit_price_vnd IS NULL OR unit_price_vnd > 0"
+    ],
+    "unique": [
+      "sale_id,sku_id"
+    ]
+  },
+  "stock_counts": {
+    "description": "One SKU physical count with captured stock version and Admin decision.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "sku_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "expected_qty",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "expected_stock_version",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "actual_qty",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "reason",
+        "type": "varchar(500)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "status",
+        "type": "varchar(20)",
+        "nullable": false,
+        "default": "'Pending'",
+        "identity": false
+      },
+      {
+        "name": "counted_by",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "counted_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      },
+      {
+        "name": "reviewed_by",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "reviewed_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "review_note",
+        "type": "varchar(500)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "version",
+        "type": "bigint",
+        "nullable": false,
+        "default": "1",
+        "identity": false
+      }
+    ],
+    "foreign_keys": [
+      [
+        "sku_id",
+        "skus",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "counted_by",
+        "users",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "reviewed_by",
+        "users",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "expected_qty >= 0 AND actual_qty >= 0 AND expected_stock_version >= 0",
+      "status IN ('Pending','Approved','RecountRequired','Rejected')",
+      "length(trim(reason))>0",
+      "status <> 'Approved' OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL)"
+    ],
+    "unique": []
+  },
+  "stock_adjustments": {
+    "description": "Immutable signed correction, optionally originating from an approved stock count.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "request_key",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "sku_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "stock_count_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "delta_qty",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "reason",
+        "type": "varchar(500)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "created_by",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      }
+    ],
+    "foreign_keys": [
+      [
+        "sku_id",
+        "skus",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "stock_count_id",
+        "stock_counts",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "created_by",
+        "users",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "delta_qty <> 0",
+      "length(trim(reason))>0"
+    ],
+    "unique": [
+      "request_key"
+    ]
+  },
+  "stock_movements": {
+    "description": "Immutable stock ledger, one row per source/SKU/action.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "sku_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "kind",
+        "type": "varchar(16)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "delta_qty",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "balance_after",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "stock_version_after",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "receipt_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "sale_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "adjustment_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "actor_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      }
+    ],
+    "foreign_keys": [
+      [
+        "sku_id",
+        "skus",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "receipt_id",
+        "purchase_receipts",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "sale_id",
+        "sales",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "adjustment_id",
+        "stock_adjustments",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "actor_id",
+        "users",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "delta_qty <> 0 AND balance_after >= 0 AND stock_version_after > 0",
+      "(kind IN ('Purchase','PurchaseCancel') AND receipt_id IS NOT NULL AND sale_id IS NULL AND adjustment_id IS NULL) OR (kind IN ('Sale','SaleCancel') AND sale_id IS NOT NULL AND receipt_id IS NULL AND adjustment_id IS NULL) OR (kind='Adjustment' AND adjustment_id IS NOT NULL AND sale_id IS NULL AND receipt_id IS NULL)",
+      "(kind IN ('Purchase','SaleCancel') AND delta_qty>0) OR (kind IN ('Sale','PurchaseCancel') AND delta_qty<0) OR kind='Adjustment'"
+    ],
+    "unique": [
+      "sku_id,stock_version_after"
+    ]
+  },
+  "restock_suggestions": {
+    "description": "Single active low-stock alert/suggestion per SKU and optional receipt-draft link.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "sku_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "supplier_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "observed_qty",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "suggested_qty",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "status",
+        "type": "varchar(20)",
+        "nullable": false,
+        "default": "'Open'",
+        "identity": false
+      },
+      {
+        "name": "receipt_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      },
+      {
+        "name": "version",
+        "type": "bigint",
+        "nullable": false,
+        "default": "1",
+        "identity": false
+      }
+    ],
+    "foreign_keys": [
+      [
+        "sku_id",
+        "skus",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "supplier_id",
+        "suppliers",
+        "id",
+        "RESTRICT"
+      ],
+      [
+        "receipt_id",
+        "purchase_receipts",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "observed_qty >= 0 AND suggested_qty >= 0",
+      "status IN ('Open','ReceiptDrafted','Resolved')",
+      "status <> 'ReceiptDrafted' OR receipt_id IS NOT NULL"
+    ],
+    "unique": []
+  },
+  "outbox_messages": {
+    "description": "Durable post-commit event intent; API relay publishes to Redis.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "kind",
+        "type": "varchar(24)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "payload",
+        "type": "jsonb",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      },
+      {
+        "name": "published_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "attempts",
+        "type": "integer",
+        "nullable": false,
+        "default": "0",
+        "identity": false
+      },
+      {
+        "name": "last_error",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      }
+    ],
+    "foreign_keys": [],
+    "checks": [
+      "kind IN ('InventoryChanged','BackupRequested','SummaryRequested')",
+      "attempts >= 0"
+    ],
+    "unique": []
+  },
+  "daily_summaries": {
+    "description": "One recomputable Vietnam business-date report, explicitly timestamped.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "business_date",
+        "type": "date",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "status",
+        "type": "varchar(16)",
+        "nullable": false,
+        "default": "'Queued'",
+        "identity": false
+      },
+      {
+        "name": "revenue_vnd",
+        "type": "numeric(18,0)",
+        "nullable": false,
+        "default": "0",
+        "identity": false
+      },
+      {
+        "name": "sold_bags",
+        "type": "bigint",
+        "nullable": false,
+        "default": "0",
+        "identity": false
+      },
+      {
+        "name": "sale_count",
+        "type": "integer",
+        "nullable": false,
+        "default": "0",
+        "identity": false
+      },
+      {
+        "name": "snapshot_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "last_error",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "identity": false
+      },
+      {
+        "name": "version",
+        "type": "bigint",
+        "nullable": false,
+        "default": "1",
+        "identity": false
+      }
+    ],
+    "foreign_keys": [],
+    "checks": [
+      "status IN ('Queued','Processing','Completed','Failed')",
+      "revenue_vnd >= 0 AND sold_bags >= 0 AND sale_count >= 0"
+    ],
+    "unique": [
+      "business_date"
+    ]
+  },
+  "daily_sku_snapshots": {
+    "description": "Stock levels at report generation, not reconstructed day-end inventory.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "identity": true
+      },
+      {
+        "name": "summary_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "sku_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "stock_qty",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      }
+    ],
+    "foreign_keys": [
+      [
+        "summary_id",
+        "daily_summaries",
+        "id",
+        "CASCADE"
+      ],
+      [
+        "sku_id",
+        "skus",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "stock_qty >= 0"
+    ],
+    "unique": [
+      "summary_id,sku_id"
+    ]
+  },
+  "backup_runs": {
+    "description": "Daily/manual pg_dump jobs; seven successful retained files across both kinds.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "kind",
+        "type": "varchar(12)",
+        "nullable": false,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "scheduled_date",
         "type": "date",
         "nullable": true,
-        "pk": false,
-        "definition": "ScheduledDate date NULL"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "RequestedByUserId",
-        "type": "int",
+        "name": "requested_by",
+        "type": "integer",
         "nullable": true,
-        "pk": false,
-        "definition": "RequestedByUserId int NULL"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "Status",
+        "name": "status",
         "type": "varchar(16)",
         "nullable": false,
-        "pk": false,
-        "definition": "Status varchar(16) NOT NULL CONSTRAINT DF_BackupRuns_Status DEFAULT 'Queued'"
+        "default": "'Queued'",
+        "identity": false
       },
       {
-        "name": "FileName",
-        "type": "nvarchar(200)",
+        "name": "filename",
+        "type": "varchar(200)",
         "nullable": true,
-        "pk": false,
-        "definition": "FileName nvarchar(200) NULL"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "Retained",
-        "type": "bit",
+        "name": "retained",
+        "type": "boolean",
         "nullable": false,
-        "pk": false,
-        "definition": "Retained bit NOT NULL CONSTRAINT DF_BackupRuns_Retained DEFAULT 0"
+        "default": "false",
+        "identity": false
       },
       {
-        "name": "VerifiedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": true,
-        "pk": false,
-        "definition": "VerifiedAtUtc datetime2(3) NULL"
-      },
-      {
-        "name": "CreatedAtUtc",
-        "type": "datetime2(3)",
+        "name": "attempts",
+        "type": "integer",
         "nullable": false,
-        "pk": false,
-        "definition": "CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_BackupRuns_Created DEFAULT SYSUTCDATETIME()"
+        "default": "0",
+        "identity": false
       },
       {
-        "name": "CompletedAtUtc",
-        "type": "datetime2(3)",
-        "nullable": true,
-        "pk": false,
-        "definition": "CompletedAtUtc datetime2(3) NULL"
-      },
-      {
-        "name": "Attempts",
-        "type": "int",
+        "name": "created_at",
+        "type": "timestamptz",
         "nullable": false,
-        "pk": false,
-        "definition": "Attempts int NOT NULL CONSTRAINT DF_BackupRuns_Attempts DEFAULT 0"
+        "default": "now()",
+        "identity": false
       },
       {
-        "name": "LeaseUntilUtc",
-        "type": "datetime2(3)",
+        "name": "completed_at",
+        "type": "timestamptz",
         "nullable": true,
-        "pk": false,
-        "definition": "LeaseUntilUtc datetime2(3) NULL"
+        "default": null,
+        "identity": false
       },
       {
-        "name": "ErrorMessage",
-        "type": "nvarchar(2000)",
+        "name": "last_error",
+        "type": "text",
         "nullable": true,
-        "pk": false,
-        "definition": "ErrorMessage nvarchar(2000) NULL"
-      },
-      {
-        "name": "Version",
-        "type": "rowversion",
-        "nullable": false,
-        "pk": false,
-        "definition": "Version rowversion NOT NULL"
+        "default": null,
+        "identity": false
       }
     ],
-    "definition": "    Id uniqueidentifier NOT NULL CONSTRAINT PK_BackupRuns PRIMARY KEY,\n    EventId uniqueidentifier NOT NULL CONSTRAINT UQ_BackupRuns_Event UNIQUE,\n    TriggerKind varchar(16) NOT NULL,\n    ScheduledDate date NULL,\n    RequestedByUserId int NULL,\n    Status varchar(16) NOT NULL CONSTRAINT DF_BackupRuns_Status DEFAULT 'Queued',\n    FileName nvarchar(200) NULL,\n    Retained bit NOT NULL CONSTRAINT DF_BackupRuns_Retained DEFAULT 0,\n    VerifiedAtUtc datetime2(3) NULL,\n    CreatedAtUtc datetime2(3) NOT NULL CONSTRAINT DF_BackupRuns_Created DEFAULT SYSUTCDATETIME(),\n    CompletedAtUtc datetime2(3) NULL,\n    Attempts int NOT NULL CONSTRAINT DF_BackupRuns_Attempts DEFAULT 0,\n    LeaseUntilUtc datetime2(3) NULL,\n    ErrorMessage nvarchar(2000) NULL,\n    Version rowversion NOT NULL,\n    CONSTRAINT CK_BackupRuns_Trigger CHECK (TriggerKind IN ('Daily','Change','Manual')),\n    CONSTRAINT CK_BackupRuns_Status CHECK (Status IN ('Queued','Processing','Completed','Failed')),\n    CONSTRAINT CK_BackupRuns_Daily CHECK ((TriggerKind='Daily' AND ScheduledDate IS NOT NULL) OR (TriggerKind IN ('Change','Manual') AND ScheduledDate IS NULL)),\n    CONSTRAINT CK_BackupRuns_Retained CHECK (Retained=0 OR (Status='Completed' AND FileName IS NOT NULL AND VerifiedAtUtc IS NOT NULL)),\n    CONSTRAINT CK_BackupRuns_Attempts CHECK (Attempts>=0),\n    CONSTRAINT FK_BackupRuns_User FOREIGN KEY (RequestedByUserId) REFERENCES dbo.Users(Id)"
+    "foreign_keys": [
+      [
+        "requested_by",
+        "users",
+        "id",
+        "RESTRICT"
+      ]
+    ],
+    "checks": [
+      "kind IN ('Daily','Manual')",
+      "status IN ('Queued','Processing','Completed','Failed')",
+      "(kind='Daily' AND scheduled_date IS NOT NULL) OR (kind='Manual' AND scheduled_date IS NULL)",
+      "NOT retained OR (status='Completed' AND filename IS NOT NULL AND completed_at IS NOT NULL)",
+      "attempts >= 0"
+    ],
+    "unique": []
   }
 }

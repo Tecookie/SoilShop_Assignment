@@ -9,9 +9,10 @@ const { chromium } = require(dependencyRoot ? path.join(dependencyRoot, 'playwri
   const root = path.resolve(__dirname, '..', 'diagrams');
   const items = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
   const browser = await chromium.launch({ headless: true, channel: process.env.DESIGN_BROWSER_CHANNEL || 'chrome' });
-  const page = await browser.newPage({ viewport: { width: 1360, height: 900 }, deviceScaleFactor: 2 });
+  const page = await browser.newPage({ viewport: { width: 1880, height: 1220 }, deviceScaleFactor: 2 });
   const checks = [];
   for (const item of items) {
+    await page.setViewportSize({ width: item.width + 80, height: item.height + 100 });
     await page.goto(pathToFileURL(path.join(root, item.slug + '.html')).href);
     await page.locator('svg').screenshot({ path: path.join(root, 'images', item.slug + '.png') });
     const check = await page.evaluate(() => {
@@ -28,7 +29,7 @@ const { chromium } = require(dependencyRoot ? path.join(dependencyRoot, 'playwri
       pageOverflow: document.documentElement.scrollWidth > window.innerWidth,
       localScroll: document.querySelector('.diagram-container').scrollWidth > document.querySelector('.diagram-container').clientWidth
     }));
-    await page.setViewportSize({ width: 1360, height: 900 });
+    await page.setViewportSize({ width: item.width + 80, height: item.height + 100 });
     checks.push({ slug: item.slug, ...check });
   }
   fs.writeFileSync(path.join(root, 'render-checks.json'), JSON.stringify(checks, null, 2) + '\n');

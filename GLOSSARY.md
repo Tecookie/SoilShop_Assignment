@@ -1,67 +1,65 @@
-# Broker Property Catalogue
+# Potting Soil Shop
 
-Canonical business terminology. Vietnamese names preserve the language used during the interview.
+Canonical business terminology for the new internal shop application. Previous real-estate terminology is superseded and remains available in Git history.
 
 ## Language
 
-**Employee (Nhân viên)**:
-An internal staff member who maintains the broker's property catalogue.
+**Staff (Nhân viên)**:
+Internal users who receive goods, create sales and query inventory.
 
-**Broker Organization (Đơn vị môi giới)**:
-The organization that manages units allocated by developers for brokerage; the supplied information may be incomplete.
+**Product (Sản phẩm đất trồng)**:
+A bagged potting-soil offering in the shop catalogue, available in one or more package variants.
 
-**Property Catalogue (Danh mục bất động sản)**:
-The collection of property information maintained for internal lookup and updates.
+**Supplier (Nhà cung cấp)**:
+A business supplying pre-packed soil bags for the shop to resell.
 
-**Developer (Chủ đầu tư / CĐT)**:
-An organization that owns or develops Projects and supplies inventory information to the broker.
-_Avoid_: Software developer, customer
+**Bag (Bao)**:
+A pre-packed unit of soil bought and sold by the shop, rather than soil weighed or repacked at sale time.
 
-**Project (Dự án)**:
-A collection of properties owned by one Developer, containing Buildings and Property Units.
+**Stock (Tồn kho)**:
+The shop's inventory of pre-packed bags.
 
-**Building / Block (Tòa nhà)**:
-A building in one Project with a defined floor count and associated Apartments.
+**Admin / Owner**:
+An internal user who also manages accounts, products and prices and can view all shop activity.
 
-**Property Unit (Căn)**:
-An individually identifiable Apartment, Townhouse or Villa in the catalogue.
-_Avoid_: Room, listing advertisement
+**Package Variant / SKU (Quy cách / Mã hàng)**:
+A sellable packaging option of a Product, with its own code, prices and bag stock, such as a 5 kg bag.
 
-**Apartment (Căn hộ)**:
-A Property Unit in a specified Building and on a specified floor.
+**Sales Slip (Phiếu bán)**:
+A staff-created record of goods sold, their quantities and their sale prices at confirmation time.
 
-**Townhouse (Nhà phố)**:
-A house directly associated with a Project, optionally having its own floor count.
+**Draft Sale (Phiếu nháp)**:
+A sales slip awaiting confirmation; it does not reserve bags or reduce stock.
 
-**Villa (Biệt thự)**:
-A villa directly associated with a Project, optionally having its own floor count and area details.
+**Confirmed Sale (Phiếu đã xác nhận)**:
+A completed sale whose bag quantities have been deducted from stock.
 
-**Bulk Creation (Tạo căn hàng loạt)**:
-Creation of multiple units of one type from shared information and a generated code sequence; prices are entered later.
+**Purchase Receipt (Phiếu nhập)**:
+A staff-created record of bags received from a Supplier, including quantities and actual purchase unit prices; confirmation adds those quantities to stock.
 
-**Unit Code (Mã căn)**:
-A code that uniquely identifies a Property Unit within its Project.
+**Cancelled Sale (Phiếu bán đã hủy)**:
+A previously confirmed sale cancelled in full by an Admin with a reason, restoring the original bag quantities once.
 
-**No Price Yet (Chưa có giá)**:
-The absence of a supplied unit price, distinct from a price of zero.
+**Stock Adjustment (Điều chỉnh tồn)**:
+An Admin-authorized increase or decrease in bag counts, recorded with a reason such as damage or a physical-count discrepancy.
 
-**Managed (Đang quản lý)**:
-The unit is currently allocated to the Broker Organization's catalogue.
+**Low-Stock Threshold (Ngưỡng sắp hết hàng)**:
+The bag count at or below which a SKU should be flagged for replenishment.
 
-**Unmanaged (Ngừng quản lý)**:
-The unit is no longer allocated to the Broker Organization, such as when transferred to another broker.
+**Daily Shop Summary (Thống kê hằng ngày)**:
+A dated summary of effective sales revenue, bags sold and inventory levels.
 
-**Sold (Đã bán)**:
-The unit has been recorded as sold; this system does not process payment.
+**Product Advice (Tư vấn sản phẩm)**:
+A ranked list of available products matching staff-selected needs, with reasons based on supplied product information.
 
-**Additional Information (Thông tin bổ sung)**:
-Editable named descriptive values supplied in addition to the standard unit fields.
+**Metadata Source (Nguồn thông tin)**:
+The label, supplier document or other recorded source supporting a product's descriptive information.
 
-**Status History (Lịch sử trạng thái)**:
-The record of management-status changes, including actor, time, previous/new status and reason.
+**Replenishment Suggestion (Đề xuất nhập hàng)**:
+An internal suggestion to bring a low-stock SKU toward its target, optionally converted into a purchase-receipt draft.
 
-**Admin**:
-An internal staff member who also manages accounts and backup requests.
+**Target Stock (Tồn mục tiêu)**:
+The desired number of bags for a SKU used to calculate suggested replenishment.
 
-**Project Summary**:
-A dated view of units in a Project by management status and managed units awaiting a price.
+**Stock Count (Phiếu kiểm kê)**:
+A recorded physical count compared to captured system stock, awaiting Admin review before any adjustment.

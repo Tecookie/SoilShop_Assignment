@@ -1,68 +1,35 @@
-# Backup and Restore Design
+# PostgreSQL Backup and Restore
 
-This is an implementation guide and demo plan. These commands have not been executed against an application database in this design-only repository.
+Approved policy: daily at 00:15 Asia/Ho_Chi_Minh plus Admin manual trigger; keep the latest seven successful archives total. No per-mutation backup. The application scheduler/Worker is still to be implemented; the same backup/restore format has been exercised by the isolated schema verification script.
 
-## Triggers and retention
+## Worker design
 
-- Daily full backup at 00:15 Vietnam time.
-- One background backup request per successfully committed business mutation, including a whole bulk operation as one mutation.
-- Admin manual trigger. Backup/summary/job bookkeeping does not create change events.
-- Serial processing, visible Queued/Processing/Completed/Failed results and bounded retries.
-- Keep 7 verified Daily files and 7 verified Change/Manual files; prune only after new success.
-- Backups are SQL state at execution time, not exact snapshots of each intermediate edit. SQL credentials and password hashes are sensitive parts of the database copy.
+Install PostgreSQL 16 client tools in the Worker image to match the server baseline. Connect using configured host/user/database and a secret password mechanism; mount a separate backup volume at `/backups`. Unlike SQL Server server-side disk backups, **pg_dump runs in Worker and writes Worker's mounted path**.
 
-## Volume and permissions
+Run subprocesses with argument lists, not a shell command assembled from browser input. Filenames are generated from UTC time/run UUID. Write to a unique temporary name, check successful process exit and `pg_restore --list`, then rename as complete. Record the resulting filename and completion timestamp. A single backup loop prevents overlap; a durable BackupRun identity prevents duplicate logical requests.
 
-Mount a named volume such as `catalogue_backups` at `/var/opt/mssql/backup` in both SQL Server and Worker. SQL Server writes backups to its own container filesystem, not the Worker's working directory. Worker needs filesystem permission to prune retained files; configure ownership/group access explicitly. Keep `catalogue_sql_data` and `catalogue_redis_data` separate. Do not remove named volumes during normal stop/restart.
-
-Normal API credentials should only access the application schema. Use a separate Worker backup connection with the required `BACKUP DATABASE` permission. Restore/verification can require stronger permissions; provision an explicit local administrative connection for the restore drill. Keep its secret out of source control. [Microsoft's Linux guide](https://learn.microsoft.com/en-us/sql/linux/business-continuity/backup-restore/database-backup-restore?view=sql-server-ver17) describes server-side paths and backup/restore execution.
-
-## SQL templates
-
-The Worker generates the filename from UTC time, trigger kind, event ID and attempt ID. Accept no path or database name from the browser. Use a fixed database identifier and validated internal paths, with parameterized values where supported.
-
-```sql
-BACKUP DATABASE [BrokerCatalogue]
-TO DISK = N'/var/opt/mssql/backup/catalogue-change-example.bak'
-WITH COPY_ONLY, CHECKSUM, INIT, STATS = 10;
-
-RESTORE VERIFYONLY
-FROM DISK = N'/var/opt/mssql/backup/catalogue-change-example.bak'
-WITH CHECKSUM;
+```sh
+# Examples use configured PGHOST, PGPORT, PGUSER and PGPASSFILE/PGPASSWORD.
+# Replace the example path with a server-generated path under /backups.
+pg_dump --dbname=potting_shop --format=custom --no-owner --no-acl --file=/backups/example.dump
+pg_restore --list /backups/example.dump
 ```
 
-`INIT` is safe here only because each attempt gets a unique filename. Full [copy-only backups](https://learn.microsoft.com/en-us/sql/relational-databases/backup-restore/copy-only-backups-sql-server?view=sql-server-ver17) avoid changing a differential backup base. No differential or transaction-log backup chain is planned. [VERIFYONLY](https://learn.microsoft.com/en-us/sql/t-sql/statements/restore-statements-verifyonly-transact-sql?view=sql-server-ver17) checks readability/completeness but does not prove restored application data is correct.
+Listing the archive is not a full recovery test. On success retain seven successful Daily/Manual files combined, delete older successful files and mark them not retained. On failure retain earlier good backups and record an error; bounded retries use a new temporary filename. File paths and raw dump contents are not exposed through Employee endpoints.
 
-## Restore drill (isolated destination)
+## Isolated restore drill
 
-1. Prepare known data: record a Project, several codes, one price and one status change. Run a manual backup and save the filename independently of the source DB.
-2. Connect to SQL Server's `master` database with an authorized admin account. Inspect the file list:
+1. Save known expectations independently: SKU stock, sale/receipt states, fixed historical prices, movement count and one approved count.
+2. Select a successful archive. Create a NEW database; do not point a Worker at it.
 
-```sql
-RESTORE FILELISTONLY
-FROM DISK = N'/var/opt/mssql/backup/catalogue-change-example.bak';
+```sh
+createdb potting_shop_restore_test
+pg_restore --dbname=potting_shop_restore_test --no-owner --no-acl --exit-on-error /backups/example.dump
+psql --dbname=potting_shop_restore_test --command="SELECT code,stock_qty,stock_version FROM skus ORDER BY code;"
+psql --dbname=potting_shop_restore_test --command="SELECT count(*) FROM stock_movements;"
 ```
 
-3. Substitute the logical file names returned by FILELISTONLY. Restore into a NEW database and distinct physical files, leaving the original database untouched:
+3. Compare restored quantities, snapshots and FKs to the saved expectations. A normal dump includes database objects/data, not cluster roles; provision destination roles/configuration separately.
+4. Do not auto-start consumers against restored queued/outbox records: old operations can replay. A later real recovery requires stopping writers, reconciling nonterminal operations and credentials, then explicitly switching configuration. That procedure is manual and not an assignment UI feature.
 
-```sql
--- Replace logical names below with the actual FILELISTONLY output.
-RESTORE DATABASE [BrokerCatalogue_RestoreTest]
-FROM DISK = N'/var/opt/mssql/backup/catalogue-change-example.bak'
-WITH MOVE N'BrokerCatalogue' TO N'/var/opt/mssql/data/BrokerCatalogue_RestoreTest.mdf',
-     MOVE N'BrokerCatalogue_log' TO N'/var/opt/mssql/data/BrokerCatalogue_RestoreTest_log.ldf',
-     RECOVERY, CHECKSUM, STATS = 10;
-
-DBCC CHECKDB (N'BrokerCatalogue_RestoreTest') WITH NO_INFOMSGS;
-SELECT COUNT(*) AS UnitCount FROM BrokerCatalogue_RestoreTest.dbo.Units;
-SELECT Code, PriceVnd, ManagementStatus
-FROM BrokerCatalogue_RestoreTest.dbo.Units ORDER BY Code;
-SELECT * FROM BrokerCatalogue_RestoreTest.dbo.UnitStatusHistory ORDER BY Id;
-```
-
-4. Compare restored records to the saved expectation. Check nullable area values, extra attributes, account roles and history. Do not attach the normal Worker to the restored database: old outbox/Queued job state could replay and alter it.
-5. If later choosing to recover the live application, stop mutating services, select the restored database explicitly, reconcile all nonterminal operations/leases and outbox entries, and ensure restored user tokens cannot grant stale access. This is a manual recovery procedure, not an assignment UI feature.
-
-## Failure behavior
-
-A failed backup leaves the originating business change committed and a visible failed Run. Retry with the same EventId and a new unique file; repeated Redis delivery must not create a new logical request. The completion record is written after the file, so a restored copy may contain an in-progress Run. An interrupted backup's partial/orphan file is not counted as a successful retained backup. Local volumes do not survive loss of the entire host; cloud replication is outside scope.
+Use only trusted internally generated archives for this drill. Local backups share the host's failure domain. No WAL/PITR or offsite backup is promised. Official references: [pg_dump](https://www.postgresql.org/docs/current/app-pgdump.html), [pg_restore](https://www.postgresql.org/docs/current/app-pgrestore.html).

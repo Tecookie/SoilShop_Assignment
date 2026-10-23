@@ -8,3 +8,5 @@ node_modules/
 *.user
 *.suo
 .serena/
+__pycache__/
+*.pyc

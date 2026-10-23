@@ -1,47 +1,93 @@
 [
   {
     "slug": "c4-l1-context",
-    "title": "C4 Level 1 \u2014 System Context",
-    "description": "Employees and Admin use the internal catalogue; developers supply information offline to employees."
+    "title": "C1 \u2014 System Context",
+    "description": "Employee and Admin use the shop system; Supplier and Customer interact with staff offline.",
+    "width": 1600,
+    "height": 960
   },
   {
     "slug": "c4-l2-containers",
-    "title": "C4 Level 2 \u2014 Containers",
-    "description": "React calls the REST API, the API calls gRPC and SQL, and the Worker relays and consumes Redis work while SQL writes backup files."
+    "title": "C2 \u2014 Complete Container View",
+    "description": "Two internal roles access Web/API; API calls stateless gRPC, commits PostgreSQL transactions and publishes durable outbox events to Redis for Worker follow-up.",
+    "width": 1800,
+    "height": 1120
   },
   {
-    "slug": "erd-conceptual",
-    "title": "Conceptual ERD \u2014 Business Catalogue",
-    "description": "Developers own Projects; Units belong to Projects, Apartments also belong to Buildings, and Units have additional information and status changes."
+    "slug": "c4-l2-synchronous",
+    "title": "C2 \u2014 Advice and Synchronous Stock",
+    "description": "A filtered Level 2 perspective shows direct Web/API/gRPC/PostgreSQL requests and where atomic stock correctness is enforced.",
+    "width": 1600,
+    "height": 960
+  },
+  {
+    "slug": "c4-l2-asynchronous",
+    "title": "C2 \u2014 Async Replenishment and Backups",
+    "description": "A filtered Level 2 perspective shows API outbox publishing, Redis consumption, persistent job state and Worker-owned backup archives.",
+    "width": 1600,
+    "height": 960
+  },
+  {
+    "slug": "erd-trading",
+    "title": "Conceptual ERD \u2014 Catalogue and Trading",
+    "description": "Products have SKUs; purchase and sale lines reference SKUs; receipts belong to Suppliers.",
+    "width": 1440,
+    "height": 720
+  },
+  {
+    "slug": "erd-operations",
+    "title": "Conceptual ERD \u2014 Advice and Stock Control",
+    "description": "A SKU has physical counts and replenishment suggestions; accepted discrepancies become adjustments and ledger entries; products carry use tags.",
+    "width": 1520,
+    "height": 720
   },
   {
     "slug": "db-catalogue",
-    "title": "Physical DB \u2014 Master Catalogue",
-    "description": "Projects reference Developers and Buildings reference Projects; deletion is restricted."
+    "title": "Physical DB \u2014 Products and SKU Stock",
+    "description": "SKUs reference Products and an optional preferred Supplier.",
+    "width": 1440,
+    "height": 720
   },
   {
-    "slug": "db-unit-location",
-    "title": "Physical DB \u2014 Unit Location",
-    "description": "Units reference Projects and Buildings with a same-Project composite constraint."
+    "slug": "db-purchases",
+    "title": "Physical DB \u2014 Purchase Receipts",
+    "description": "Lines reference Receipt and SKU; historical receipt headers reference Supplier and staff.",
+    "width": 1440,
+    "height": 720
   },
   {
-    "slug": "db-unit-audit",
-    "title": "Physical DB \u2014 Details and Status History",
-    "description": "UnitAttributes cascade on eligible Unit deletion; immutable history restricts Unit and actor deletion."
+    "slug": "db-sales",
+    "title": "Physical DB \u2014 Sale Snapshots",
+    "description": "Sale lines reference a Sales document and SKU; confirmed prices remain frozen.",
+    "width": 1440,
+    "height": 720
   },
   {
-    "slug": "db-batches",
-    "title": "Physical DB \u2014 Bulk Creation",
-    "description": "Accepted UnitBatches reference staff; created Units retain their originating Batch."
+    "slug": "db-inventory",
+    "title": "Physical DB \u2014 Stocktaking and Audit",
+    "description": "Counts and adjustments reference SKU; an approved nonzero count creates at most one adjustment.",
+    "width": 1480,
+    "height": 800
   },
   {
-    "slug": "db-summaries",
-    "title": "Physical DB \u2014 Project Summaries",
-    "description": "Each ProjectSummary belongs to one Project and one SummaryRun."
+    "slug": "db-replenishment",
+    "title": "Physical DB \u2014 Replenishment",
+    "description": "Suggestion references SKU, optional Supplier and a linked receipt draft.",
+    "width": 1440,
+    "height": 720
   },
   {
-    "slug": "db-operations",
-    "title": "Physical DB \u2014 Outbox and Backups",
-    "description": "Outbox carries durable intent; BackupRuns store execution and retention state and optionally reference requesting staff."
+    "slug": "db-tags",
+    "title": "Physical DB \u2014 Metadata Tags and Review",
+    "description": "Product/tag associations support structured advisory metadata; source review belongs to staff.",
+    "width": 1440,
+    "height": 720
+  },
+  {
+    "slug": "db-background",
+    "title": "Physical DB \u2014 Reports, Outbox and Backup",
+    "description": "Timestamped summaries reference per-SKU snapshots; outbox/job state supports async handling.",
+    "width": 1440,
+    "height": 800
   }
 ]

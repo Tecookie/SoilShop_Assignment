@@ -1,0 +1,83 @@
+[
+  {
+    "slug": "c4-l1-context",
+    "outside": [],
+    "accessible": true,
+    "mobile": {
+      "pageOverflow": false,
+      "localScroll": true
+    }
+  },
+  {
+    "slug": "c4-l2-containers",
+    "outside": [],
+    "accessible": true,
+    "mobile": {
+      "pageOverflow": false,
+      "localScroll": true
+    }
+  },
+  {
+    "slug": "erd-conceptual",
+    "outside": [],
+    "accessible": true,
+    "mobile": {
+      "pageOverflow": false,
+      "localScroll": true
+    }
+  },
+  {
+    "slug": "db-catalogue",
+    "outside": [],
+    "accessible": true,
+    "mobile": {
+      "pageOverflow": false,
+      "localScroll": true
+    }
+  },
+  {
+    "slug": "db-unit-location",
+    "outside": [],
+    "accessible": true,
+    "mobile": {
+      "pageOverflow": false,
+      "localScroll": true
+    }
+  },
+  {
+    "slug": "db-unit-audit",
+    "outside": [],
+    "accessible": true,
+    "mobile": {
+      "pageOverflow": false,
+      "localScroll": true
+    }
+  },
+  {
+    "slug": "db-batches",
+    "outside": [],
+    "accessible": true,
+    "mobile": {
+      "pageOverflow": false,
+      "localScroll": true
+    }
+  },
+  {
+    "slug": "db-summaries",
+    "outside": [],
+    "accessible": true,
+    "mobile": {
+      "pageOverflow": false,
+      "localScroll": true
+    }
+  },
+  {
+    "slug": "db-operations",
+    "outside": [],
+    "accessible": true,
+    "mobile": {
+      "pageOverflow": false,
+      "localScroll": true
+    }
+  }
+]

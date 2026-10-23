@@ -1,0 +1,55 @@
+{
+  "tested_on": "2026-10-23",
+  "engine": "PostgreSQL 16 / isolated disposable Docker container",
+  "scope": "Design schema and SQL prototype only; not an application integration test",
+  "checks": [
+    {
+      "check": "PostgreSQL 16 schema execution",
+      "passed": true
+    },
+    {
+      "check": "Two concurrent connections: first succeeds, second reports insufficient stock",
+      "passed": true
+    },
+    {
+      "check": "Last bag: stock 0, one confirmed sale, one movement and one outbox event",
+      "passed": true
+    },
+    {
+      "check": "Repeated confirmation key does not deduct twice",
+      "passed": true
+    },
+    {
+      "check": "Multi-SKU failure rolls back earlier deductions",
+      "passed": true
+    },
+    {
+      "check": "Stale stock-count version updates zero rows",
+      "passed": true
+    },
+    {
+      "check": "Database rejects negative stock",
+      "passed": true
+    },
+    {
+      "check": "Stale physical count becomes RecountRequired without changing stock",
+      "passed": true
+    },
+    {
+      "check": "Valid physical count adjusts stock once; repeated approval is idempotent",
+      "passed": true
+    },
+    {
+      "check": "Duplicate active replenishment suggestion is rejected",
+      "passed": true
+    },
+    {
+      "check": "Metadata review without a source is rejected",
+      "passed": true
+    },
+    {
+      "check": "pg_dump custom archive restores into a separate database",
+      "passed": true
+    }
+  ]
+}

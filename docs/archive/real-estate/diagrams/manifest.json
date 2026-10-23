@@ -1,0 +1,47 @@
+[
+  {
+    "slug": "c4-l1-context",
+    "title": "C4 Level 1 \u2014 System Context",
+    "description": "Employees and Admin use the internal catalogue; developers supply information offline to employees."
+  },
+  {
+    "slug": "c4-l2-containers",
+    "title": "C4 Level 2 \u2014 Containers",
+    "description": "React calls the REST API, the API calls gRPC and SQL, and the Worker relays and consumes Redis work while SQL writes backup files."
+  },
+  {
+    "slug": "erd-conceptual",
+    "title": "Conceptual ERD \u2014 Business Catalogue",
+    "description": "Developers own Projects; Units belong to Projects, Apartments also belong to Buildings, and Units have additional information and status changes."
+  },
+  {
+    "slug": "db-catalogue",
+    "title": "Physical DB \u2014 Master Catalogue",
+    "description": "Projects reference Developers and Buildings reference Projects; deletion is restricted."
+  },
+  {
+    "slug": "db-unit-location",
+    "title": "Physical DB \u2014 Unit Location",
+    "description": "Units reference Projects and Buildings with a same-Project composite constraint."
+  },
+  {
+    "slug": "db-unit-audit",
+    "title": "Physical DB \u2014 Details and Status History",
+    "description": "UnitAttributes cascade on eligible Unit deletion; immutable history restricts Unit and actor deletion."
+  },
+  {
+    "slug": "db-batches",
+    "title": "Physical DB \u2014 Bulk Creation",
+    "description": "Accepted UnitBatches reference staff; created Units retain their originating Batch."
+  },
+  {
+    "slug": "db-summaries",
+    "title": "Physical DB \u2014 Project Summaries",
+    "description": "Each ProjectSummary belongs to one Project and one SummaryRun."
+  },
+  {
+    "slug": "db-operations",
+    "title": "Physical DB \u2014 Outbox and Backups",
+    "description": "Outbox carries durable intent; BackupRuns store execution and retention state and optionally reference requesting staff."
+  }
+]

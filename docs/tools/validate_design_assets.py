@@ -1,4 +1,4 @@
-"""Static documentation consistency checks, not a SQL Server execution test."""
+"""Static shop documentation checks; database runtime checks live in a separate script."""
 from pathlib import Path
 import json
 import re
@@ -24,16 +24,15 @@ metadata=json.loads((docs/'diagrams/schema-metadata.json').read_text(encoding='u
 fk_count=0
 for name,t in metadata.items():
     cols={c['name']:c for c in t['columns']}
-    for m in re.finditer(r'FOREIGN KEY \(([^)]+)\) REFERENCES dbo\.(\w+)\(([^)]+)\)',t['definition']):
+    for child,parent,key,action in t['foreign_keys']:
         fk_count+=1
-        child,parent,keys=m.groups()
         parentcols={c['name']:c for c in metadata[parent]['columns']}
-        cc=[x.strip() for x in child.split(',')]; pc=[x.strip() for x in keys.split(',')]
+        cc=[x.strip() for x in child.split(',')]; pc=[x.strip() for x in key.split(',')]
         if len(cc)!=len(pc): errors.append(f'FK arity: {name} -> {parent}')
         for c,k in zip(cc,pc):
             if c not in cols or k not in parentcols: errors.append(f'FK unknown column: {name}.{c} -> {parent}.{k}')
             elif cols[c]['type']!=parentcols[k]['type']: errors.append(f'FK type mismatch: {name}.{c}')
-    if sum(c['pk'] for c in t['columns'])!=1: errors.append('Missing or repeated PK: '+name)
+    if sum(c['name']=='id' for c in t['columns'])!=1: errors.append('Missing or repeated PK: '+name)
 names=re.findall(r'CONSTRAINT (\w+)',sql)
 if len(names)!=len(set(names)): errors.append('Duplicate named constraints')
 
@@ -48,14 +47,14 @@ for d in manifest:
                 if ref not in ids: errors.append('Missing SVG marker '+ref)
     raw=(img/f'{slug}.png').read_bytes()
     w,h=struct.unpack('>II',raw[16:24])
-    if (w,h)!=(2560,1440): errors.append(f'Unexpected PNG dimensions {slug}: {w}x{h}')
+    if (w,h)!=(d['width']*2,d['height']*2): errors.append(f'Unexpected PNG dimensions {slug}: {w}x{h}')
 
 dsl=(docs/'diagrams/workspace.dsl').read_text(encoding='utf-8')
 declared=set(re.findall(r'(\w+)\s*=\s*(?:person|softwareSystem|container)\b',dsl))
 for a,b in re.findall(r'(\w+)\s*->\s*(\w+)',dsl):
     if a not in declared or b not in declared: errors.append('Undeclared C4 element')
-if len(re.findall(r'\bsystemContext\s+catalogue',dsl))!=1 or len(re.findall(r'\bcontainer\s+catalogue',dsl))!=1:
-    errors.append('Expected one C4 L1 and one C4 L2 view')
+if len(re.findall(r'\bsystemContext\s+shop',dsl))!=1 or len(re.findall(r'\bcontainer\s+shop',dsl))!=3:
+    errors.append('Expected one C1 and three C2 perspectives')
 if re.search(r'\b(?:component|deployment|systemLandscape)\s',dsl): errors.append('Unexpected extra C4 level')
 
 report={'local_links_checked':link_count,'tables':len(metadata),'foreign_keys':fk_count,'diagram_exports':len(manifest),'errors':errors}
