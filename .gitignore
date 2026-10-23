@@ -10,3 +10,8 @@ node_modules/
 .serena/
 __pycache__/
 *.pyc
+.tools/
+**/dist/
+**/TestResults/
+test-results/
+*.tsbuildinfo

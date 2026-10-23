@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup></PropertyGroup><ItemGroup><ProjectReference Include="../SoilShop.Domain/SoilShop.Domain.csproj" /><ProjectReference Include="../SoilShop.Contracts/SoilShop.Contracts.csproj" /><PackageReference Include="AutoMapper" Version="16.2.0" /></ItemGroup></Project>

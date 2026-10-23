@@ -1,0 +1,9 @@
+syntax = "proto3";
+option csharp_namespace = "SoilShop.Contracts";
+package soilshop;
+service Calculation {
+  rpc CalculateTotals (TotalsRequest) returns (TotalsReply);
+}
+message PriceLine { int32 quantity = 1; int64 unit_price_vnd = 2; }
+message TotalsRequest { repeated PriceLine lines = 1; }
+message TotalsReply { int64 total_vnd = 1; string rule_version = 2; }

@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker"><PropertyGroup><OutputType>Exe</OutputType></PropertyGroup><ItemGroup><ProjectReference Include="../SoilShop.Infrastructure/SoilShop.Infrastructure.csproj" /><PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" /></ItemGroup></Project>
