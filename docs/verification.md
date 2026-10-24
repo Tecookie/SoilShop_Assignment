@@ -4,6 +4,7 @@ This report distinguishes tested design artifacts from an application implementa
 
 ## Product classification and demo seed — 24 October 2026
 
+- Product names and displayed type labels now use Vietnamese. A guarded data migration translates existing English fixture names while preserving customized names. SKU identity/stock/version/price hashes remained unchanged, Docker builds passed, and all six read-only browser checks passed again after translation. Future seeds and browser fixtures also use Vietnamese names.
 - All **14 application tests pass**, including validated type filters and a seed test that interrupts calculation, resumes the import, repeats it without duplicates and preserves subsequent staff price/stock changes.
 - Six read-only Chrome checks pass for all six inventory type filters, Unclassified empty state, catalogue/edit selection, seeded stock states, four viewport widths and Employee navigation. No browser console/page errors were recorded.
 - The existing nine-check browser trading workflow also passes after the change.

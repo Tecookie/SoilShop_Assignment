@@ -20,18 +20,18 @@ These are practical shop groups for pre-packed offerings. They are not an exhaus
 
 ## Seed contents
 
-All product/supplier names and prices below are fictional demonstration data. Names include `[demo]`, codes begin `SEED-V1-`, and sources explicitly say they are fictional. No laboratory measurements, pH values or advisory review/certification are invented. Drainage, retention and pH remain unknown; the data is not marked reviewed.
+All product/supplier names and prices below are fictional demonstration data. Product names are Vietnamese and include `[mẫu]`, codes begin `SEED-V1-`, and sources explicitly say they are fictional. Displayed product-type labels are also Vietnamese; API type codes remain stable. No laboratory measurements, pH values or advisory review/certification are invented. Drainage, retention and pH remain unknown; the data is not marked reviewed.
 
 | Product code | Product | Type | Packages | Unit prices (VND) | Bags after seed |
 |---|---|---|---|---|---|
-| SEED-V1-P01 | Everyday Potting Mix | GeneralPurpose | 5 kg / 10 kg | 55,000 / 110,000 | 0 / 12 |
-| SEED-V1-P02 | Leafy Plant Mix | FoliageMix | 5 L / 20 L | 65,000 / 130,000 | 1 / 27 |
-| SEED-V1-P03 | Flowering Plant Mix | FloweringMix | 5 kg / 10 kg | 60,000 / 120,000 | 4 / 10 |
-| SEED-V1-P04 | Succulent & Cactus Mix | SucculentMix | 2 L / 5 L | 35,000 / 70,000 | 0 / 10 |
-| SEED-V1-P05 | Orchid Potting Medium | OrchidMix | 5 L / 10 L | 70,000 / 140,000 | 3 / 16 |
-| SEED-V1-P06 | Seed-starting Mix | SeedStartingMix | 2 L / 5 L | 30,000 / 60,000 | 8 / 24 |
-| SEED-V1-P07 | Lightweight Potting Mix | GeneralPurpose | 10 L / 20 L | 90,000 / 180,000 | 12 / 30 |
-| SEED-V1-P08 | Indoor Foliage Mix | FoliageMix | 5 L / 10 L | 75,000 / 150,000 | 6 / 10 (last SKU inactive) |
+| SEED-V1-P01 | Đất trồng đa dụng | GeneralPurpose | 5 kg / 10 kg | 55,000 / 110,000 | 0 / 12 |
+| SEED-V1-P02 | Đất trồng cây kiểng lá | FoliageMix | 5 L / 20 L | 65,000 / 130,000 | 1 / 27 |
+| SEED-V1-P03 | Đất trồng cây hoa | FloweringMix | 5 kg / 10 kg | 60,000 / 120,000 | 4 / 10 |
+| SEED-V1-P04 | Đất trồng sen đá và xương rồng | SucculentMix | 2 L / 5 L | 35,000 / 70,000 | 0 / 10 |
+| SEED-V1-P05 | Giá thể trồng lan | OrchidMix | 5 L / 10 L | 70,000 / 140,000 | 3 / 16 |
+| SEED-V1-P06 | Giá thể ươm hạt | SeedStartingMix | 2 L / 5 L | 30,000 / 60,000 | 8 / 24 |
+| SEED-V1-P07 | Đất trồng đa dụng nhẹ | GeneralPurpose | 10 L / 20 L | 90,000 / 180,000 | 12 / 30 |
+| SEED-V1-P08 | Đất trồng kiểng lá trong nhà | FoliageMix | 5 L / 10 L | 75,000 / 150,000 | 6 / 10 (last SKU inactive) |
 
 The import adds **8 Products, 16 SKUs, 3 Suppliers, 2 confirmed + 1 draft Purchase Receipts, and 3 confirmed + 1 draft Sales**. It also creates an Employee if configured. Admin already comes from bootstrap. Read Admin and Employee credentials from `.env`; there are no committed login passwords. Existing accounts/passwords are preserved.
 
@@ -45,6 +45,8 @@ Current stock comes from receipt/sale confirmations through the normal Service, 
 - The final confirmed sale is the completion marker. Once complete, rerunning performs no data reset, even after staff price edits, additional sales, draft confirmation or future cancellation. Do not delete the marker to attempt a reset.
 - Reseeding preserves all pre-existing records, including earlier browser-smoke records. Counts above refer specifically to `SEED-V1-` records, not the total database contents.
 - No seed runs for stock-count approval, recommendations, backups or summaries are fabricated; those application workflows remain pending.
+
+The Vietnamese-name migration updates existing fixture names only when both their code and original English name match. Staff-customized names are preserved. It changes names/version only, leaving SKU identity, prices, quantities and confirmed history unchanged; rerunning the seed is not required for this translation.
 
 Integration tests cover interrupted import recovery, counts/types, preserved unknown measurements, duplicate import and post-seed staff changes. Application verification is described in [verification.md](verification.md).
 

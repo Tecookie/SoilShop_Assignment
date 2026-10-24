@@ -17,14 +17,14 @@ public sealed class DemoDataSeeder(ShopDbContext db, ShopService service, IConfi
     private sealed record Sample(string Code, string Name, string Type, string Unit, int Small, int Large, decimal Price);
     private static readonly Sample[] Samples =
     [
-        new("SEED-V1-P01", "Everyday Potting Mix [demo]", "GeneralPurpose", "kg", 5, 10, 55000),
-        new("SEED-V1-P02", "Leafy Plant Mix [demo]", "FoliageMix", "L", 5, 20, 65000),
-        new("SEED-V1-P03", "Flowering Plant Mix [demo]", "FloweringMix", "kg", 5, 10, 60000),
-        new("SEED-V1-P04", "Succulent & Cactus Mix [demo]", "SucculentMix", "L", 2, 5, 35000),
-        new("SEED-V1-P05", "Orchid Potting Medium [demo]", "OrchidMix", "L", 5, 10, 70000),
-        new("SEED-V1-P06", "Seed-starting Mix [demo]", "SeedStartingMix", "L", 2, 5, 30000),
-        new("SEED-V1-P07", "Lightweight Potting Mix [demo]", "GeneralPurpose", "L", 10, 20, 90000),
-        new("SEED-V1-P08", "Indoor Foliage Mix [demo]", "FoliageMix", "L", 5, 10, 75000)
+        new("SEED-V1-P01", "Đất trồng đa dụng [mẫu]", "GeneralPurpose", "kg", 5, 10, 55000),
+        new("SEED-V1-P02", "Đất trồng cây kiểng lá [mẫu]", "FoliageMix", "L", 5, 20, 65000),
+        new("SEED-V1-P03", "Đất trồng cây hoa [mẫu]", "FloweringMix", "kg", 5, 10, 60000),
+        new("SEED-V1-P04", "Đất trồng sen đá và xương rồng [mẫu]", "SucculentMix", "L", 2, 5, 35000),
+        new("SEED-V1-P05", "Giá thể trồng lan [mẫu]", "OrchidMix", "L", 5, 10, 70000),
+        new("SEED-V1-P06", "Giá thể ươm hạt [mẫu]", "SeedStartingMix", "L", 2, 5, 30000),
+        new("SEED-V1-P07", "Đất trồng đa dụng nhẹ [mẫu]", "GeneralPurpose", "L", 10, 20, 90000),
+        new("SEED-V1-P08", "Đất trồng kiểng lá trong nhà [mẫu]", "FoliageMix", "L", 5, 10, 75000)
     ];
     private static readonly int[] Inbound = [3, 14, 6, 30, 8, 12, 2, 10, 4, 18, 12, 24, 16, 30, 8, 10];
 

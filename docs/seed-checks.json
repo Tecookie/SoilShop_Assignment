@@ -1,5 +1,6 @@
 {
   "tested_on": "2026-10-24",
+  "vietnamese_names": { "existing_data_migrated": true, "displayed_type_labels_translated": true, "sku_stock_and_price_signature_unchanged": true, "read_only_browser_checks_passed": 6 },
   "application_tests": { "passed": 14, "failed": 0, "skipped": 0 },
   "seed_dataset": {
     "products": 8,

@@ -27,16 +27,16 @@ export interface Product {
   version: number;
 }
 export const productTypes = [
-  { code: "Unclassified", name: "Unclassified" },
-  { code: "GeneralPurpose", name: "General-purpose mix" },
-  { code: "FoliageMix", name: "Foliage mix" },
-  { code: "FloweringMix", name: "Flowering mix" },
-  { code: "SucculentMix", name: "Succulent / cactus mix" },
-  { code: "OrchidMix", name: "Orchid mix" },
-  { code: "SeedStartingMix", name: "Seed-starting mix" },
+  { code: "Unclassified", name: "Chưa phân loại" },
+  { code: "GeneralPurpose", name: "Đất trồng đa dụng" },
+  { code: "FoliageMix", name: "Đất trồng kiểng lá" },
+  { code: "FloweringMix", name: "Đất trồng cây hoa" },
+  { code: "SucculentMix", name: "Đất trồng sen đá / xương rồng" },
+  { code: "OrchidMix", name: "Giá thể trồng lan" },
+  { code: "SeedStartingMix", name: "Giá thể ươm hạt" },
 ] as const;
 export const productTypeName = (code: string | undefined) =>
-  productTypes.find((type) => type.code === code)?.name ?? "Unclassified";
+  productTypes.find((type) => type.code === code)?.name ?? "Chưa phân loại";
 export interface Sku {
   id: number;
   productId: number;

@@ -1,4 +1,4 @@
-ï»¿CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+﻿CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
     "MigrationId" character varying(150) NOT NULL,
     "ProductVersion" character varying(32) NOT NULL,
     CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
@@ -828,6 +828,80 @@ BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261023155639_AddProductTypes') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
     VALUES ('20261023155639_AddProductTypes', '10.0.13');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024080541_LocalizeDemoProductNames') THEN
+    UPDATE products SET name='Đất trồng đa dụng [mẫu]', version=version+1 WHERE code='SEED-V1-P01' AND name='Everyday Potting Mix [demo]';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024080541_LocalizeDemoProductNames') THEN
+    UPDATE products SET name='Đất trồng cây kiểng lá [mẫu]', version=version+1 WHERE code='SEED-V1-P02' AND name='Leafy Plant Mix [demo]';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024080541_LocalizeDemoProductNames') THEN
+    UPDATE products SET name='Đất trồng cây hoa [mẫu]', version=version+1 WHERE code='SEED-V1-P03' AND name='Flowering Plant Mix [demo]';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024080541_LocalizeDemoProductNames') THEN
+    UPDATE products SET name='Đất trồng sen đá và xương rồng [mẫu]', version=version+1 WHERE code='SEED-V1-P04' AND name='Succulent & Cactus Mix [demo]';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024080541_LocalizeDemoProductNames') THEN
+    UPDATE products SET name='Giá thể trồng lan [mẫu]', version=version+1 WHERE code='SEED-V1-P05' AND name='Orchid Potting Medium [demo]';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024080541_LocalizeDemoProductNames') THEN
+    UPDATE products SET name='Giá thể ươm hạt [mẫu]', version=version+1 WHERE code='SEED-V1-P06' AND name='Seed-starting Mix [demo]';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024080541_LocalizeDemoProductNames') THEN
+    UPDATE products SET name='Đất trồng đa dụng nhẹ [mẫu]', version=version+1 WHERE code='SEED-V1-P07' AND name='Lightweight Potting Mix [demo]';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024080541_LocalizeDemoProductNames') THEN
+    UPDATE products SET name='Đất trồng kiểng lá trong nhà [mẫu]', version=version+1 WHERE code='SEED-V1-P08' AND name='Indoor Foliage Mix [demo]';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024080541_LocalizeDemoProductNames') THEN
+    UPDATE products SET name='Đất trồng đa dụng (mẫu ' || substring(name FROM length('All-purpose Potting Mix (demo ')+1), version=version+1 WHERE code LIKE 'DEMO-MIX-%' AND name LIKE 'All-purpose Potting Mix (demo %';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024080541_LocalizeDemoProductNames') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261024080541_LocalizeDemoProductNames', '10.0.13');
     END IF;
 END $EF$;
 COMMIT;

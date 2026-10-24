@@ -7,9 +7,9 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'test-results'
 settings = dict(line.split('=', 1) for line in (ROOT / '.env').read_text().splitlines() if '=' in line and not line.startswith('#'))
 base = 'http://localhost:' + settings.get('WEB_PORT', '8080')
-groups = [('GeneralPurpose', 'General-purpose mix', 4), ('FoliageMix', 'Foliage mix', 4),
-          ('FloweringMix', 'Flowering mix', 2), ('SucculentMix', 'Succulent / cactus mix', 2),
-          ('OrchidMix', 'Orchid mix', 2), ('SeedStartingMix', 'Seed-starting mix', 2)]
+groups = [('GeneralPurpose', 'Đất trồng đa dụng', 4), ('FoliageMix', 'Đất trồng kiểng lá', 4),
+          ('FloweringMix', 'Đất trồng cây hoa', 2), ('SucculentMix', 'Đất trồng sen đá / xương rồng', 2),
+          ('OrchidMix', 'Giá thể trồng lan', 2), ('SeedStartingMix', 'Giá thể ươm hạt', 2)]
 errors = []
 checks = []
 
@@ -51,7 +51,7 @@ with sync_playwright() as p:
         page.get_by_role('button', name='Catalogue', exact=True).click()
         page.get_by_label('Filter catalogue by type', exact=True).select_option('OrchidMix')
         expect(page.locator('tbody tr')).to_have_count(1)
-        expect(page.locator('tbody tr')).to_contain_text('Orchid Potting Medium [demo]')
+        expect(page.locator('tbody tr')).to_contain_text('Giá thể trồng lan [mẫu]')
         page.get_by_role('button', name='Edit', exact=True).click()
         expect(page.get_by_label('Product type', exact=True)).to_have_value('OrchidMix')
         page.get_by_role('button', name='Close form', exact=True).click()

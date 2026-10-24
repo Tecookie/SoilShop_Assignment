@@ -16,7 +16,7 @@ settings = dict(line.split('=', 1) for line in (ROOT / '.env').read_text().split
 base = 'http://localhost:' + settings.get('WEB_PORT', '8080')
 suffix = uuid.uuid4().hex[:8].upper()
 code = 'DEMO-MIX-' + suffix
-name = 'All-purpose Potting Mix (demo ' + suffix + ')'
+name = 'Đất trồng đa dụng (mẫu ' + suffix + ')'
 errors = []
 checks = []
 
