@@ -3,11 +3,13 @@ import type { FormEvent } from "react";
 import { api } from "./api";
 import { Empty, Field, Notice, Pagination } from "./components";
 import type { PageResult, Product, Sku, Supplier } from "./types";
+import { productTypes, productTypeName } from "./types";
 
 export function CataloguePage() {
   const [products, setProducts] = useState<PageResult<Product>>();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [page, setPage] = useState(1);
+  const [productType, setProductType] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -15,12 +17,14 @@ export function CataloguePage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const load = useCallback(async () => {
     const [p, s] = await Promise.all([
-      api<PageResult<Product>>(`/products?page=${page}`),
+      api<PageResult<Product>>(
+        `/products?page=${page}${productType ? `&productType=${productType}` : ""}`,
+      ),
       api<Supplier[]>("/suppliers"),
     ]);
     setProducts(p);
     setSuppliers(s);
-  }, [page]);
+  }, [page, productType]);
   useEffect(() => {
     load().catch((e) => setError(e.message));
   }, [load]);
@@ -39,6 +43,7 @@ export function CataloguePage() {
           {
             code: value("code"),
             name: value("name"),
+            productType: value("productType"),
             brand: value("brand") || null,
             ingredients: value("ingredients") || null,
             sourceReference: value("sourceReference") || null,
@@ -92,6 +97,24 @@ export function CataloguePage() {
       </div>
       <Notice error={error} text={notice} />
       <div className="action-bar">
+        <Field label="Filter catalogue by type">
+          <select
+            value={productType}
+            onChange={(event) => {
+              setProductType(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">All product types</option>
+            {productTypes.map((type) => (
+              <option key={type.code} value={type.code}>
+                {type.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      <div className="action-bar">
         {(["product", "sku", "supplier"] as const).map((kind) => (
           <button
             key={kind}
@@ -138,6 +161,18 @@ export function CataloguePage() {
               )}
               {form === "product" && (
                 <>
+                  <Field label="Product type">
+                    <select
+                      name="productType"
+                      defaultValue={editing?.productType ?? "Unclassified"}
+                    >
+                      {productTypes.map((type) => (
+                        <option key={type.code} value={type.code}>
+                          {type.name}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
                   <Field label="Brand (optional)">
                     <input
                       name="brand"
@@ -293,6 +328,7 @@ export function CataloguePage() {
               <tr>
                 <th>Product</th>
                 <th>Brand</th>
+                <th>Product type</th>
                 <th>Source reference</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -306,6 +342,7 @@ export function CataloguePage() {
                     <small>{p.code}</small>
                   </td>
                   <td>{p.brand ?? "Unknown"}</td>
+                  <td>{productTypeName(p.productType)}</td>
                   <td>{p.sourceReference ?? "Not supplied"}</td>
                   <td>
                     <span

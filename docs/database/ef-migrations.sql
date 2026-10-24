@@ -806,3 +806,28 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261023155639_AddProductTypes') THEN
+    ALTER TABLE products ADD product_type varchar(24) NOT NULL DEFAULT ('Unclassified');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261023155639_AddProductTypes') THEN
+    ALTER TABLE products ADD CONSTRAINT ck_products_5 CHECK (product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix'));
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261023155639_AddProductTypes') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261023155639_AddProductTypes', '10.0.13');
+    END IF;
+END $EF$;
+COMMIT;

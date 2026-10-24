@@ -248,6 +248,13 @@
         "nullable": false,
         "default": "1",
         "identity": false
+      },
+      {
+        "name": "product_type",
+        "type": "varchar(24)",
+        "nullable": false,
+        "default": "'Unclassified'",
+        "identity": false
       }
     ],
     "foreign_keys": [
@@ -262,7 +269,8 @@
       "drainage IS NULL OR drainage IN ('Low','Medium','High')",
       "water_retention IS NULL OR water_retention IN ('Low','Medium','High')",
       "(ph_min IS NULL AND ph_max IS NULL) OR (ph_min IS NOT NULL AND ph_max IS NOT NULL AND ph_min BETWEEN 0 AND 14 AND ph_max BETWEEN ph_min AND 14)",
-      "(reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)"
+      "(reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)",
+      "product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix')"
     ],
     "unique": [
       "code"

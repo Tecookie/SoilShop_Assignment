@@ -32,18 +32,21 @@ public sealed class ShopService(IShopRepository repository, IMapper mapper, ICal
         return name.Trim();
     }
     private static string? Optional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    public async Task<PageResult<ProductDto>> ProductsAsync(string? search, bool? active, string sort, int page, int size, CancellationToken ct)
+    public async Task<PageResult<ProductDto>> ProductsAsync(string? search, bool? active, string sort, int page, int size, CancellationToken ct, string? productType = null)
     {
         Paging(page, size);
         if (sort is not ("name" or "code" or "newest")) throw new BusinessException(400, "Sort must be name, code or newest.");
-        var result = await repository.ProductsAsync(search, active, sort, page, size, ct);
+        ValidateProductType(productType);
+        var result = await repository.ProductsAsync(search, active, sort, page, size, ct, productType);
         return new(mapper.Map<List<ProductDto>>(result.Items), result.Total, page, size);
     }
     public async Task<ProductDto> SaveProductAsync(int? id, ProductInput input, CancellationToken ct)
     {
+        ValidateProductType(input.ProductType);
         var product = id is null ? new Product() : await repository.ProductAsync(id.Value, ct) ?? throw new BusinessException(404, "Product not found.");
         if (id is not null && input.ExpectedVersion != product.Version) throw new BusinessException(409, "Product has changed. Reload before saving.");
         product.Code = Code(input.Code); product.Name = Name(input.Name); product.Brand = Optional(input.Brand);
+        product.ProductType = input.ProductType;
         product.Ingredients = Optional(input.Ingredients); product.SourceReference = Optional(input.SourceReference);
         product.ReviewedAt = null; product.ReviewedBy = null; product.IsActive = input.IsActive;
         if (id is not null) product.Version++;
@@ -53,9 +56,13 @@ public sealed class ShopService(IShopRepository repository, IMapper mapper, ICal
     public async Task DeleteProductAsync(int id, CancellationToken ct) => await repository.DeleteProductAsync(await repository.ProductAsync(id, ct) ?? throw new BusinessException(404, "Product not found."), ct);
     public async Task<IReadOnlyList<SupplierDto>> SuppliersAsync(CancellationToken ct) => mapper.Map<List<SupplierDto>>(await repository.SuppliersAsync(ct));
     public async Task<SupplierDto> AddSupplierAsync(SupplierInput input, CancellationToken ct) => mapper.Map<SupplierDto>(await repository.AddSupplierAsync(new Supplier { Code = Code(input.Code), Name = Name(input.Name), ContactNote = Optional(input.ContactNote) }, ct));
-    public async Task<PageResult<SkuDto>> SkusAsync(string? search, bool lowOnly, int? productId, int page, int size, CancellationToken ct)
+    private static void ValidateProductType(string? value)
     {
-        Paging(page, size); var result = await repository.SkusAsync(search, lowOnly, productId, page, size, ct);
+        if (value is not null && !ProductTypes.IsValid(value)) throw new BusinessException(400, "Unknown product type. Choose a supported catalogue group.");
+    }
+    public async Task<PageResult<SkuDto>> SkusAsync(string? search, bool lowOnly, int? productId, int page, int size, CancellationToken ct, string? productType = null)
+    {
+        Paging(page, size); ValidateProductType(productType); var result = await repository.SkusAsync(search, lowOnly, productId, page, size, ct, productType);
         return new(mapper.Map<List<SkuDto>>(result.Items), result.Total, page, size);
     }
     public async Task<SkuDto> SkuAsync(int id, CancellationToken ct) => mapper.Map<SkuDto>(await repository.SkuAsync(id, ct) ?? throw new BusinessException(404, "SKU not found."));

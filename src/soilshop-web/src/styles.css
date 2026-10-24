@@ -11,6 +11,9 @@
   --white: #fff;
   --space: 1rem;
 }
+.type-filter {
+  max-width: 220px;
+}
 * {
   box-sizing: border-box;
 }

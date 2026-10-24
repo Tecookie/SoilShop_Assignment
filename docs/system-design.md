@@ -64,6 +64,7 @@ Login uses JWT bearer authentication and a standard password hasher; public regi
 | Level | Data | Required / interpretation |
 |---|---|---|
 | Product | Code, name, active flag | Required identity; normalize/trim codes, enforce case-insensitive uniqueness. |
+| Product | Primary product type | General-purpose, foliage, flowering, succulent/cactus, orchid or seed-starting mix; Unclassified preserves unknown/legacy classification. This is a catalogue group, distinct from multi-use advice tags. |
 | Product | Brand, manufacturer, ingredients, storage note | Optional supplied descriptions. |
 | Product | Plant/use tags | Staff-curated labels based on product information, not an invented botanical taxonomy. |
 | Product | Drainage and water retention | Optional Low/Medium/High; NULL means unknown. |

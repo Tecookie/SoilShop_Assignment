@@ -10,6 +10,9 @@ Internal users who receive goods, create sales and query inventory.
 **Product (Sản phẩm đất trồng)**:
 A bagged potting-soil offering in the shop catalogue, available in one or more package variants.
 
+**Product Type (Nhóm mặt hàng)**:
+The primary catalogue group of a Product: general-purpose, foliage, flowering, succulent/cactus, orchid or seed-starting mix. Unclassified means the group is not supplied yet. A catalogue group describes the packaged offering; it does not certify plant suitability.
+
 **Supplier (Nhà cung cấp)**:
 A business supplying pre-packed soil bags for the shop to resell.
 

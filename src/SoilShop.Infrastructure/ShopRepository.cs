@@ -7,11 +7,12 @@ namespace SoilShop.Infrastructure;
 
 public sealed partial class ShopRepository(ShopDbContext db) : IShopRepository
 {
-    public async Task<PageResult<Product>> ProductsAsync(string? search, bool? active, string sort, int page, int size, CancellationToken ct)
+    public async Task<PageResult<Product>> ProductsAsync(string? search, bool? active, string sort, int page, int size, CancellationToken ct, string? productType = null)
     {
         var q = db.Products.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(search)) q = q.Where(x => x.Name.ToLower().Contains(search.ToLower()) || x.Code.ToLower().Contains(search.ToLower()));
         if (active.HasValue) q = q.Where(x => x.IsActive == active.Value);
+        if (productType is not null) q = q.Where(x => x.ProductType == productType);
         var total = await q.CountAsync(ct);
         q = sort switch { "code" => q.OrderBy(x => x.Code).ThenBy(x => x.Id), "newest" => q.OrderByDescending(x => x.Id), _ => q.OrderBy(x => x.Name).ThenBy(x => x.Id) };
         return new(await q.Skip((page - 1) * size).Take(size).ToListAsync(ct), total, page, size);
@@ -30,12 +31,13 @@ public sealed partial class ShopRepository(ShopDbContext db) : IShopRepository
     public async Task<IReadOnlyList<Supplier>> SuppliersAsync(CancellationToken ct) => await db.Suppliers.AsNoTracking().OrderBy(x => x.Name).Take(100).ToListAsync(ct);
     public async Task<Supplier> AddSupplierAsync(Supplier supplier, CancellationToken ct) { db.Suppliers.Add(supplier); await db.SaveChangesAsync(ct); return supplier; }
     public Task<bool> SupplierActiveAsync(int id, CancellationToken ct) => db.Suppliers.AnyAsync(x => x.Id == id && x.IsActive, ct);
-    public async Task<PageResult<Sku>> SkusAsync(string? search, bool lowOnly, int? productId, int page, int size, CancellationToken ct)
+    public async Task<PageResult<Sku>> SkusAsync(string? search, bool lowOnly, int? productId, int page, int size, CancellationToken ct, string? productType = null)
     {
         var q = db.Skus.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(search)) q = q.Where(x => x.Code.ToLower().Contains(search.ToLower()) || db.Products.Any(p => p.Id == x.ProductId && p.Name.ToLower().Contains(search.ToLower())));
         if (lowOnly) q = q.Where(x => x.IsActive && x.StockQty <= x.LowStockThreshold);
         if (productId.HasValue) q = q.Where(x => x.ProductId == productId);
+        if (productType is not null) q = q.Where(x => db.Products.Any(p => p.Id == x.ProductId && p.ProductType == productType));
         var total = await q.CountAsync(ct);
         return new(await q.OrderBy(x => x.Code).ThenBy(x => x.Id).Skip((page - 1) * size).Take(size).ToListAsync(ct), total, page, size);
     }

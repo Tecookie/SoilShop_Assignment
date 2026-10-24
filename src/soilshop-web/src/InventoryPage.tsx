@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { api } from "./api";
 import { Empty, Notice, Pagination } from "./components";
 import type { PageResult, Product, Sku } from "./types";
-import { money } from "./types";
+import { money, productTypes, productTypeName } from "./types";
 export function InventoryPage() {
   const [search, setSearch] = useState("");
   const [lowOnly, setLowOnly] = useState(false);
+  const [productType, setProductType] = useState("");
   const [page, setPage] = useState(1);
   const [data, setData] = useState<PageResult<Sku>>();
   const [products, setProducts] = useState<Product[]>([]);
@@ -19,7 +20,7 @@ export function InventoryPage() {
     const timeout = setTimeout(() => {
       Promise.all([
         api<PageResult<Sku>>(
-          `/skus?search=${encodeURIComponent(search)}&lowOnly=${lowOnly}&page=${page}`,
+          `/skus?search=${encodeURIComponent(search)}&lowOnly=${lowOnly}&page=${page}${productType ? `&productType=${productType}` : ""}`,
         ),
         api<PageResult<Product>>("/products?pageSize=100"),
       ])
@@ -40,7 +41,7 @@ export function InventoryPage() {
       controller.cancelled = true;
       clearTimeout(timeout);
     };
-  }, [search, lowOnly, page, refresh]);
+  }, [search, lowOnly, page, refresh, productType]);
   return (
     <>
       <div className="page-heading">
@@ -68,6 +69,22 @@ export function InventoryPage() {
               setPage(1);
             }}
           />
+          <select
+            className="type-filter"
+            aria-label="Filter inventory by type"
+            value={productType}
+            onChange={(event) => {
+              setProductType(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">All product types</option>
+            {productTypes.map((type) => (
+              <option key={type.code} value={type.code}>
+                {type.name}
+              </option>
+            ))}
+          </select>
           <label className="check">
             <input
               type="checkbox"
@@ -104,6 +121,12 @@ export function InventoryPage() {
                           `Product #${sku.productId}`}
                       </strong>
                       <small>{sku.code}</small>
+                      <small>
+                        {productTypeName(
+                          products.find((p) => p.id === sku.productId)
+                            ?.productType,
+                        )}
+                      </small>
                     </td>
                     <td>
                       {sku.packageAmount} {sku.packageUnit}

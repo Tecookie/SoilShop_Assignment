@@ -64,6 +64,7 @@ public sealed class ShopDbContext(DbContextOptions<ShopDbContext> options) : DbC
                 t.HasCheckConstraint("ck_products_2", "water_retention IS NULL OR water_retention IN ('Low','Medium','High')");
                 t.HasCheckConstraint("ck_products_3", "(ph_min IS NULL AND ph_max IS NULL) OR (ph_min IS NOT NULL AND ph_max IS NOT NULL AND ph_min BETWEEN 0 AND 14 AND ph_max BETWEEN ph_min AND 14)");
                 t.HasCheckConstraint("ck_products_4", "(reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)");
+                t.HasCheckConstraint("ck_products_5", "product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix')");
             });
             e.HasKey(x => x.Id);
             e.Property(x => x.Id).HasColumnName("id").HasColumnType("integer").IsRequired().UseIdentityAlwaysColumn();
@@ -78,6 +79,7 @@ public sealed class ShopDbContext(DbContextOptions<ShopDbContext> options) : DbC
             e.Property(x => x.PhMax).HasColumnName("ph_max").HasColumnType("numeric(4,2)");
             e.Property(x => x.StorageNote).HasColumnName("storage_note").HasColumnType("text");
             e.Property(x => x.SourceReference).HasColumnName("source_reference").HasColumnType("text");
+            e.Property(x => x.ProductType).HasColumnName("product_type").HasColumnType("varchar(24)").IsRequired().HasDefaultValueSql("'Unclassified'");
             e.Property(x => x.ReviewedBy).HasColumnName("reviewed_by").HasColumnType("integer");
             e.Property(x => x.ReviewedAt).HasColumnName("reviewed_at").HasColumnType("timestamptz");
             e.Property(x => x.IsActive).HasColumnName("is_active").HasColumnType("boolean").IsRequired().HasDefaultValueSql("true");

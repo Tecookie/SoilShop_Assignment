@@ -17,7 +17,7 @@ public sealed class AuthController(AuthService auth) : ControllerBase
 [ApiController, Authorize, Route("api/products")]
 public sealed class ProductsController(ShopService service) : ControllerBase
 {
-    [HttpGet] public Task<PageResult<ProductDto>> List(CancellationToken ct, string? search = null, bool? active = null, string sort = "name", int page = 1, int pageSize = 20) => service.ProductsAsync(search, active, sort, page, pageSize, ct);
+    [HttpGet] public Task<PageResult<ProductDto>> List(CancellationToken ct, string? search = null, bool? active = null, string sort = "name", int page = 1, int pageSize = 20, string? productType = null) => service.ProductsAsync(search, active, sort, page, pageSize, ct, productType);
     [HttpGet("{id:int}")] public Task<ProductDto> Get(int id, CancellationToken ct) => service.ProductAsync(id, ct);
     [HttpPost, Authorize(Roles = "Admin")] public async Task<ActionResult<ProductDto>> Create(ProductInput input, CancellationToken ct) { var item = await service.SaveProductAsync(null, input, ct); return Created($"/api/products/{item.Id}", item); }
     [HttpPut("{id:int}"), Authorize(Roles = "Admin")] public Task<ProductDto> Update(int id, ProductInput input, CancellationToken ct) => service.SaveProductAsync(id, input, ct);
@@ -26,7 +26,7 @@ public sealed class ProductsController(ShopService service) : ControllerBase
 [ApiController, Authorize, Route("api/skus")]
 public sealed class SkusController(ShopService service) : ControllerBase
 {
-    [HttpGet] public Task<PageResult<SkuDto>> List(CancellationToken ct, string? search = null, bool lowOnly = false, int? productId = null, int page = 1, int pageSize = 20) => service.SkusAsync(search, lowOnly, productId, page, pageSize, ct);
+    [HttpGet] public Task<PageResult<SkuDto>> List(CancellationToken ct, string? search = null, bool lowOnly = false, int? productId = null, int page = 1, int pageSize = 20, string? productType = null) => service.SkusAsync(search, lowOnly, productId, page, pageSize, ct, productType);
     [HttpGet("{id:int}")] public Task<SkuDto> Get(int id, CancellationToken ct) => service.SkuAsync(id, ct);
     [HttpPost, Authorize(Roles = "Admin")] public async Task<ActionResult<SkuDto>> Create(SkuInput input, CancellationToken ct) { var item = await service.SaveSkuAsync(null, input, ct); return Created($"/api/skus/{item.Id}", item); }
     [HttpPut("{id:int}"), Authorize(Roles = "Admin")] public Task<SkuDto> Update(int id, SkuInput input, CancellationToken ct) => service.SaveSkuAsync(id, input, ct);

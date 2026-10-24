@@ -26,11 +26,12 @@ t('products','Soil offering and optional source-backed advice metadata.',[
     c('drainage','varchar(12)',True),c('water_retention','varchar(12)',True),
     c('ph_min','numeric(4,2)',True),c('ph_max','numeric(4,2)',True),c('storage_note','text',True),
     c('source_reference','text',True),c('reviewed_by','integer',True),c('reviewed_at','timestamptz',True),
-    c('is_active','boolean',default='true'),now(),version()],fks=[fk('reviewed_by','users')],
+    c('is_active','boolean',default='true'),now(),version(),c('product_type','varchar(24)',default="'Unclassified'")],fks=[fk('reviewed_by','users')],
     checks=["drainage IS NULL OR drainage IN ('Low','Medium','High')",
             "water_retention IS NULL OR water_retention IN ('Low','Medium','High')",
             '(ph_min IS NULL AND ph_max IS NULL) OR (ph_min IS NOT NULL AND ph_max IS NOT NULL AND ph_min BETWEEN 0 AND 14 AND ph_max BETWEEN ph_min AND 14)',
-            '(reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)'],unique=['code'])
+            '(reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)',
+            "product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix')"],unique=['code'])
 t('plant_tags','Staff-curated label/use tags, not an agronomic taxonomy.',[
     ident(),c('code','varchar(40)'),c('name','varchar(100)')],unique=['code'])
 t('product_plant_tags','Product-to-use-tag association.',[

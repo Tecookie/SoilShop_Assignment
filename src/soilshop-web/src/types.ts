@@ -16,6 +16,7 @@ export interface Login {
   user: User;
 }
 export interface Product {
+  productType: string;
   id: number;
   code: string;
   name: string;
@@ -25,6 +26,17 @@ export interface Product {
   isActive: boolean;
   version: number;
 }
+export const productTypes = [
+  { code: "Unclassified", name: "Unclassified" },
+  { code: "GeneralPurpose", name: "General-purpose mix" },
+  { code: "FoliageMix", name: "Foliage mix" },
+  { code: "FloweringMix", name: "Flowering mix" },
+  { code: "SucculentMix", name: "Succulent / cactus mix" },
+  { code: "OrchidMix", name: "Orchid mix" },
+  { code: "SeedStartingMix", name: "Seed-starting mix" },
+] as const;
+export const productTypeName = (code: string | undefined) =>
+  productTypes.find((type) => type.code === code)?.name ?? "Unclassified";
 export interface Sku {
   id: number;
   productId: number;

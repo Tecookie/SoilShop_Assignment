@@ -344,6 +344,13 @@ namespace SoilShop.Infrastructure.Migrations
                         .HasColumnType("numeric(4,2)")
                         .HasColumnName("ph_min");
 
+                    b.Property<string>("ProductType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(24)")
+                        .HasColumnName("product_type")
+                        .HasDefaultValueSql("'Unclassified'");
+
                     b.Property<DateTime?>("ReviewedAt")
                         .HasColumnType("timestamptz")
                         .HasColumnName("reviewed_at");
@@ -388,6 +395,8 @@ namespace SoilShop.Infrastructure.Migrations
                             t.HasCheckConstraint("ck_products_3", "(ph_min IS NULL AND ph_max IS NULL) OR (ph_min IS NOT NULL AND ph_max IS NOT NULL AND ph_min BETWEEN 0 AND 14 AND ph_max BETWEEN ph_min AND 14)");
 
                             t.HasCheckConstraint("ck_products_4", "(reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)");
+
+                            t.HasCheckConstraint("ck_products_5", "product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix')");
                         });
                 });
 

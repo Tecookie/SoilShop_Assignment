@@ -192,4 +192,23 @@ public sealed class TradingTests : IClassFixture<ShopFactory>
     }
     [Fact]
     public void Entity_to_dto_mapping_configuration_is_valid() => factory.Services.GetRequiredService<AutoMapper.IMapper>().ConfigurationProvider.AssertConfigurationIsValid();
+
+    [Fact]
+    public async Task Product_types_are_validated_and_filter_both_products_and_skus()
+    {
+        using var c = await Login();
+        var code = Guid.NewGuid().ToString("N");
+        var response = await c.PostAsJsonAsync("/api/products", new { code, name = "Packaged mix", productType = "SucculentMix" });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var product = (await response.Content.ReadFromJsonAsync<ProductDto>())!;
+        Assert.Equal("SucculentMix", product.ProductType);
+        var sku = await Post<SkuDto>(c, "/api/skus", new { productId = product.Id, code, packageAmount = 2, packageUnit = "L", salePriceVnd = 40000 });
+        var filtered = await c.GetFromJsonAsync<PageResult<ProductDto>>($"/api/products?productType=SucculentMix&search={code}");
+        Assert.Single(filtered!.Items); Assert.Equal(product.Id, filtered.Items[0].Id);
+        var stock = await c.GetFromJsonAsync<PageResult<SkuDto>>($"/api/skus?productType=SucculentMix&search={code}");
+        Assert.Single(stock!.Items); Assert.Equal(sku.Id, stock.Items[0].Id);
+        Assert.Empty((await c.GetFromJsonAsync<PageResult<SkuDto>>($"/api/skus?productType=OrchidMix&search={code}"))!.Items);
+        Assert.Equal(HttpStatusCode.BadRequest, (await c.PostAsJsonAsync("/api/products", new { code = code + "X", name = "Invalid", productType = "Tools" })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await c.GetAsync("/api/skus?productType=Tools")).StatusCode);
+    }
 }

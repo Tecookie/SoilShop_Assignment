@@ -153,7 +153,7 @@ def physical(slug,title,description,tables,edges,caption,w=1440,h=720):
     save(slug,title,description,b,caption,'FK: child column → parent key    RESTRICT preserves referenced history    ? = nullable',w,h)
 
 physical('db-catalogue','Physical DB — Products and SKU Stock','SKUs reference Products and an optional preferred Supplier.',[
-    (40,144,'products',['id','code','name','source_reference','reviewed_by','drainage','water_retention']),
+    (40,144,'products',['id','code','name','product_type','source_reference','reviewed_by','drainage']),
     (552,144,'skus',['id','product_id','preferred_supplier_id','code','stock_qty','stock_version','sale_price_vnd']),
     (1064,144,'suppliers',['id','code','name','is_active'])],[
     ([(552,228),(464,228),(464,204),(376,204)],(464,180),'RESTRICT'),

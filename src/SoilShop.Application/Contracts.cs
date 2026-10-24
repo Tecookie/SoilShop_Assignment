@@ -9,8 +9,8 @@ public sealed record UserDto(int Id, string Username, string DisplayName, string
 public sealed record LoginResult(string Token, DateTime ExpiresAt, UserDto User);
 public sealed record ProductInput([Required, MaxLength(40)] string Code, [Required, MaxLength(200)] string Name,
     [MaxLength(150)] string? Brand = null, [MaxLength(5000)] string? Ingredients = null,
-    [MaxLength(2000)] string? SourceReference = null, long? ExpectedVersion = null, bool IsActive = true);
-public sealed record ProductDto(int Id, string Code, string Name, string? Brand, string? Ingredients, string? SourceReference, bool IsActive, long Version);
+    [MaxLength(2000)] string? SourceReference = null, long? ExpectedVersion = null, bool IsActive = true, [Required] string ProductType = ProductTypes.Unclassified);
+public sealed record ProductDto(int Id, string Code, string Name, string? Brand, string? Ingredients, string? SourceReference, bool IsActive, long Version, string ProductType);
 public sealed record SupplierInput([Required, MaxLength(40)] string Code, [Required, MaxLength(200)] string Name, [MaxLength(2000)] string? ContactNote = null);
 public sealed record SupplierDto(int Id, string Code, string Name, string? ContactNote, bool IsActive);
 public sealed record SkuInput([Range(1, int.MaxValue)] int ProductId, [Required, MaxLength(50)] string Code,
@@ -35,14 +35,14 @@ public sealed class BusinessException(int status, string message) : Exception(me
 
 public interface IShopRepository
 {
-    Task<PageResult<Product>> ProductsAsync(string? search, bool? active, string sort, int page, int size, CancellationToken ct);
+    Task<PageResult<Product>> ProductsAsync(string? search, bool? active, string sort, int page, int size, CancellationToken ct, string? productType = null);
     Task<Product?> ProductAsync(int id, CancellationToken ct);
     Task<Product> SaveProductAsync(Product product, bool create, CancellationToken ct);
     Task DeleteProductAsync(Product product, CancellationToken ct);
     Task<IReadOnlyList<Supplier>> SuppliersAsync(CancellationToken ct);
     Task<Supplier> AddSupplierAsync(Supplier supplier, CancellationToken ct);
     Task<bool> SupplierActiveAsync(int id, CancellationToken ct);
-    Task<PageResult<Sku>> SkusAsync(string? search, bool lowOnly, int? productId, int page, int size, CancellationToken ct);
+    Task<PageResult<Sku>> SkusAsync(string? search, bool lowOnly, int? productId, int page, int size, CancellationToken ct, string? productType = null);
     Task<Sku?> SkuAsync(int id, CancellationToken ct);
     Task<Sku> SaveSkuAsync(Sku sku, bool create, CancellationToken ct);
     Task<User?> FindUserAsync(string username, CancellationToken ct);

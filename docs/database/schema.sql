@@ -46,11 +46,13 @@ CREATE TABLE products (
     is_active boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now(),
     version bigint NOT NULL DEFAULT 1,
+    product_type varchar(24) NOT NULL DEFAULT 'Unclassified',
     CONSTRAINT uq_products_1 UNIQUE (code),
     CONSTRAINT ck_products_1 CHECK (drainage IS NULL OR drainage IN ('Low','Medium','High')),
     CONSTRAINT ck_products_2 CHECK (water_retention IS NULL OR water_retention IN ('Low','Medium','High')),
     CONSTRAINT ck_products_3 CHECK ((ph_min IS NULL AND ph_max IS NULL) OR (ph_min IS NOT NULL AND ph_max IS NOT NULL AND ph_min BETWEEN 0 AND 14 AND ph_max BETWEEN ph_min AND 14)),
     CONSTRAINT ck_products_4 CHECK ((reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)),
+    CONSTRAINT ck_products_5 CHECK (product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix')),
     CONSTRAINT fk_products_1 FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE RESTRICT
 );
 
