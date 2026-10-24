@@ -25,6 +25,7 @@ To populate the six product groups with reviewable demo data, run `./scripts/see
 
 - [Confirmed scope and technology](docs/gardening-discovery.md).
 - [Implemented features, installation and tests](docs/implementation.md).
+- [End-to-end demo flow and technology evidence](docs/demo-walkthrough.md).
 - [System design](docs/system-design.md): Context, Problems, Solutions, Actors, Features, C4 C1/C2, Technology, conceptual ERD and Physical DB.
 - [Diagram gallery](docs/diagrams/index.html): C1, full C2 and focused synchronous/async C2 views, plus conceptual/physical models.
 - [PostgreSQL schema](docs/database/schema.sql) and [data dictionary](docs/database/data-dictionary.md).
