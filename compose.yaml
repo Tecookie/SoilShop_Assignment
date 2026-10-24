@@ -40,6 +40,8 @@ services:
       Bootstrap__Username: ${BOOTSTRAP_USERNAME:-admin}
       Bootstrap__Password: ${BOOTSTRAP_PASSWORD:?Run scripts/setup.ps1 first}
       AutoMapper__LicenseKey: ${AUTOMAPPER_LICENSE_KEY:-}
+      DemoSeed__EmployeeUsername: ${DEMO_EMPLOYEE_USERNAME:-}
+      DemoSeed__EmployeePassword: ${DEMO_EMPLOYEE_PASSWORD:-}
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }

@@ -3,7 +3,8 @@ ARG PROJECT=SoilShop.Api
 WORKDIR /source
 COPY global.json Directory.Build.props ./
 COPY src/ src/
-RUN dotnet publish src/${PROJECT}/${PROJECT}.csproj -c Release -o /publish
+RUN --mount=type=cache,id=soilshop-nuget,target=/root/.nuget/packages,sharing=locked \
+    dotnet publish src/${PROJECT}/${PROJECT}.csproj -c Release -o /publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 ARG PROJECT=SoilShop.Api

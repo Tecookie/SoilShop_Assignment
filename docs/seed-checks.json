@@ -1,0 +1,29 @@
+{
+  "tested_on": "2026-10-24",
+  "application_tests": { "passed": 14, "failed": 0, "skipped": 0 },
+  "seed_dataset": {
+    "products": 8,
+    "skus": 16,
+    "suppliers": 3,
+    "confirmed_receipts": 2,
+    "draft_receipts": 1,
+    "confirmed_sales": 3,
+    "draft_sales": 1,
+    "primary_types": 6,
+    "employee_login_verified": true
+  },
+  "replay": {
+    "already_applied": true,
+    "stock_signature_unchanged": true,
+    "document_movement_outbox_counts_unchanged": true,
+    "interrupted_import_recovery_tested": true,
+    "later_staff_price_and_stock_changes_preserved_in_test": true
+  },
+  "browser_checks": {
+    "seed_read_only_checks_passed": 6,
+    "existing_trading_workflow_checks_passed": 9,
+    "console_errors": 0,
+    "viewport_widths": [320, 768, 1024, 1440]
+  },
+  "scope": "Counts describe SEED-V1 records only. Existing records remain. All sample names, prices and sources are fictional; optional measurements/review stay unknown."
+}

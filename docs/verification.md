@@ -1,6 +1,17 @@
-# Verification — 23 October 2026
+# Verification — latest increment 24 October 2026
 
 This report distinguishes tested design artifacts from an application implementation. The PostgreSQL tests use disposable isolated containers, not the user's running databases. The test containers and their own anonymous volumes are removed afterward.
+
+## Product classification and demo seed — 24 October 2026
+
+- All **14 application tests pass**, including validated type filters and a seed test that interrupts calculation, resumes the import, repeats it without duplicates and preserves subsequent staff price/stock changes.
+- Six read-only Chrome checks pass for all six inventory type filters, Unclassified empty state, catalogue/edit selection, seeded stock states, four viewport widths and Employee navigation. No browser console/page errors were recorded.
+- The existing nine-check browser trading workflow also passes after the change.
+- The actual local Compose import created eight products, 16 SKUs, three suppliers, two confirmed/one draft receipts, three confirmed/one draft sales and a configured Employee account. A second CLI import returned `AlreadyApplied`; stock signatures and document/movement/outbox counts stayed identical.
+- Optional measurements and review attribution remain unknown. Six product groups are catalogue descriptions, not certified advice. Existing data remains intact; see [demo-data.md](demo-data.md).
+- Source schema, EF migration/export, dictionary and physical diagram sources were updated. All 13 diagram renders passed.
+
+Evidence: [seed-checks.json](seed-checks.json), [seeded inventory](screenshots/seed-inventory.png) and [filtered catalogue](screenshots/seed-catalogue.png). Earlier checks below describe the initial increment separately.
 
 ## Initial application increment
 

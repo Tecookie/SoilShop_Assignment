@@ -9,6 +9,7 @@ The first runnable increment implements the core counter workflow. The complete 
 - JWT login, bootstrap Admin from configuration, password hashing, Admin/Employee authorization and active-account/role/version validation on every authenticated request. No public registration. React keeps its token in memory; reloading signs out.
 - Product CRUD in the API, product create/edit UI, supplier create/list, SKU create/read/update API and packaging creation UI. AutoMapper maps entities to explicit read DTOs. Stock, roles, totals and status are absent from write DTOs; unexpected JSON fields are rejected.
 - Product search, active filter, allowlisted sort and pagination; inventory search/low-stock filter/pagination; paged documents and stock movements.
+- Product-type selection and catalogue/inventory filters for six packaged-mix groups, plus Unclassified for unknown data. A repeatable explicit demo seed populates catalogue and trading records; see [demo data](demo-data.md).
 - Receipt/sale draft creation and confirmation. Receipts record actual whole-VND costs. Sales freeze catalogue prices at confirmation. Drafts do not reserve bags.
 - Independent HTTP/2 gRPC host for deterministic totals, invoked by API before acquiring stock locks, with a three-second deadline.
 - PostgreSQL document locks, ordered SKU row locks, guarded stock updates and a single transaction containing document/line snapshots, movements and outbox records. Repeating a confirmed action key has one effect; other attempts to confirm the same document conflict.

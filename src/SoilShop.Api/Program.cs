@@ -48,6 +48,13 @@ app.UseSwaggerUI(options => options.SwaggerEndpoint("/api/openapi/v1.json", "Soi
 app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "ready" }));
 await using (var scope = app.Services.CreateAsyncScope()) await DatabaseSetup.InitializeAsync(scope.ServiceProvider.GetRequiredService<ShopDbContext>(), app.Configuration);
+if (app.Configuration.GetValue("DemoSeed:Run", false))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var result = await new DemoDataSeeder(scope.ServiceProvider.GetRequiredService<ShopDbContext>(), scope.ServiceProvider.GetRequiredService<ShopService>(), app.Configuration).RunAsync();
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(result));
+    return;
+}
 app.Run();
 public partial class Program;
 

@@ -15,6 +15,8 @@ docker compose up -d --build
 
 Open <http://localhost:8080>. Sign in with `BOOTSTRAP_USERNAME` / `BOOTSTRAP_PASSWORD` from the ignored root `.env`. Setup generates local secrets and preserves existing configuration. Credentials are not committed. See the [run/test guide](docs/implementation.md) for prerequisites, limits and subsequent work.
 
+To populate the six product groups with reviewable demo data, run `./scripts/seed-demo.ps1`. It adds 8 products, 16 SKUs, 3 suppliers and sample receipt/sale documents without duplicating stock on reruns. See [demo data and classification](docs/demo-data.md).
+
 ## Source
 
 `SoilShop.sln` contains Domain, Application, Infrastructure, API, Calculation and Worker projects plus tests. React/Vite/TypeScript lives in `src/soilshop-web`. The API applies reviewed EF migrations on startup; use [ef-migrations.sql](docs/database/ef-migrations.sql) for the exported application schema.
