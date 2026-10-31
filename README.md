@@ -52,3 +52,5 @@ React/Vite/TypeScript with plain CSS, ASP.NET Core 9, EF Core 9 with Npgsql, Pos
 Repository publication is handled by the user.
 
 See [soil metadata and advice](docs/soil-advice.md) for nine-factor filtering, source review and the gRPC recommendation demo.
+
+For searchable fictional advice fixtures, run `./scripts/seed-demo.ps1 -WithAdvice`, then choose **Nhóm cây → Đa dụng** in **Tìm đất phù hợp**. Scientific measurements remain unknown.

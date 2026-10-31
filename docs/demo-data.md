@@ -16,7 +16,7 @@ A Product has one primary `productType`; its SKUs inherit that group. Packaging 
 | SeedStartingMix | Seed-starting mix | Đất/giá thể ươm cây |
 | Unclassified | Unclassified | Chưa có thông tin phân loại |
 
-These are practical shop groups for pre-packed offerings. They are not an exhaustive botanical classification or a guarantee of plant suitability. Existing products become Unclassified when the additive migration runs; their original information is preserved. Multi-use tags and source-reviewed advice remain separate planned workflows. The application does not introduce mixing, repacking, loose sales, pots or tools.
+These are practical shop groups for pre-packed offerings. They are not an exhaustive botanical classification or a guarantee of plant suitability. Existing products become Unclassified when the additive migration runs; their original information is preserved. Multi-use tags and source-reviewed advice are separate from primary product type; see the optional advice fixtures below. The application does not introduce mixing, repacking, loose sales, pots or tools.
 
 ## Seed contents
 
@@ -51,3 +51,7 @@ The Vietnamese-name migration updates existing fixture names only when both thei
 Integration tests cover interrupted import recovery, counts/types, preserved unknown measurements, duplicate import and post-seed staff changes. Application verification is described in [verification.md](verification.md).
 
 `python scripts/browser_seed_check.py` checks the seeded catalogue and both roles without changing stock; the original `scripts/browser_smoke.py` adds separately labelled workflow-demo records. The seed itself was applied and replay-verified on 24 October 2026.
+
+## Optional advice fixtures
+
+Use `./scripts/seed-demo.ps1 -WithAdvice` to explicitly add six separate classification-only `[mẫu tư vấn]` products/SKUs and one confirmed eight-bag-per-SKU receipt. These have clearly fictional source-reviewed use tags; their scientific measurements remain unknown. General returns `ADVICE-V1-P01-5L`. Repeat imports preserve stock and metadata changes. Baseline SEED-V1 records are unchanged. See [soil-advice.md](soil-advice.md) for the distinction between catalogue type and reviewed advisory group.

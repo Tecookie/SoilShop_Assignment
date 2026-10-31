@@ -207,4 +207,4 @@ Automated rehearsal: [browser_smoke.py](../scripts/browser_smoke.py) creates its
 
 ## Soil advice demo
 
-Follow [soil-advice.md](soil-advice.md): record all available factors and a source, save and explicitly review as Admin; search as Employee, inspect reasons/missing data and create a sale draft. Existing unreviewed seeds intentionally produce no advice. `scripts/browser_advice_check.py` demonstrates this with labelled simulated metadata and clears its review afterward.
+Follow [soil-advice.md](soil-advice.md): record all available factors and a source, save and explicitly review as Admin; search as Employee, inspect reasons/missing data and create a sale draft. The baseline unreviewed SEED-V1 fixtures intentionally produce no advice. Run `./scripts/seed-demo.ps1 -WithAdvice` for separate classification-only fixtures, then select only Nhóm cây → Đa dụng to see a positive demo. `scripts/browser_advice_check.py` demonstrates this with labelled simulated metadata and clears its review afterward.

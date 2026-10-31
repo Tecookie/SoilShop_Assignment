@@ -2,6 +2,18 @@
 
 This report distinguishes tested design artifacts from an application implementation. The PostgreSQL tests use disposable isolated containers, not the user's running databases. The test containers and their own anonymous volumes are removed afterward.
 
+## General advice demo availability — 31 October 2026
+
+Root cause: the local database had zero reviewed products. Baseline products had primary product types but no reviewed plant-use tags, so selecting General correctly had no eligible candidates. The normal demo import lacked a positive advice fixture.
+
+- Added explicit `seed-demo.ps1 -WithAdvice`: six separate fictional classification-only products/SKUs, source-reviewed use tags, eight bags each through one confirmed receipt. Existing staff and baseline metadata are preserved; physical/scientific values remain unknown. A repeated live import left the stock fingerprint unchanged.
+- All **21 application tests passed**, including General matching, unknown scientific fields, repeat-import stock/ledger preservation and staff-edit review invalidation.
+- Four read-only browser checks passed as Employee against real gRPC: General positive match, fictional source/unknown facts, strict versus incomplete physical constraints and budget exclusion. Five existing advice workflow checks also passed.
+- The legacy pristine-seed stock smoke failed its fixed expected 0/1-stock assumption because this shop already has staff-modified baseline balances 10/7. Those balances were preserved; that run is not reported as passed. The isolated seed integration test continues to cover pristine import.
+- Empty responses now explain eligibility/review steps and distinguish product type from reviewed advisory group. The field hint states that distinction before search.
+
+Evidence: [checks](general-advice-checks.json), [General result](screenshots/general-advice.png). This is synthetic demo availability, not a relaxation of source-review or conflict rules.
+
 ## .NET 9 compatibility — 31 October 2026
 
 - All projects target `net9.0`; SDK 9.0.310, direct Microsoft/EF packages and EF tool 9.0.22, Npgsql EF provider 9.0.4. API, calculation and Worker containers report ASP.NET Core/.NET 9.0.22.

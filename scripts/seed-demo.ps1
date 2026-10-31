@@ -1,4 +1,4 @@
-param([switch]$SkipBuild)
+param([switch]$SkipBuild, [switch]$WithAdvice)
 $ErrorActionPreference = 'Stop'
 $rootPath = Split-Path $PSScriptRoot -Parent
 Push-Location $rootPath
@@ -29,7 +29,8 @@ try {
     }
     if (!$ready) { throw 'API did not become ready. Review docker compose logs api before retrying.' }
     # One-shot process: no HTTP port or public seeding endpoint. Existing shop data is retained.
-    docker compose run --rm --no-deps -e DemoSeed__Run=true api
+    if ($WithAdvice) { docker compose run --rm --no-deps -e DemoSeed__Run=true -e DemoSeed__WithAdvice=true api }
+    else { docker compose run --rm --no-deps -e DemoSeed__Run=true api }
     if ($LASTEXITCODE -ne 0) { throw 'Demo seed did not finish. Correct the reported error and rerun; completed steps are preserved.' }
     Write-Output 'Demo import completed. Local Employee credentials are in ignored .env; no credentials were printed.'
 } finally { Pop-Location }
