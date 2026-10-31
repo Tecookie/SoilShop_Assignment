@@ -1,5 +1,5 @@
 {
-  "tested_on": "2026-10-23",
+  "tested_on": "2026-10-31",
   "engine": "PostgreSQL 16 / isolated disposable Docker container",
   "scope": "Design schema and SQL prototype only; not an application integration test",
   "checks": [

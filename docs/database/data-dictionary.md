@@ -57,8 +57,19 @@ Soil offering and optional source-backed advice metadata.
 | brand | `varchar(150)` | Yes |  |
 | manufacturer | `varchar(150)` | Yes |  |
 | ingredients | `text` | Yes |  |
+| aeration | `varchar(12)` | Yes |  |
 | drainage | `varchar(12)` | Yes |  |
 | water_retention | `varchar(12)` | Yes |  |
+| ec_min | `numeric(8,3)` | Yes |  |
+| ec_max | `numeric(8,3)` | Yes |  |
+| ec_method | `varchar(16)` | Yes |  |
+| use_context | `varchar(12)` | Yes |  |
+| sample_available | `boolean` | Yes |  |
+| structure_notes | `text` | Yes |  |
+| nutrition_notes | `text` | Yes |  |
+| organic_matter_notes | `text` | Yes |  |
+| biology_notes | `text` | Yes |  |
+| cleanliness_notes | `text` | Yes |  |
 | ph_min | `numeric(4,2)` | Yes |  |
 | ph_max | `numeric(4,2)` | Yes |  |
 | storage_note | `text` | Yes |  |
@@ -79,6 +90,9 @@ Constraints / foreign keys:
     CONSTRAINT ck_products_3 CHECK ((ph_min IS NULL AND ph_max IS NULL) OR (ph_min IS NOT NULL AND ph_max IS NOT NULL AND ph_min BETWEEN 0 AND 14 AND ph_max BETWEEN ph_min AND 14))
     CONSTRAINT ck_products_4 CHECK ((reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0))
     CONSTRAINT ck_products_5 CHECK (product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix'))
+    CONSTRAINT ck_products_6 CHECK (aeration IS NULL OR aeration IN ('Low','Medium','High'))
+    CONSTRAINT ck_products_7 CHECK (use_context IS NULL OR use_context IN ('Pot','InGround','Both'))
+    CONSTRAINT ck_products_8 CHECK ((ec_min IS NULL AND ec_max IS NULL AND ec_method IS NULL) OR (ec_min IS NOT NULL AND ec_max IS NOT NULL AND ec_min >= 0 AND ec_max >= ec_min AND ec_method IS NOT NULL AND ec_method IN ('SME','Extract1to2','PourThrough','Other')))
     CONSTRAINT fk_products_1 FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE RESTRICT
 ```
 

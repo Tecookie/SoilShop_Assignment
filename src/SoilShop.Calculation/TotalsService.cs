@@ -5,6 +5,12 @@ namespace SoilShop.CalculationHost;
 
 public sealed class TotalsService(ILogger<TotalsService> logger) : Calculation.CalculationBase
 {
+    public override Task<AdviceReply> RecommendProducts(AdviceRequest request, ServerCallContext context)
+    {
+        var result = AdviceRules.Rank(request);
+        logger.LogInformation("Ranked {CandidateCount} candidates; returned {MatchCount} using {RuleVersion}", request.Candidates.Count, result.Matches.Count, result.RuleVersion);
+        return Task.FromResult(result);
+    }
     public static long Calculate(TotalsRequest request)
     {
         if (request.Lines.Count is < 1 or > 100) throw new RpcException(new Status(StatusCode.InvalidArgument, "Use 1–100 lines."));

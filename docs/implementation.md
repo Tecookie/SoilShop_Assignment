@@ -4,6 +4,8 @@ The first runnable increment implements the core counter workflow. The complete 
 
 ## Implemented
 
+- [Source-backed soil metadata and product advice](soil-advice.md): nine factors, Admin review/invalidation, staff filters, explainable top-three gRPC matches and sale-draft creation.
+
 - Layered .NET 10 REST API, Application services/contracts, Infrastructure repositories and Domain entities.
 - PostgreSQL/Npgsql EF model for all 18 design tables, initial migrations and an [idempotent exported SQL script](database/ef-migrations.sql). Tables for later workflows exist without implying those workflows are implemented.
 - JWT login, bootstrap Admin from configuration, password hashing, Admin/Employee authorization and active-account/role/version validation on every authenticated request. No public registration. React keeps its token in memory; reloading signs out.
@@ -89,7 +91,6 @@ Whole-VND unit prices/costs are capped at 1,000,000,000,000, bag quantities at 1
 
 - Full supplier/account management and SKU price editing in the UI.
 - Draft editing/deletion and whole-document Admin cancellation/reversal.
-- Reviewed metadata/tags, explainable gRPC recommendations and product-advice UI.
 - Physical count capture, stale-count handling, Admin approval and direct adjustments.
 - Replenishment-to-receipt conversion.
 - Daily/manual summaries and daily/manual PostgreSQL backups retaining seven successful archives. The Worker currently processes inventory events only; no automatic backup runs yet.

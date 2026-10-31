@@ -11,6 +11,7 @@ public sealed class ShopProfile : Profile
         CreateMap<Supplier, SupplierDto>();
         CreateMap<Sku, SkuDto>();
         CreateMap<RestockSuggestion, SuggestionDto>();
+        CreateMap<Product, SoilMetadataDto>().ForMember(x => x.ProductId, o => o.MapFrom(x => x.Id)).ForMember(x => x.PlantGroups, o => o.Ignore());
     }
 }
 

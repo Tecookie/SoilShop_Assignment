@@ -298,9 +298,21 @@ namespace SoilShop.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Aeration")
+                        .HasColumnType("varchar(12)")
+                        .HasColumnName("aeration");
+
+                    b.Property<string>("BiologyNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("biology_notes");
+
                     b.Property<string>("Brand")
                         .HasColumnType("varchar(150)")
                         .HasColumnName("brand");
+
+                    b.Property<string>("CleanlinessNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("cleanliness_notes");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -316,6 +328,18 @@ namespace SoilShop.Infrastructure.Migrations
                     b.Property<string>("Drainage")
                         .HasColumnType("varchar(12)")
                         .HasColumnName("drainage");
+
+                    b.Property<decimal?>("EcMax")
+                        .HasColumnType("numeric(8,3)")
+                        .HasColumnName("ec_max");
+
+                    b.Property<string>("EcMethod")
+                        .HasColumnType("varchar(16)")
+                        .HasColumnName("ec_method");
+
+                    b.Property<decimal?>("EcMin")
+                        .HasColumnType("numeric(8,3)")
+                        .HasColumnName("ec_min");
 
                     b.Property<string>("Ingredients")
                         .HasColumnType("text")
@@ -335,6 +359,14 @@ namespace SoilShop.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(200)")
                         .HasColumnName("name");
+
+                    b.Property<string>("NutritionNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("nutrition_notes");
+
+                    b.Property<string>("OrganicMatterNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("organic_matter_notes");
 
                     b.Property<decimal?>("PhMax")
                         .HasColumnType("numeric(4,2)")
@@ -359,6 +391,10 @@ namespace SoilShop.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("reviewed_by");
 
+                    b.Property<bool?>("SampleAvailable")
+                        .HasColumnType("boolean")
+                        .HasColumnName("sample_available");
+
                     b.Property<string>("SourceReference")
                         .HasColumnType("text")
                         .HasColumnName("source_reference");
@@ -366,6 +402,14 @@ namespace SoilShop.Infrastructure.Migrations
                     b.Property<string>("StorageNote")
                         .HasColumnType("text")
                         .HasColumnName("storage_note");
+
+                    b.Property<string>("StructureNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("structure_notes");
+
+                    b.Property<string>("UseContext")
+                        .HasColumnType("varchar(12)")
+                        .HasColumnName("use_context");
 
                     b.Property<long>("Version")
                         .IsConcurrencyToken()
@@ -397,6 +441,12 @@ namespace SoilShop.Infrastructure.Migrations
                             t.HasCheckConstraint("ck_products_4", "(reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)");
 
                             t.HasCheckConstraint("ck_products_5", "product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix')");
+
+                            t.HasCheckConstraint("ck_products_6", "aeration IS NULL OR aeration IN ('Low','Medium','High')");
+
+                            t.HasCheckConstraint("ck_products_7", "use_context IS NULL OR use_context IN ('Pot','InGround','Both')");
+
+                            t.HasCheckConstraint("ck_products_8", "(ec_min IS NULL AND ec_max IS NULL AND ec_method IS NULL) OR (ec_min IS NOT NULL AND ec_max IS NOT NULL AND ec_min >= 0 AND ec_max >= ec_min AND ec_method IS NOT NULL AND ec_method IN ('SME','Extract1to2','PourThrough','Other'))");
                         });
                 });
 

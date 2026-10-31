@@ -34,12 +34,19 @@ public sealed class ShopFactory : WebApplicationFactory<Program>
         {
             services.RemoveAll<ICalculationClient>();
             services.AddSingleton<ICalculationClient, TestCalculation>();
+            services.RemoveAll<IProductAdviceClient>();
+            services.AddSingleton<IProductAdviceClient, TestAdvice>();
         });
     }
     private sealed class TestCalculation : ICalculationClient
     {
         public Task<decimal> TotalAsync(IReadOnlyList<CalculationLine> lines, CancellationToken ct) =>
             Task.FromResult(lines.Sum(x => x.Quantity * x.Price));
+    }
+    private sealed class TestAdvice : IProductAdviceClient
+    {
+        public Task<ProductAdviceRanking> RankAsync(ProductAdviceInput input, IReadOnlyList<ProductAdviceCandidate> candidates, CancellationToken ct) =>
+            Task.FromResult(AdviceProtoMapper.Response(SoilShop.CalculationHost.AdviceRules.Rank(AdviceProtoMapper.Request(input, candidates))));
     }
 }
 

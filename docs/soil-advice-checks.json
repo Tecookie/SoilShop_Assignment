@@ -1,0 +1,36 @@
+{
+  "checks": [
+    "Admin UI saves all nine factors, preserves false sample, explicitly reviews saved version",
+    "Real gRPC advice UI shows positive match, reasons, source, all facts and responsive layout",
+    "Choosing result creates one-bag sale draft without reserving or decrementing stock",
+    "Employee advice/read allowed; write forbidden; budget and EC method filters honor strict/incomplete rules",
+    "Metadata edit invalidates review and removes synthetic fixture from recommendations after smoke"
+  ],
+  "consoleErrors": [],
+  "fixtureCode": "ADVICE-DEMO-5257125f",
+  "fixtureReviewCleared": true,
+  "tested_on": "2026-10-31",
+  "application_tests": {
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0
+  },
+  "regression_browser_checks": {
+    "seed": 6,
+    "trading": 9
+  },
+  "real_grpc": {
+    "method": "/soilshop.Calculation/RecommendProducts",
+    "rule": "advice-v2",
+    "transport": "HTTP/2",
+    "positive_match_observed": true
+  },
+  "diagram_checks": {
+    "rendered": 13,
+    "failures": 0
+  },
+  "builds": [
+    "native TypeScript/Vite",
+    "Compose API/calculation/Worker/web"
+  ]
+}

@@ -65,6 +65,9 @@ public sealed class ShopDbContext(DbContextOptions<ShopDbContext> options) : DbC
                 t.HasCheckConstraint("ck_products_3", "(ph_min IS NULL AND ph_max IS NULL) OR (ph_min IS NOT NULL AND ph_max IS NOT NULL AND ph_min BETWEEN 0 AND 14 AND ph_max BETWEEN ph_min AND 14)");
                 t.HasCheckConstraint("ck_products_4", "(reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)");
                 t.HasCheckConstraint("ck_products_5", "product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix')");
+                t.HasCheckConstraint("ck_products_6", "aeration IS NULL OR aeration IN ('Low','Medium','High')");
+                t.HasCheckConstraint("ck_products_7", "use_context IS NULL OR use_context IN ('Pot','InGround','Both')");
+                t.HasCheckConstraint("ck_products_8", "(ec_min IS NULL AND ec_max IS NULL AND ec_method IS NULL) OR (ec_min IS NOT NULL AND ec_max IS NOT NULL AND ec_min >= 0 AND ec_max >= ec_min AND ec_method IS NOT NULL AND ec_method IN ('SME','Extract1to2','PourThrough','Other'))");
             });
             e.HasKey(x => x.Id);
             e.Property(x => x.Id).HasColumnName("id").HasColumnType("integer").IsRequired().UseIdentityAlwaysColumn();
@@ -80,6 +83,17 @@ public sealed class ShopDbContext(DbContextOptions<ShopDbContext> options) : DbC
             e.Property(x => x.StorageNote).HasColumnName("storage_note").HasColumnType("text");
             e.Property(x => x.SourceReference).HasColumnName("source_reference").HasColumnType("text");
             e.Property(x => x.ProductType).HasColumnName("product_type").HasColumnType("varchar(24)").IsRequired().HasDefaultValueSql("'Unclassified'");
+            e.Property(x => x.Aeration).HasColumnName("aeration").HasColumnType("varchar(12)");
+            e.Property(x => x.StructureNotes).HasColumnName("structure_notes").HasColumnType("text");
+            e.Property(x => x.NutritionNotes).HasColumnName("nutrition_notes").HasColumnType("text");
+            e.Property(x => x.EcMin).HasColumnName("ec_min").HasColumnType("numeric(8,3)");
+            e.Property(x => x.EcMax).HasColumnName("ec_max").HasColumnType("numeric(8,3)");
+            e.Property(x => x.EcMethod).HasColumnName("ec_method").HasColumnType("varchar(16)");
+            e.Property(x => x.OrganicMatterNotes).HasColumnName("organic_matter_notes").HasColumnType("text");
+            e.Property(x => x.BiologyNotes).HasColumnName("biology_notes").HasColumnType("text");
+            e.Property(x => x.CleanlinessNotes).HasColumnName("cleanliness_notes").HasColumnType("text");
+            e.Property(x => x.UseContext).HasColumnName("use_context").HasColumnType("varchar(12)");
+            e.Property(x => x.SampleAvailable).HasColumnName("sample_available").HasColumnType("boolean");
             e.Property(x => x.ReviewedBy).HasColumnName("reviewed_by").HasColumnType("integer");
             e.Property(x => x.ReviewedAt).HasColumnName("reviewed_at").HasColumnType("timestamptz");
             e.Property(x => x.IsActive).HasColumnName("is_active").HasColumnType("boolean").IsRequired().HasDefaultValueSql("true");

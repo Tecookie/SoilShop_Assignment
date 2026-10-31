@@ -10,6 +10,17 @@ public sealed class Product
     public string? Ingredients { get; set; }
     public string? Drainage { get; set; }
     public string? WaterRetention { get; set; }
+    public string? Aeration { get; set; }
+    public string? StructureNotes { get; set; }
+    public string? NutritionNotes { get; set; }
+    public decimal? EcMin { get; set; }
+    public decimal? EcMax { get; set; }
+    public string? EcMethod { get; set; }
+    public string? OrganicMatterNotes { get; set; }
+    public string? BiologyNotes { get; set; }
+    public string? CleanlinessNotes { get; set; }
+    public string? UseContext { get; set; }
+    public bool? SampleAvailable { get; set; }
     public decimal? PhMin { get; set; }
     public decimal? PhMax { get; set; }
     public string? StorageNote { get; set; }

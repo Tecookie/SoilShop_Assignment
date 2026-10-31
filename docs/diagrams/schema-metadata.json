@@ -173,6 +173,13 @@
         "identity": false
       },
       {
+        "name": "aeration",
+        "type": "varchar(12)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
         "name": "drainage",
         "type": "varchar(12)",
         "nullable": true,
@@ -182,6 +189,76 @@
       {
         "name": "water_retention",
         "type": "varchar(12)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "ec_min",
+        "type": "numeric(8,3)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "ec_max",
+        "type": "numeric(8,3)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "ec_method",
+        "type": "varchar(16)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "use_context",
+        "type": "varchar(12)",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "sample_available",
+        "type": "boolean",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "structure_notes",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "nutrition_notes",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "organic_matter_notes",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "biology_notes",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "identity": false
+      },
+      {
+        "name": "cleanliness_notes",
+        "type": "text",
         "nullable": true,
         "default": null,
         "identity": false
@@ -270,7 +347,10 @@
       "water_retention IS NULL OR water_retention IN ('Low','Medium','High')",
       "(ph_min IS NULL AND ph_max IS NULL) OR (ph_min IS NOT NULL AND ph_max IS NOT NULL AND ph_min BETWEEN 0 AND 14 AND ph_max BETWEEN ph_min AND 14)",
       "(reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)",
-      "product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix')"
+      "product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix')",
+      "aeration IS NULL OR aeration IN ('Low','Medium','High')",
+      "use_context IS NULL OR use_context IN ('Pot','InGround','Both')",
+      "(ec_min IS NULL AND ec_max IS NULL AND ec_method IS NULL) OR (ec_min IS NOT NULL AND ec_max IS NOT NULL AND ec_min >= 0 AND ec_max >= ec_min AND ec_method IS NOT NULL AND ec_method IN ('SME','Extract1to2','PourThrough','Other'))"
     ],
     "unique": [
       "code"

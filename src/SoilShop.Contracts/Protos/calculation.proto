@@ -3,7 +3,45 @@ option csharp_namespace = "SoilShop.Contracts";
 package soilshop;
 service Calculation {
   rpc CalculateTotals (TotalsRequest) returns (TotalsReply);
+  rpc RecommendProducts (AdviceRequest) returns (AdviceReply);
 }
 message PriceLine { int32 quantity = 1; int64 unit_price_vnd = 2; }
 message TotalsRequest { repeated PriceLine lines = 1; }
 message TotalsReply { int64 total_vnd = 1; string rule_version = 2; }
+
+message AdvicePreferences {
+  string plant_group = 1;
+  string drainage = 2;
+  string aeration = 3;
+  string water_retention = 4;
+  optional int32 ph_min = 5; // hundredths of pH
+  optional int32 ph_max = 6;
+  optional int32 max_ec = 7; // thousandths of mS/cm
+  string ec_method = 8;
+  string use_context = 9;
+  bool allow_incomplete = 10;
+  repeated string required_information = 11;
+  bool require_sample = 12;
+}
+message AdviceCandidate {
+  int32 sku_id = 1;
+  int64 price_vnd = 2;
+  int32 stock_qty = 3;
+  bool is_active = 4;
+  bool is_reviewed = 5;
+  repeated string plant_groups = 6;
+  string drainage = 7;
+  string aeration = 8;
+  string water_retention = 9;
+  optional int32 ph_min = 10;
+  optional int32 ph_max = 11;
+  optional int32 ec_min = 12;
+  optional int32 ec_max = 13;
+  string ec_method = 14;
+  string use_context = 15;
+  optional bool sample_available = 16;
+  repeated string available_information = 17;
+}
+message AdviceRequest { AdvicePreferences preferences = 1; repeated AdviceCandidate candidates = 2; }
+message AdviceMatch { int32 sku_id = 1; int32 score = 2; int32 max_score = 3; repeated string reasons = 4; repeated string missing = 5; }
+message AdviceReply { repeated AdviceMatch matches = 1; string rule_version = 2; }

@@ -23,7 +23,10 @@ t('suppliers','Sources of pre-packed bags; no external integration.',[
 t('products','Soil offering and optional source-backed advice metadata.',[
     ident(),c('code','varchar(40)'),c('name','varchar(200)'),c('brand','varchar(150)',True),
     c('manufacturer','varchar(150)',True),c('ingredients','text',True),
-    c('drainage','varchar(12)',True),c('water_retention','varchar(12)',True),
+    c('aeration','varchar(12)',True),c('drainage','varchar(12)',True),c('water_retention','varchar(12)',True),
+    c('ec_min','numeric(8,3)',True),c('ec_max','numeric(8,3)',True),c('ec_method','varchar(16)',True),
+    c('use_context','varchar(12)',True),c('sample_available','boolean',True),
+    *[c(n,'text',True) for n in ['structure_notes','nutrition_notes','organic_matter_notes','biology_notes','cleanliness_notes']],
     c('ph_min','numeric(4,2)',True),c('ph_max','numeric(4,2)',True),c('storage_note','text',True),
     c('source_reference','text',True),c('reviewed_by','integer',True),c('reviewed_at','timestamptz',True),
     c('is_active','boolean',default='true'),now(),version(),c('product_type','varchar(24)',default="'Unclassified'")],fks=[fk('reviewed_by','users')],
@@ -31,7 +34,10 @@ t('products','Soil offering and optional source-backed advice metadata.',[
             "water_retention IS NULL OR water_retention IN ('Low','Medium','High')",
             '(ph_min IS NULL AND ph_max IS NULL) OR (ph_min IS NOT NULL AND ph_max IS NOT NULL AND ph_min BETWEEN 0 AND 14 AND ph_max BETWEEN ph_min AND 14)',
             '(reviewed_by IS NULL AND reviewed_at IS NULL) OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL AND source_reference IS NOT NULL AND length(trim(source_reference))>0)',
-            "product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix')"],unique=['code'])
+            "product_type IN ('Unclassified','GeneralPurpose','FoliageMix','FloweringMix','SucculentMix','OrchidMix','SeedStartingMix')",
+            "aeration IS NULL OR aeration IN ('Low','Medium','High')",
+            "use_context IS NULL OR use_context IN ('Pot','InGround','Both')",
+            "(ec_min IS NULL AND ec_max IS NULL AND ec_method IS NULL) OR (ec_min IS NOT NULL AND ec_max IS NOT NULL AND ec_min >= 0 AND ec_max >= ec_min AND ec_method IS NOT NULL AND ec_method IN ('SME','Extract1to2','PourThrough','Other'))"],unique=['code'])
 t('plant_tags','Staff-curated label/use tags, not an agronomic taxonomy.',[
     ident(),c('code','varchar(40)'),c('name','varchar(100)')],unique=['code'])
 t('product_plant_tags','Product-to-use-tag association.',[

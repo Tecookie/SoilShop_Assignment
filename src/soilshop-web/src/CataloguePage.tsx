@@ -1,3 +1,4 @@
+import { SoilMetadataPanel } from "./SoilMetadataPanel";
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { api } from "./api";
@@ -14,6 +15,7 @@ export function CataloguePage() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState<"product" | "sku" | "supplier" | null>(null);
+  const [metadataId, setMetadataId] = useState<number | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
   const load = useCallback(async () => {
     const [p, s] = await Promise.all([
@@ -96,6 +98,14 @@ export function CataloguePage() {
         </div>
       </div>
       <Notice error={error} text={notice} />
+      {metadataId !== null && (
+        <SoilMetadataPanel
+          key={metadataId}
+          productId={metadataId}
+          onChanged={load}
+          onClose={() => setMetadataId(null)}
+        />
+      )}
       <div className="action-bar">
         <Field label="Filter catalogue by type">
           <select
@@ -361,6 +371,16 @@ export function CataloguePage() {
                       }}
                     >
                       Edit
+                    </button>
+                    <button
+                      className="secondary"
+                      onClick={() => {
+                        setForm(null);
+                        setMetadataId(p.id);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                    >
+                      Thông số đất
                     </button>
                   </td>
                 </tr>

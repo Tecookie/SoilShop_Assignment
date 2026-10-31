@@ -63,7 +63,7 @@ Calculated 1 lines using totals-v1
 ... 200 ... application/grpc
 ```
 
-The independent `calculation` container receives quantity/unit-price lines and returns a whole-VND total. It does not access PostgreSQL. The current service calculates totals; product recommendation ranking remains pending.
+The independent `calculation` container receives quantity/unit-price lines and returns a whole-VND total. It does not access PostgreSQL. The service also exposes `RecommendProducts` for source-reviewed metadata matching using advice-v2; see [soil-advice.md](soil-advice.md) for the Admin metadata/review → staff advice → sale-draft demo.
 
 ### Transactional stock and EF migrations
 
@@ -201,6 +201,10 @@ Allow reconnect/processing time. Confirm previously unpublished rows receive `pu
 
 A suitable closing statement is: “Staff confirm a sale through REST; the API obtains a total from gRPC, then commits stock and audit records in PostgreSQL. Redis carries post-commit work to Worker, so replenishment is asynchronous while stock correctness stays transactional.”
 
-Recommendations, stocktaking/adjustments, cancellation, draft editing/deletion, replenishment conversion, reports and daily/manual backups remain pending. Do not present them as implemented. The independent gRPC service currently provides totals, and replenishment is a **read-only suggestion inbox**. Full status is in [implementation.md](implementation.md).
+Stocktaking/adjustments, cancellation, draft editing/deletion, replenishment conversion, reports and daily/manual backups remain pending. Do not present them as implemented. The independent gRPC service provides totals and product advice, and replenishment is a **read-only suggestion inbox**. Full status is in [implementation.md](implementation.md).
 
 Automated rehearsal: [browser_smoke.py](../scripts/browser_smoke.py) creates its own labelled demonstration records and exercises actual Compose services. [browser_seed_check.py](../scripts/browser_seed_check.py) performs read-only seed/filter/role checks. [test.ps1](../scripts/test.ps1) covers repeatable API/database edge cases.
+
+## Soil advice demo
+
+Follow [soil-advice.md](soil-advice.md): record all available factors and a source, save and explicitly review as Admin; search as Employee, inspect reasons/missing data and create a sale draft. Existing unreviewed seeds intentionally produce no advice. `scripts/browser_advice_check.py` demonstrates this with labelled simulated metadata and clears its review afterward.

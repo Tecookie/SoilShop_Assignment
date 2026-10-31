@@ -58,6 +58,15 @@ A ranked list of available products matching staff-selected needs, with reasons 
 **Metadata Source (Nguồn thông tin)**:
 The label, supplier document or other recorded source supporting a product's descriptive information.
 
+**Metadata Review (Duyệt thông tin)**:
+An Admin's record that the current supplied product information has been checked against its recorded source. It is not laboratory certification; later changes require another review.
+
+**EC Measurement Method (Phương pháp đo EC)**:
+The extraction procedure associated with a reported electrical-conductivity measurement. Results from different methods are not treated as directly comparable by the shop.
+
+**Preference Match (Mức khớp nhu cầu)**:
+A comparison of supplied product information with the needs entered by staff. More matching criteria do not imply universally better soil or guaranteed plant health.
+
 **Replenishment Suggestion (Đề xuất nhập hàng)**:
 An internal suggestion to bring a low-stock SKU toward its target, optionally converted into a purchase-receipt draft.
 

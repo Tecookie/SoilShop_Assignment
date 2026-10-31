@@ -1,5 +1,6 @@
 """Execute the DESIGN schema/prototype in a disposable, isolated PostgreSQL container."""
 from pathlib import Path
+from datetime import datetime, timezone
 import subprocess
 import secrets
 import uuid
@@ -96,7 +97,7 @@ SELECT id,stock_qty,stock_version,4,'Design valid count fixture',1 FROM skus WHE
     run(['docker','exec',name,'createdb','-U','postgres','potting_restore'])
     run(['docker','exec',name,'pg_restore','-U','postgres','-d','potting_restore','--no-owner','--no-acl','--exit-on-error','/tmp/design.dump'])
     ok('pg_dump custom archive restores into a separate database',command('SELECT count(*) FROM sales; SELECT count(*) FROM stock_movements;',db='potting_restore').stdout.strip().splitlines()==['3','2'])
-    report={'tested_on':'2026-10-23','engine':'PostgreSQL 16 / isolated disposable Docker container','scope':'Design schema and SQL prototype only; not an application integration test','checks':checks}
+    report={'tested_on':datetime.now(timezone.utc).date().isoformat(),'engine':'PostgreSQL 16 / isolated disposable Docker container','scope':'Design schema and SQL prototype only; not an application integration test','checks':checks}
     (ROOT/'docs/database/runtime-checks.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(report,indent=2))
 finally:

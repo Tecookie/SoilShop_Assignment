@@ -706,3 +706,54 @@ tbody tr:hover {
     min-width: 650px;
   }
 }
+.soil-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.soil-facts div {
+  min-width: 0;
+}
+.soil-facts dt {
+  font-weight: 600;
+  color: var(--muted);
+}
+.soil-facts dd {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.soil-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 16px 8px 0;
+}
+.soil-check input {
+  width: auto;
+}
+fieldset {
+  border: 1px solid #cad6d7;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+textarea {
+  width: 100%;
+  min-height: 90px;
+  font: inherit;
+  padding: 10px;
+  border: 1px solid #cad6d7;
+  border-radius: 6px;
+}
+details {
+  margin: 16px 0;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.advice-card {
+  padding: 24px;
+  margin: 16px 0;
+}

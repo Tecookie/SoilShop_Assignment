@@ -6,9 +6,19 @@ using SoilShop.Contracts;
 
 namespace SoilShop.Infrastructure;
 
-public sealed class CalculationClient(IConfiguration config) : ICalculationClient, IDisposable
+public sealed class CalculationClient(IConfiguration config) : ICalculationClient, IProductAdviceClient, IDisposable
 {
     private readonly GrpcChannel channel = GrpcChannel.ForAddress(config["Calculation:Address"] ?? "http://localhost:8082");
+    public async Task<ProductAdviceRanking> RankAsync(ProductAdviceInput input, IReadOnlyList<ProductAdviceCandidate> candidates, CancellationToken ct)
+    {
+        try
+        {
+            var reply = await new Calculation.CalculationClient(channel).RecommendProductsAsync(AdviceProtoMapper.Request(input, candidates), deadline: DateTime.UtcNow.AddSeconds(3), cancellationToken: ct);
+            return AdviceProtoMapper.Response(reply);
+        }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.InvalidArgument) { throw new BusinessException(400, "Invalid matching preferences."); }
+        catch (RpcException) { throw new BusinessException(503, "Dịch vụ gợi ý đang không khả dụng. Hãy thử lại sau."); }
+    }
     public async Task<decimal> TotalAsync(IReadOnlyList<CalculationLine> lines, CancellationToken ct)
     {
         var request = new TotalsRequest();

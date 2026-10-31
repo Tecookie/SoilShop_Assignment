@@ -86,15 +86,13 @@ Deactivate master data that has history. Physical deletion is limited to unrefer
 
 ### 5.2 Explainable product advice
 
-**Input:** optional plant/use tag, desired drainage/water retention, package unit/amount and maximum per-bag budget. At least one advisory preference must be supplied. The budget is for one sellable bag, not a whole planting project.
+**Implemented workflow:** see [soil-advice.md](soil-advice.md) for all nine metadata factors, source review, filters, APIs and verification.
 
-1. API loads eligible catalogue candidates and applies hard constraints: active, current stock greater than zero, selected package constraints and current sale price within budget.
-2. API sends only required candidate metadata/IDs to the existing independent gRPC host. That service has no database access.
-3. Rule version `advice-v1`: matching selected plant/use tag earns 3 points; drainage match 2; water-retention match 2. An unselected criterion earns no points. Unknown or unmatched metadata earns zero points.
-4. Return up to three positive-score matches, ordered by score descending, price ascending and SKU ID ascending. Each result includes matched criteria, missing relevant data and rule version. No positive match means **Insufficient matching information**, not a fabricated recommendation.
-5. React shows explanation and data source. Staff can select a result to add the SKU to a sale draft. Advice does not reserve stock or guarantee horticultural outcomes; confirmation rechecks price and inventory.
+Inputs include plant group, drainage, aeration, retention, paired pH range, EC maximum plus method, pot/in-ground context, package and per-bag budget. At least one scoring preference is required. Structure, nutrition, organic matter, biology and cleanliness have information-presence filters; sample availability is an optional hard filter.
 
-Example output: “Matches selected use tag and drainage preference; 5 L package is within budget; retention data unavailable.” All sample products in the demo are fictional labelled fixtures.
+API loads active, in-stock, source-reviewed candidates in a consistent database snapshot, filters budget/packages, then calls the independent gRPC host. Rule **advice-v2** assigns 3 points each for selected plant group/drainage/aeration/retention, 2 each for pH/EC, and 1 for planting context. Known conflicts are excluded. Selected unknowns exclude by default; opt-in incomplete mode returns missing criteria explicitly with zero points. EC requires the same measurement method. Only positive matches appear, up to three, ordered by score descending, price ascending and SKU ID ascending.
+
+All metadata is nullable. Admin explicitly reviews a saved, sourced version; editing it clears review. Results show reasons, missing data, source and reviewed version. Scores express preference matching, not quality or growth probability. Staff may create a one-bag sale draft; advice never reserves stock. Fictional seed values are not automatically scientifically populated or reviewed.
 
 The gRPC service also exposes `CalculateTotals`, multiplying validated quantities by authoritative prices and summing line totals. Use integer VND in Protobuf with checked arithmetic; reject overflow and totals outside `numeric(18,0)` rather than rounding or truncating. No promotion, tax or custom discount engine is included.
 

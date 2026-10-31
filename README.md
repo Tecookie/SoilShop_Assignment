@@ -50,3 +50,5 @@ React/Vite/TypeScript with plain CSS, ASP.NET Core, EF Core with Npgsql, Postgre
 - [ ] Named team responsibilities and presentation.
 
 Repository publication is handled by the user.
+
+See [soil metadata and advice](docs/soil-advice.md) for nine-factor filtering, source review and the gRPC recommendation demo.

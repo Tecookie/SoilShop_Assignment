@@ -905,3 +905,112 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD aeration varchar(12);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD biology_notes text;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD cleanliness_notes text;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD ec_max numeric(8,3);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD ec_method varchar(16);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD ec_min numeric(8,3);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD nutrition_notes text;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD organic_matter_notes text;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD sample_available boolean;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD structure_notes text;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD use_context varchar(12);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD CONSTRAINT ck_products_6 CHECK (aeration IS NULL OR aeration IN ('Low','Medium','High'));
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD CONSTRAINT ck_products_7 CHECK (use_context IS NULL OR use_context IN ('Pot','InGround','Both'));
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    ALTER TABLE products ADD CONSTRAINT ck_products_8 CHECK ((ec_min IS NULL AND ec_max IS NULL AND ec_method IS NULL) OR (ec_min IS NOT NULL AND ec_max IS NOT NULL AND ec_min >= 0 AND ec_max >= ec_min AND ec_method IS NOT NULL AND ec_method IN ('SME','Extract1to2','PourThrough','Other')));
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261024093123_SoilAdvisoryMetadata', '10.0.13');
+    END IF;
+END $EF$;
+COMMIT;

@@ -1,6 +1,17 @@
-# Verification — latest increment 24 October 2026
+# Verification — latest increment 31 October 2026
 
 This report distinguishes tested design artifacts from an application implementation. The PostgreSQL tests use disposable isolated containers, not the user's running databases. The test containers and their own anonymous volumes are removed afterward.
+
+## Nine-factor soil advice — 31 October 2026
+
+- All **20 application tests pass**, zero skipped. New tests cover nullable metadata, validation, version conflicts, source-required review and invalidation, candidate review/stock/budget eligibility, strict/incomplete rules, comparable EC, pH interval matching and top-three ordering. Integration tests use isolated PostgreSQL; the test advice adapter runs the actual Protobuf mapping and rule implementation in-process.
+- The actual Compose stack rebuilt successfully. Five feature browser checks passed through React/Nginx/API and the independent gRPC container, with zero page/console errors. A sourced, explicitly reviewed fictional product returned 12/12 selected-criteria points; calculation logs confirmed HTTP/2 `RecommendProducts` and `advice-v2`.
+- Checks cover the nine-factor metadata form, explicit review, false versus unknown sample availability, reasons/source display, 320/768/1440px page widths, sale-draft creation without stock decrement, Employee write denial, budget exclusion, differing EC methods, opt-in missing data and edit invalidation. The synthetic fixture's review was cleared after verification.
+- Six seed-browser regression checks and nine core-trading browser checks also passed. Existing seed metadata remains unknown and unreviewed.
+- The additive EF migration and idempotent SQL export include eleven nullable columns and three CHECK constraints. The 18-table design baseline executed in an isolated PostgreSQL container; design prototype checks and restore test passed again. This does not implement application backup jobs or stocktaking.
+- All 13 diagram render/static checks passed. Updated physical catalogue/tag diagrams and dictionary include the new fields.
+
+Evidence: [feature checks](soil-advice-checks.json), [metadata editor](screenshots/soil-metadata.png), [matching result](screenshots/soil-advice.png). Rules and staff demo are in [soil-advice.md](soil-advice.md). Transient logs/TRX remain in ignored `test-results/`.
 
 ## Product classification and demo seed — 24 October 2026
 
@@ -59,4 +70,4 @@ The SQL functions in [concurrency-demo.sql](database/concurrency-demo.sql) are p
 
 ## Still pending during implementation
 
-Product recommendation ranking/review invalidation, stock-count/adjustment permissions, cancellation/reversal, draft editing/deletion, account management, suggestion conversion, scheduled/manual summaries/backups, backup retention failure cases and Redis outage/recovery tests remain pending. The earlier physical-count and backup checks below exercise SQL/design prototypes only; those application workflows are not implemented yet.
+Stock-count/adjustment permissions, cancellation/reversal, draft editing/deletion, account management, suggestion conversion, scheduled/manual summaries/backups, backup retention failure cases and Redis outage/recovery tests remain pending. The earlier physical-count and backup checks below exercise SQL/design prototypes only; those application workflows are not implemented yet.

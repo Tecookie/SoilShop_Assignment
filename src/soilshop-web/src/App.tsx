@@ -1,3 +1,4 @@
+import { AdvicePage } from "./AdvicePage";
 import { useEffect, useState } from "react";
 import { setToken } from "./api";
 import { LoginPage } from "./LoginPage";
@@ -12,8 +13,10 @@ type View =
   | "sales"
   | "movements"
   | "replenishment"
-  | "catalogue";
+  | "catalogue"
+  | "advice";
 const views: { id: View; label: string; icon: string; admin?: boolean }[] = [
+  { id: "advice", label: "Tìm đất phù hợp", icon: "✧" },
   { id: "inventory", label: "Inventory", icon: "▦" },
   { id: "receipts", label: "Purchase receipts", icon: "↙" },
   { id: "sales", label: "Sales", icon: "↗" },
@@ -84,6 +87,7 @@ export function App() {
           </div>
         </header>
         <main id="main" tabIndex={-1}>
+          {view === "advice" && <AdvicePage onSale={() => setView("sales")} />}
           {view === "inventory" && <InventoryPage />}
           {view === "catalogue" && user.role === "Admin" && <CataloguePage />}
           {(view === "receipts" || view === "sales") && (
