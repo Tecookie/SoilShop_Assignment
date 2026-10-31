@@ -6,7 +6,7 @@ The first runnable increment implements the core counter workflow. The complete 
 
 - [Source-backed soil metadata and product advice](soil-advice.md): nine factors, Admin review/invalidation, staff filters, explainable top-three gRPC matches and sale-draft creation.
 
-- Layered .NET 10 REST API, Application services/contracts, Infrastructure repositories and Domain entities.
+- Layered .NET 9 REST API, Application services/contracts, Infrastructure repositories and Domain entities.
 - PostgreSQL/Npgsql EF model for all 18 design tables, initial migrations and an [idempotent exported SQL script](database/ef-migrations.sql). Tables for later workflows exist without implying those workflows are implemented.
 - JWT login, bootstrap Admin from configuration, password hashing, Admin/Employee authorization and active-account/role/version validation on every authenticated request. No public registration. React keeps its token in memory; reloading signs out.
 - Product CRUD in the API, product create/edit UI, supplier create/list, SKU create/read/update API and packaging creation UI. AutoMapper maps entities to explicit read DTOs. Stock, roles, totals and status are absent from write DTOs; unexpected JSON fields are rejected.
@@ -56,7 +56,7 @@ The automated browser smoke creates clearly labelled demo catalogue records and 
 
 ## Development and verification
 
-Install .NET SDK 10.0.402 (or a compatible 10.0.4xx patch according to `global.json`) and Node 22.12+ for native development. This workspace also has an ignored `.tools/dotnet` SDK; it is not part of the repository.
+Install .NET SDK 9.0.310 or a later .NET 9 SDK according to `global.json` and Node 22.12+ for native development. The test script prefers the installed `dotnet`; an optional ignored `.tools/dotnet` fallback must also provide .NET 9. An older local .NET 10-only SDK cannot run the .NET 9 test host.
 
 ```powershell
 dotnet tool restore
@@ -81,7 +81,7 @@ Use EF migrations for the application. `docs/database/schema.sql` remains the se
 
 ## Package configuration
 
-Current application pins .NET/EF 10, Npgsql provider 10.0.3, AutoMapper 16.2.0, gRPC 2.84.0 and StackExchange.Redis 2.10.1. Frontend dependency resolution is recorded in `package-lock.json` and installed with `npm ci`.
+Current application targets .NET 9, pins EF/Microsoft packages 9.0.22 and Npgsql provider 9.0.4, AutoMapper 16.2.0, gRPC 2.84.0 and StackExchange.Redis 2.10.1. Frontend dependency resolution is recorded in `package-lock.json` and installed with `npm ci`.
 
 AutoMapper license configuration accepts `AutoMapper__LicenseKey` / the Compose `AUTOMAPPER_LICENSE_KEY` environment value. Review the [official license configuration](https://docs.automapper.io/en/stable/License-configuration.html) for eligibility and use. Missing-key messages remain visible; no license key or purchase is supplied by this repository.
 

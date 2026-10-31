@@ -781,12 +781,9 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261023143607_InitialShop') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20261023143607_InitialShop', '10.0.13');
+    VALUES ('20261023143607_InitialShop', '9.0.22');
     END IF;
 END $EF$;
-COMMIT;
-
-START TRANSACTION;
 
 DO $EF$
 BEGIN
@@ -802,12 +799,9 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261023143700_CaseInsensitiveCodes') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20261023143700_CaseInsensitiveCodes', '10.0.13');
+    VALUES ('20261023143700_CaseInsensitiveCodes', '9.0.22');
     END IF;
 END $EF$;
-COMMIT;
-
-START TRANSACTION;
 
 DO $EF$
 BEGIN
@@ -827,12 +821,9 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261023155639_AddProductTypes') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20261023155639_AddProductTypes', '10.0.13');
+    VALUES ('20261023155639_AddProductTypes', '9.0.22');
     END IF;
 END $EF$;
-COMMIT;
-
-START TRANSACTION;
 
 DO $EF$
 BEGIN
@@ -901,12 +892,9 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024080541_LocalizeDemoProductNames') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20261024080541_LocalizeDemoProductNames', '10.0.13');
+    VALUES ('20261024080541_LocalizeDemoProductNames', '9.0.22');
     END IF;
 END $EF$;
-COMMIT;
-
-START TRANSACTION;
 
 DO $EF$
 BEGIN
@@ -1010,7 +998,7 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261024093123_SoilAdvisoryMetadata') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20261024093123_SoilAdvisoryMetadata', '10.0.13');
+    VALUES ('20261024093123_SoilAdvisoryMetadata', '9.0.22');
     END IF;
 END $EF$;
 COMMIT;

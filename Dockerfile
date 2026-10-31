@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0.402 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0.310 AS build
 ARG PROJECT=SoilShop.Api
 WORKDIR /source
 COPY global.json Directory.Build.props ./
@@ -6,7 +6,7 @@ COPY src/ src/
 RUN --mount=type=cache,id=soilshop-nuget,target=/root/.nuget/packages,sharing=locked \
     dotnet publish src/${PROJECT}/${PROJECT}.csproj -c Release -o /publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 ARG PROJECT=SoilShop.Api
 ENV APP_DLL=${PROJECT}.dll
 WORKDIR /app

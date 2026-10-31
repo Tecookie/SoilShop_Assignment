@@ -35,7 +35,7 @@ To populate the six product groups with reviewable demo data, run `./scripts/see
 
 ## Intended stack and deployment
 
-React/Vite/TypeScript with plain CSS, ASP.NET Core, EF Core with Npgsql, PostgreSQL, AutoMapper, Redis Streams, independent gRPC calculation and product-advice service, .NET Worker and Docker Compose. Use migrations and exported PostgreSQL scripts. No customer storefront or payment-provider integration.
+React/Vite/TypeScript with plain CSS, ASP.NET Core 9, EF Core 9 with Npgsql, PostgreSQL, AutoMapper, Redis Streams, independent gRPC calculation and product-advice service, .NET Worker and Docker Compose. Use migrations and exported PostgreSQL scripts. No customer storefront or payment-provider integration.
 
 ## Submission checklist
 

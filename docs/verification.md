@@ -2,6 +2,17 @@
 
 This report distinguishes tested design artifacts from an application implementation. The PostgreSQL tests use disposable isolated containers, not the user's running databases. The test containers and their own anonymous volumes are removed afterward.
 
+## .NET 9 compatibility — 31 October 2026
+
+- All projects target `net9.0`; SDK 9.0.310, direct Microsoft/EF packages and EF tool 9.0.22, Npgsql EF provider 9.0.4. API, calculation and Worker containers report ASP.NET Core/.NET 9.0.22.
+- Native solution build passed with zero warnings/errors, and all **20 tests passed** on .NET 9 using an isolated PostgreSQL database. Dependency audit reported no known vulnerable direct/transitive packages from current sources.
+- EF9 reports no pending model changes. Existing migration IDs/history were preserved; the idempotent SQL export was regenerated with EF9. No schema-reset migration was added.
+- Before/after fingerprints matched for catalogue/document/ledger counts and SKU stock, stock versions and prices when switching the existing Compose database to the .NET 9 hosts.
+- All five advice, six seed and nine trading browser checks passed against the rebuilt Compose stack. Independent gRPC totals/advice and Redis/Worker replenishment were exercised. The trading smoke now selects its own SKU's document rather than clicking the first existing draft before list refresh.
+- Existing user-created launch settings were preserved outside this change.
+
+Evidence: [net9-checks.json](net9-checks.json). Transient build/test/browser logs remain under ignored `test-results/`.
+
 ## Nine-factor soil advice — 31 October 2026
 
 - All **20 application tests pass**, zero skipped. New tests cover nullable metadata, validation, version conflicts, source-required review and invalidation, candidate review/stock/budget eligibility, strict/incomplete rules, comparable EC, pH interval matching and top-three ordering. Integration tests use isolated PostgreSQL; the test advice adapter runs the actual Protobuf mapping and rule implementation in-process.
