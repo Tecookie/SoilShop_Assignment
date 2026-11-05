@@ -34,14 +34,16 @@ public sealed partial class ShopRepository
             var doc = await db.PurchaseReceipts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
             if (doc is null) return null;
             var lines = await db.PurchaseReceiptLines.AsNoTracking().Where(x => x.ReceiptId == id).OrderBy(x => x.SkuId).Select(x => new TradeLineDto(x.SkuId, x.Quantity, x.UnitCostVnd, null)).ToListAsync(ct);
-            return new(doc.Id, doc.Code, doc.Status, doc.SupplierId, doc.TotalVnd, doc.Version, doc.CreatedAt, lines);
+            return new(doc.Id, doc.Code, doc.Status, doc.SupplierId, doc.TotalVnd, doc.Version, doc.CreatedAt, lines,
+                doc.CreatedBy, doc.ConfirmedBy, doc.ConfirmedAt, doc.CancelledBy, doc.CancelledAt, doc.CancelReason);
         }
         else
         {
             var doc = await db.Sales.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
             if (doc is null) return null;
             var lines = await db.SaleLines.AsNoTracking().Where(x => x.SaleId == id).OrderBy(x => x.SkuId).Select(x => new TradeLineDto(x.SkuId, x.Quantity, x.UnitPriceVnd, x.SkuLabelSnapshot)).ToListAsync(ct);
-            return new(doc.Id, doc.Code, doc.Status, null, doc.TotalVnd, doc.Version, doc.CreatedAt, lines);
+            return new(doc.Id, doc.Code, doc.Status, null, doc.TotalVnd, doc.Version, doc.CreatedAt, lines,
+                doc.CreatedBy, doc.ConfirmedBy, doc.ConfirmedAt, doc.CancelledBy, doc.CancelledAt, doc.CancelReason);
         }
     }
     public async Task<PageResult<TradeDto>> TradesAsync(bool receipt, int page, int size, CancellationToken ct)
@@ -51,25 +53,29 @@ public sealed partial class ShopRepository
         foreach (var id in await ids.OrderByDescending(x => x).Skip((page - 1) * size).Take(size).ToListAsync(ct)) result.Add((await TradeAsync(receipt, id, ct))!);
         return new(result, total, page, size);
     }
-    public async Task<IReadOnlyList<CalculationLine>> QuoteAsync(bool receipt, int id, CancellationToken ct)
+    public async Task<TradeQuote> QuoteAsync(bool receipt, int id, CancellationToken ct)
     {
+        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
         var doc = await TradeAsync(receipt, id, ct) ?? throw new BusinessException(404, "Document not found.");
-        var result = new List<CalculationLine>();
+        if (doc.Status != "Draft") throw new BusinessException(409, "Only Draft documents can be quoted.");
+        var result = new List<TradeQuoteLine>();
         foreach (var line in doc.Lines)
         {
             var price = receipt ? line.UnitPriceVnd : await db.Skus.Where(x => x.Id == line.SkuId).Select(x => (decimal?)x.SalePriceVnd).SingleAsync(ct);
             if (price is null) throw new BusinessException(400, "Set every receipt line cost before confirming.");
-            result.Add(new(line.Quantity, price.Value));
+            result.Add(new(line.SkuId, line.Quantity, price.Value));
         }
-        return result;
+        await tx.CommitAsync(ct);
+        return new(doc.Version, 0, result);
     }
-    public async Task<TradeDto> ConfirmAsync(bool receipt, int id, ConfirmInput input, decimal quote, int actorId, CancellationToken ct)
+    public async Task<TradeDto> ConfirmAsync(bool receipt, int id, ConfirmInput input, TradeQuote? quote, int actorId, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var state = await LockTradeAsync(receipt, id, input, actorId, ct);
         if (state is null) { await tx.CommitAsync(ct); return (await TradeAsync(receipt, id, ct))!; }
         var doc = await TradeAsync(receipt, id, ct) ?? throw new BusinessException(404, "Document not found.");
         if (doc.Lines.Count == 0) throw new BusinessException(400, "Document requires lines.");
+        if (quote is null || quote.Version != doc.Version || quote.Lines.Count != doc.Lines.Count) throw new BusinessException(409, "Draft changed during calculation. Reload and quote again.");
         decimal total = 0;
         foreach (var line in doc.Lines.OrderBy(x => x.SkuId))
         {
@@ -77,6 +83,8 @@ public sealed partial class ShopRepository
             var sku = await db.Skus.FromSqlInterpolated($"SELECT * FROM skus WHERE id={line.SkuId} FOR UPDATE").SingleAsync(ct);
             if (!sku.IsActive || !await db.Products.AnyAsync(x => x.Id == sku.ProductId && x.IsActive, ct)) throw new BusinessException(409, "A product or SKU is no longer active.");
             var price = receipt ? line.UnitPriceVnd ?? throw new BusinessException(400, "Receipt cost required.") : sku.SalePriceVnd;
+            var quotedLine = quote.Lines.SingleOrDefault(x => x.SkuId == line.SkuId);
+            if (quotedLine is null || quotedLine.Quantity != line.Quantity || quotedLine.UnitPriceVnd != price) throw new PriceChangedException();
             total += checked(price * line.Quantity);
             var delta = receipt ? line.Quantity : -line.Quantity;
             // Guard remains in SQL even though the row is locked; the entire document rolls back on failure.
@@ -91,7 +99,7 @@ public sealed partial class ShopRepository
             AddInventoryEvent(sku.Id);
         }
         if (total > 9000000000000000m) throw new BusinessException(400, "Document total exceeds the supported whole-VND range.");
-        if (total != quote) throw new BusinessException(409, "Prices changed during calculation. Review and confirm again.");
+        if (total != quote.TotalVnd) throw new PriceChangedException();
         state(total);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         return (await TradeAsync(receipt, id, ct))!;
@@ -101,7 +109,11 @@ public sealed partial class ShopRepository
         if (receipt)
         {
             var d = await db.PurchaseReceipts.FromSqlInterpolated($"SELECT * FROM purchase_receipts WHERE id={id} FOR UPDATE").SingleOrDefaultAsync(ct) ?? throw new BusinessException(404, "Receipt not found.");
-            if (d.Status == "Confirmed" && d.ConfirmationKey == input.ActionKey) return null;
+            if (d.Status is "Confirmed" or "Cancelled" && d.ConfirmationKey == input.ActionKey)
+            {
+                ValidateConfirmationReplay(d.Status, d.Version, d.TotalVnd, input);
+                return null;
+            }
             if (d.Status != "Draft" || d.Version != input.ExpectedVersion) throw new BusinessException(409, "Receipt state changed. Reload.");
             if (!await SupplierActiveAsync(d.SupplierId, ct)) throw new BusinessException(409, "Supplier is no longer active.");
             return total => { d.Status = "Confirmed"; d.ConfirmedBy = actorId; d.ConfirmedAt = DateTime.UtcNow; d.ConfirmationKey = input.ActionKey; d.TotalVnd = total; d.Version++; };
@@ -109,9 +121,19 @@ public sealed partial class ShopRepository
         else
         {
             var d = await db.Sales.FromSqlInterpolated($"SELECT * FROM sales WHERE id={id} FOR UPDATE").SingleOrDefaultAsync(ct) ?? throw new BusinessException(404, "Sale not found.");
-            if (d.Status == "Confirmed" && d.ConfirmationKey == input.ActionKey) return null;
+            if (d.Status is "Confirmed" or "Cancelled" && d.ConfirmationKey == input.ActionKey)
+            {
+                ValidateConfirmationReplay(d.Status, d.Version, d.TotalVnd, input);
+                return null;
+            }
             if (d.Status != "Draft" || d.Version != input.ExpectedVersion) throw new BusinessException(409, "Sale state changed. Reload.");
             return total => { d.Status = "Confirmed"; d.ConfirmedBy = actorId; d.ConfirmedAt = DateTime.UtcNow; d.ConfirmationKey = input.ActionKey; d.TotalVnd = total; d.Version++; };
         }
+    }
+    private static void ValidateConfirmationReplay(string status, long version, decimal? total, ConfirmInput input)
+    {
+        var originalVersion = version - (status == "Cancelled" ? 2 : 1);
+        if (input.ExpectedVersion != originalVersion || input.ExpectedTotalVnd is decimal expected && expected != total)
+            throw new BusinessException(409, "Confirmation key was already used with different confirmation values.");
     }
 }

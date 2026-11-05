@@ -75,6 +75,7 @@ with sync_playwright() as p:
         page.get_by_role('button', name='Save draft', exact=True).click()
         expect(page.locator('.notice[role="status"]')).to_contain_text('Draft saved.')
         # The newly created document is the first row by descending ID.
+        page.get_by_role('button', name='Review total', exact=True).first.click()
         page.get_by_role('button', name='Confirm receipt', exact=True).first.click()
         expect(page.locator('.notice[role="status"]')).to_contain_text('Confirmed.')
         checks.append('Receipt draft/confirm adds 6 bags using independent gRPC totals')
@@ -84,6 +85,7 @@ with sync_playwright() as p:
         page.get_by_label('Bags 1', exact=True).fill('2')
         page.get_by_role('button', name='Save draft', exact=True).click()
         expect(page.locator('.notice[role="status"]')).to_contain_text('Draft saved.')
+        page.get_by_role('button', name='Review total', exact=True).first.click()
         page.get_by_role('button', name='Confirm sale', exact=True).first.click()
         expect(page.locator('.notice[role="status"]')).to_contain_text('Confirmed.')
         expect(page.get_by_role('row').filter(has_text=code + '-5KG')).to_contain_text('110.000')

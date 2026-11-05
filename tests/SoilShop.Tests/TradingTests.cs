@@ -50,7 +50,7 @@ public sealed class ShopFactory : WebApplicationFactory<Program>
     }
 }
 
-public sealed class TradingTests : IClassFixture<ShopFactory>
+public sealed partial class TradingTests : IClassFixture<ShopFactory>
 {
     private readonly ShopFactory factory;
     public TradingTests(ShopFactory factory) => this.factory = factory;
@@ -134,11 +134,13 @@ public sealed class TradingTests : IClassFixture<ShopFactory>
         Assert.Equal("Draft", (await c.GetFromJsonAsync<TradeDto>($"/api/sales/{draft.Id}"))!.Status);
     }
     [Fact]
-    public async Task Nonwhole_money_and_duplicate_sku_lines_are_rejected()
+    public async Task Nonwhole_money_is_rejected_and_duplicate_sku_lines_merge()
     {
         using var c = await Login(); var sku = await Sku(c);
         var response = await c.PostAsJsonAsync("/api/sales", new { lines = new[] { new { skuId = sku.Id, quantity = 1 }, new { skuId = sku.Id, quantity = 1 } } });
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var merged = (await response.Content.ReadFromJsonAsync<TradeDto>())!;
+        Assert.Single(merged.Lines); Assert.Equal(2, merged.Lines[0].Quantity);
         var supplier = await Post<SupplierDto>(c, "/api/suppliers", new { code = Guid.NewGuid().ToString("N"), name = "Supplier" });
         response = await c.PostAsJsonAsync("/api/purchase-receipts", new { supplierId = supplier.Id, lines = new[] { new { skuId = sku.Id, quantity = 1, unitCostVnd = 0.5 } } });
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

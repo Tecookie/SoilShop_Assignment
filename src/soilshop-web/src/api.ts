@@ -1,4 +1,9 @@
 let token: string | null = null;
+export class ApiError extends Error {
+  constructor(message: string, public status: number, public quote?: import("./types").TradeQuote) {
+    super(message);
+  }
+}
 export function setToken(value: string | null) {
   token = value;
 }
@@ -8,7 +13,7 @@ export async function api<T>(
   method = "POST",
 ): Promise<T> {
   const response = await fetch("/api" + path, {
-    method: body === undefined ? "GET" : method,
+    method: body === undefined && method === "POST" ? "GET" : method,
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
@@ -22,12 +27,14 @@ export async function api<T>(
     const errors = problem?.errors
       ? Object.values(problem.errors).flat().join(" ")
       : null;
-    throw new Error(
+    throw new ApiError(
       errors ||
         problem?.title ||
         (response.status === 429
           ? "Too many login attempts. Please wait a minute."
           : "Could not complete the request. Please retry."),
+      response.status,
+      problem?.quote,
     );
   }
   return response.status === 204

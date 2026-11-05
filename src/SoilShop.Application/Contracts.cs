@@ -23,15 +23,26 @@ public sealed record SkuDto(int Id, int ProductId, string Code, decimal PackageA
     int? PreferredSupplierId, bool IsActive, long Version);
 public sealed record TradeLineInput([Range(1, int.MaxValue)] int SkuId, [Range(1, 1000000)] int Quantity, decimal? UnitCostVnd = null);
 public sealed record TradeInput([Required, MinLength(1), MaxLength(100)] List<TradeLineInput> Lines, int? SupplierId = null);
-public sealed record ConfirmInput(Guid ActionKey, long ExpectedVersion);
+public sealed record ConfirmInput(Guid ActionKey, long ExpectedVersion, decimal? ExpectedTotalVnd = null);
+public sealed record UpdateTradeInput(List<TradeLineInput> Lines, long ExpectedVersion, int? SupplierId = null);
+public sealed record CancelTradeInput(Guid ActionKey, long ExpectedVersion, [Required, MaxLength(500)] string Reason);
+public sealed record TradeQuoteLine(int SkuId, int Quantity, decimal UnitPriceVnd);
+public sealed record TradeQuote(long Version, decimal TotalVnd, IReadOnlyList<TradeQuoteLine> Lines);
 public sealed record TradeLineDto(int SkuId, int Quantity, decimal? UnitPriceVnd, string? Label);
 public sealed record TradeDto(int Id, string Code, string Status, int? SupplierId, decimal? TotalVnd,
-    long Version, DateTime CreatedAt, IReadOnlyList<TradeLineDto> Lines);
+    long Version, DateTime CreatedAt, IReadOnlyList<TradeLineDto> Lines,
+    int CreatedBy = 0, int? ConfirmedBy = null, DateTime? ConfirmedAt = null,
+    int? CancelledBy = null, DateTime? CancelledAt = null, string? CancelReason = null);
 public sealed record MovementDto(long Id, int SkuId, string Kind, int DeltaQty, int BalanceAfter, long StockVersionAfter, DateTime CreatedAt);
 public sealed record SuggestionDto(int Id, int SkuId, int? SupplierId, int ObservedQty, int SuggestedQty, string Status, DateTime UpdatedAt);
 public sealed record CalculationLine(int Quantity, decimal Price);
 public interface ICalculationClient { Task<decimal> TotalAsync(IReadOnlyList<CalculationLine> lines, CancellationToken ct); }
-public sealed class BusinessException(int status, string message) : Exception(message) { public int Status { get; } = status; }
+public class BusinessException(int status, string message) : Exception(message) { public int Status { get; } = status; }
+public sealed class QuoteConflictException(string message, TradeQuote quote) : BusinessException(409, message)
+{
+    public TradeQuote Quote { get; } = quote;
+}
+public sealed class PriceChangedException() : BusinessException(409, "Prices changed during calculation. Review and confirm again.");
 
 public interface IShopRepository
 {
@@ -50,8 +61,11 @@ public interface IShopRepository
     Task<TradeDto> CreateTradeAsync(bool receipt, TradeInput input, int actorId, CancellationToken ct);
     Task<TradeDto?> TradeAsync(bool receipt, int id, CancellationToken ct);
     Task<PageResult<TradeDto>> TradesAsync(bool receipt, int page, int size, CancellationToken ct);
-    Task<IReadOnlyList<CalculationLine>> QuoteAsync(bool receipt, int id, CancellationToken ct);
-    Task<TradeDto> ConfirmAsync(bool receipt, int id, ConfirmInput input, decimal quote, int actorId, CancellationToken ct);
+    Task<TradeDto> UpdateTradeAsync(bool receipt, int id, TradeInput input, long expectedVersion, CancellationToken ct);
+    Task DeleteTradeAsync(bool receipt, int id, long expectedVersion, CancellationToken ct);
+    Task<TradeQuote> QuoteAsync(bool receipt, int id, CancellationToken ct);
+    Task<TradeDto> ConfirmAsync(bool receipt, int id, ConfirmInput input, TradeQuote? quote, int actorId, CancellationToken ct);
+    Task<TradeDto> CancelTradeAsync(bool receipt, int id, CancelTradeInput input, int actorId, CancellationToken ct);
     Task<PageResult<MovementDto>> MovementsAsync(int? skuId, int page, int size, CancellationToken ct);
     Task<IReadOnlyList<RestockSuggestion>> SuggestionsAsync(CancellationToken ct);
 }

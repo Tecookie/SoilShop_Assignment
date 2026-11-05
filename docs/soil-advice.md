@@ -2,6 +2,17 @@
 
 This assignment supports counter staff choosing among sealed, pre-packed bags. A result is a match to entered needs, not a universal best soil or a prediction of plant health.
 
+## At a glance — section 5.2
+
+| Topic | Behavior |
+| --- | --- |
+| Actors | Admin maintains/reviews metadata; authenticated staff request advice |
+| Eligible SKU | Active, in stock, with active Product and source-reviewed metadata |
+| Calculation | REST API → independent gRPC `RecommendProducts` → rule `advice-v2` |
+| Result | Up to three SKUs with score, reasons, missing data, source and reviewed version |
+| Next action | Create a one-bag sale Draft; no stock reservation |
+| Full trading flow | [Receipts, quotes, sales and cancellation](trading-workflows.md) |
+
 ## Coverage of the nine factors
 
 | Factor | Stored metadata | Search behavior |
@@ -32,20 +43,44 @@ All notes are descriptive text. Requiring nutrition/cleanliness notes checks pre
 
 ## Review and matching rules
 
+### Permissions and review
+
 Metadata writes and review are Admin-only. Authenticated staff may read metadata and request advice. An optimistic expected product version prevents lost updates; saving metadata or changing master product data clears review. Product/tag changes commit atomically. AutoMapper maps read DTOs; Service controls review, version and other trusted fields.
 
-API loads active, in-stock, source-reviewed candidates in a RepeatableRead database snapshot, applies per-bag budget and packaging filters and completes the transaction before calling gRPC. More than 500 eligible candidates requires narrower filters; no silent truncation. The independent calculation container has no database access. `RecommendProducts` uses rule **advice-v2**, and `CalculateTotals` continues to calculate transaction totals. An unavailable RPC returns 503; no hidden local ranking fallback.
+### API and gRPC boundary
 
-Selected known conflicts are always excluded. By default, unknown selected criteria also exclude a candidate. **Allow incomplete** permits unknown selected criteria, labels them explicitly and awards zero points for them. Missing/different EC methods are incomparable, never a numerical match. `Other` can be stored but cannot be requested for comparison. At least one positive match is required. Sort: score descending, price ascending, SKU ID ascending. The maximum score includes only selected scoring criteria; it is not a quality percentage.
+API loads active, in-stock, source-reviewed candidates in a RepeatableRead database snapshot, applies per-bag budget and packaging filters and completes the transaction before calling gRPC.
+
+- More than 500 eligible candidates requires narrower filters; no silent truncation.
+- The independent calculation container has no database access.
+- `RecommendProducts` uses rule **advice-v2**; `CalculateTotals` calculates transaction totals.
+- An unavailable RPC returns `503`; there is no hidden local ranking fallback.
+
+### Matching decisions
+
+| Condition | Outcome |
+| --- | --- |
+| Known value conflicts with a selected criterion | Exclude candidate |
+| Selected value is unknown; default mode | Exclude candidate |
+| Selected value is unknown; **Allow incomplete** enabled | Show missing criterion explicitly; award zero points for it |
+| EC method missing or different | Incomparable; never count as a numerical match |
+| EC method is `Other` | May be stored; cannot be requested for comparison |
+| No positive match | Do not return candidate |
+
+Sort by **score descending → price ascending → SKU ID ascending**. The maximum score includes only selected scoring criteria; it is not a quality percentage.
+
+### Measurement validation
 
 pH accepts paired bounds 0–14 with two decimals. EC accepts paired nonnegative bounds with three decimals and an SME, Extract1to2, PourThrough or Other method; the unit is mS/cm. Save/review responses include current version. Notes are length-limited; input allowlists and DTO validation reject unsupported values.
 
 ## APIs and verification
 
-- `GET /api/products/{id}/metadata`
-- `PUT /api/products/{id}/metadata` (Admin, full metadata replacement, expectedVersion)
-- `POST /api/products/{id}/metadata/review` (Admin, expectedVersion)
-- `POST /api/product-advice` (authenticated staff)
+| Method | Endpoint | Permission / input |
+| --- | --- | --- |
+| GET | `/api/products/{id}/metadata` | Authenticated staff |
+| PUT | `/api/products/{id}/metadata` | Admin; full replacement with `expectedVersion` |
+| POST | `/api/products/{id}/metadata/review` | Admin; `expectedVersion` |
+| POST | `/api/product-advice` | Authenticated staff; selected preferences |
 
 Run `./scripts/test.ps1` for PostgreSQL integration and rule tests. With Compose running and local `.env` credentials, run `scripts/browser_advice_check.py` using Python with Playwright/Chrome. It creates clearly labelled fictional fixtures, receives stock through a confirmed receipt, enters/reviews metadata through React, calls real gRPC, checks a positive result and creates a sale draft. It tests role restrictions, budget, EC mismatch/incomplete handling and review invalidation. It clears the fixture's review afterward so simulated measurements are not eligible for later advice. History remains inspectable. Existing seed products are not silently assigned or reviewed scientific values.
 

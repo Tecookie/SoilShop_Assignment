@@ -70,6 +70,9 @@ public sealed class ShopExceptionHandler(IProblemDetailsService problems, ILogge
         var detail = error is BusinessException business ? business.Message : status == 409 ? "Data changed or is referenced by another record. Reload and retry." : "The request could not be completed.";
         if (status == 500) logger.LogError(error, "Unhandled request failure {TraceId}", context.TraceIdentifier);
         context.Response.StatusCode = status;
-        return await problems.TryWriteAsync(new ProblemDetailsContext { HttpContext = context, ProblemDetails = new() { Status = status, Title = detail, Extensions = { ["traceId"] = context.TraceIdentifier } } });
+        var problem = new Microsoft.AspNetCore.Mvc.ProblemDetails { Status = status, Title = detail };
+        problem.Extensions["traceId"] = context.TraceIdentifier;
+        if (error is QuoteConflictException conflict) problem.Extensions["quote"] = conflict.Quote;
+        return await problems.TryWriteAsync(new ProblemDetailsContext { HttpContext = context, ProblemDetails = problem });
     }
 }

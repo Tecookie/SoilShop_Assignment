@@ -25,6 +25,7 @@ To populate the six product groups with reviewable demo data, run `./scripts/see
 
 - [Confirmed scope and technology](docs/gardening-discovery.md).
 - [Implemented features, installation and tests](docs/implementation.md).
+- [Receipts, counter sales, quotes and Admin cancellation](docs/trading-workflows.md).
 - [End-to-end demo flow and technology evidence](docs/demo-walkthrough.md).
 - [System design](docs/system-design.md): Context, Problems, Solutions, Actors, Features, C4 C1/C2, Technology, conceptual ERD and Physical DB.
 - [Diagram gallery](docs/diagrams/index.html): C1, full C2 and focused synchronous/async C2 views, plus conceptual/physical models.
@@ -45,7 +46,8 @@ React/Vite/TypeScript with plain CSS, ASP.NET Core, EF Core with Npgsql, Postgre
 - [x] Initial application source, reviewed EF migrations and browser-created demo records.
 - [x] Dockerfiles and Docker Compose for the current six-service increment.
 - [x] OpenAPI JSON and working local installation/deployment steps.
-- [ ] Remaining approved features, including advice, counts, cancellation, summaries and backups.
+- [x] Source-reviewed advice, versioned receipt/sale drafts, quotes and Admin cancellation.
+- [ ] Remaining approved features, including counts, replenishment conversion, summaries and backups.
 - [ ] Integration checks, restore drill and end-to-end demonstration.
 - [ ] Named team responsibilities and presentation.
 

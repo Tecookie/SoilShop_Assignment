@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { api } from "./api";
+import { api, ApiError } from "./api";
 import { Empty, Field, Notice, Pagination } from "./components";
-import type { PageResult, Sku, Supplier, Trade } from "./types";
+import type { PageResult, Sku, Supplier, Trade, TradeQuote } from "./types";
 import { money, time } from "./types";
 type DraftLine = { key: string; skuId: string; quantity: number; cost: string };
 const emptyLine = (): DraftLine => ({
@@ -11,7 +11,7 @@ const emptyLine = (): DraftLine => ({
   quantity: 1,
   cost: "",
 });
-export function TradingPage({ receipt }: { receipt: boolean }) {
+export function TradingPage({ receipt, isAdmin }: { receipt: boolean; isAdmin: boolean }) {
   const resource = receipt ? "/purchase-receipts" : "/sales";
   const [data, setData] = useState<PageResult<Trade>>();
   const [skus, setSkus] = useState<Sku[]>([]);
@@ -23,6 +23,13 @@ export function TradingPage({ receipt }: { receipt: boolean }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const keys = useRef(new Map<number, string>());
+  const cancelKeys = useRef(new Map<number, string>());
+  const [editing, setEditing] = useState<Trade>();
+  const [supplierId, setSupplierId] = useState("");
+  const [review, setReview] = useState<{ trade: Trade; quote: TradeQuote }>();
+  const [cancelling, setCancelling] = useState<Trade>();
+  const [reason, setReason] = useState("");
+  const [deleting, setDeleting] = useState<Trade>();
   const load = useCallback(async () => {
     const [trades, inventory, partners] = await Promise.all([
       api<PageResult<Trade>>(`${resource}?page=${page}`),
@@ -43,13 +50,13 @@ export function TradingPage({ receipt }: { receipt: boolean }) {
   }
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
     setBusy(true);
     setError("");
     setNotice("");
     try {
-      await api<Trade>(resource, {
-        ...(receipt ? { supplierId: Number(form.get("supplierId")) } : {}),
+      await api<Trade>(editing ? `${resource}/${editing.id}` : resource, {
+        ...(editing ? { expectedVersion: editing.version } : {}),
+        ...(receipt ? { supplierId: Number(supplierId) } : {}),
         lines: lines.map((line) => ({
           skuId: Number(line.skuId),
           quantity: line.quantity,
@@ -57,8 +64,10 @@ export function TradingPage({ receipt }: { receipt: boolean }) {
             ? { unitCostVnd: line.cost ? Number(line.cost) : null }
             : {}),
         })),
-      });
+      }, editing ? "PUT" : "POST");
       setOpen(false);
+      setEditing(undefined);
+      setReview(undefined);
       setLines([emptyLine()]);
       setNotice(
         "Draft saved. Review its lines below, then confirm to change stock.",
@@ -70,7 +79,24 @@ export function TradingPage({ receipt }: { receipt: boolean }) {
       setBusy(false);
     }
   }
+  function edit(trade: Trade) {
+    setEditing(trade); setOpen(true); setError(""); setReview(undefined);
+    setSupplierId(String(trade.supplierId ?? ""));
+    setLines(trade.lines.map(line => ({ key: crypto.randomUUID(), skuId: String(line.skuId), quantity: line.quantity, cost: line.unitPriceVnd == null ? "" : String(line.unitPriceVnd) })));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  async function quote(trade: Trade) {
+    setBusy(true); setError(""); setReview(undefined);
+    try {
+      const current = await api<Trade>(`${resource}/${trade.id}`);
+      const value = await api<TradeQuote>(`${resource}/${trade.id}/quote`);
+      setReview({ trade: current, quote: value });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) { setError((e as Error).message); }
+    finally { setBusy(false); }
+  }
   async function confirm(trade: Trade) {
+    if (!review || review.trade.id !== trade.id) return;
     setBusy(true);
     setError("");
     setNotice("");
@@ -79,16 +105,45 @@ export function TradingPage({ receipt }: { receipt: boolean }) {
     try {
       await api<Trade>(`${resource}/${trade.id}/confirm`, {
         actionKey,
-        expectedVersion: trade.version,
+        expectedVersion: review.quote.version,
+        expectedTotalVnd: review.quote.totalVnd,
       });
+      setReview(undefined); keys.current.delete(trade.id);
       setNotice("Confirmed. Stock and movement history have been updated.");
       await load();
     } catch (e) {
       setError((e as Error).message);
+      if (e instanceof ApiError && e.status === 409) {
+        keys.current.delete(trade.id);
+        setReview(e.quote ? { trade, quote: e.quote } : undefined);
+      }
       await load().catch(() => {});
     } finally {
       setBusy(false);
     }
+  }
+  async function removeDraft() {
+    if (!deleting) return;
+    setBusy(true); setError("");
+    try {
+      await api<void>(`${resource}/${deleting.id}?expectedVersion=${deleting.version}`, undefined, "DELETE");
+      setDeleting(undefined); setReview(undefined); setNotice("Draft deleted. Stock is unchanged."); await load();
+    } catch (e) { setError((e as Error).message); }
+    finally { setBusy(false); }
+  }
+  async function cancel(event: FormEvent) {
+    event.preventDefault(); if (!cancelling) return;
+    setBusy(true); setError("");
+    const key = cancelKeys.current.get(cancelling.id) ?? crypto.randomUUID();
+    cancelKeys.current.set(cancelling.id, key);
+    try {
+      await api<Trade>(`${resource}/${cancelling.id}/cancel`, { actionKey: key, expectedVersion: cancelling.version, reason });
+      cancelKeys.current.delete(cancelling.id); setCancelling(undefined); setReason("");
+      setNotice("Cancelled in full. Original history is preserved; reverse stock movements recorded."); await load();
+    } catch (e) {
+      setError((e as Error).message);
+      if (e instanceof ApiError && e.status === 409) cancelKeys.current.delete(cancelling.id);
+    } finally { setBusy(false); }
   }
   return (
     <>
@@ -104,8 +159,10 @@ export function TradingPage({ receipt }: { receipt: boolean }) {
           </p>
         </div>
         <button
+          disabled={busy}
           onClick={() => {
-            setOpen((x) => !x);
+            setEditing(undefined); setLines([emptyLine()]); setSupplierId("");
+            setOpen(true);
             setError("");
           }}
         >
@@ -115,14 +172,14 @@ export function TradingPage({ receipt }: { receipt: boolean }) {
       <Notice error={error} text={notice} />
       {open && (
         <section className="panel form-panel">
-          <h2>New {receipt ? "receipt" : "sale"} draft</h2>
+          <h2>{editing ? "Edit" : "New"} {receipt ? "receipt" : "sale"} draft</h2>
           <p className="muted">
             Select from the first 100 SKUs. Each SKU may appear once.
           </p>
           <form onSubmit={create}>
             {receipt && (
               <Field label="Supplier">
-                <select name="supplierId" required defaultValue="">
+                <select name="supplierId" required value={supplierId} onChange={e => setSupplierId(e.target.value)}>
                   <option value="" disabled>
                     Select supplier
                   </option>
@@ -186,7 +243,6 @@ export function TradingPage({ receipt }: { receipt: boolean }) {
                       min="1"
                       max="1000000000000"
                       step="1"
-                      required
                       value={line.cost}
                       onChange={(e) =>
                         changeLine(line.key, { cost: e.target.value })
@@ -231,6 +287,33 @@ export function TradingPage({ receipt }: { receipt: boolean }) {
           </form>
         </section>
       )}
+      {review && (
+        <section className="panel form-panel" aria-label="Review quote">
+          <h2>Review {review.trade.code.slice(0, 12).toUpperCase()}</h2>
+          <ul className="document-lines">{review.quote.lines.map(line => (
+            <li key={line.skuId}>{skus.find(s => s.id === line.skuId)?.code ?? `SKU #${line.skuId}`} · {line.quantity} bags × {money(line.unitPriceVnd)}</li>
+          ))}</ul>
+          <p><strong>Total: {money(review.quote.totalVnd)}</strong></p>
+          <p className="muted">Review before confirming. A draft does not reserve stock. Changed prices require another review.</p>
+          <div className="form-actions">
+            <button disabled={busy} onClick={() => confirm(review.trade)}>Confirm {receipt ? "receipt" : "sale"}</button>
+            <button disabled={busy} className="secondary" onClick={() => setReview(undefined)}>Close quote</button>
+          </div>
+        </section>
+      )}
+      {deleting && <section className="panel form-panel" aria-label="Delete draft">
+        <h2>Delete draft {deleting.code.slice(0, 12).toUpperCase()}?</h2>
+        <p>Only this draft will be removed. It has not changed stock.</p>
+        <div className="form-actions"><button disabled={busy} onClick={removeDraft}>Delete draft</button><button className="secondary" disabled={busy} onClick={() => setDeleting(undefined)}>Keep draft</button></div>
+      </section>}
+      {cancelling && <section className="panel form-panel" aria-label="Cancel document">
+        <h2>Cancel {cancelling.code.slice(0, 12).toUpperCase()} in full</h2>
+        <p>{receipt ? "The original bag quantities will be deducted. All lines require sufficient current stock." : "The original bag quantities will be restored."} History and frozen prices remain.</p>
+        <form onSubmit={cancel}>
+          <Field label="Cancellation reason"><textarea required maxLength={500} value={reason} onChange={e => { setReason(e.target.value); cancelKeys.current.delete(cancelling.id); }} /></Field>
+          <div className="form-actions"><button disabled={busy || !reason.trim()}>Confirm cancellation</button><button type="button" className="secondary" disabled={busy} onClick={() => setCancelling(undefined)}>Keep document</button></div>
+        </form>
+      </section>}
       <section className="panel">
         <div className="section-heading">
           <h2>Documents</h2>
@@ -278,10 +361,12 @@ export function TradingPage({ receipt }: { receipt: boolean }) {
                   </td>
                   <td>
                     <span
-                      className={`badge ${trade.status === "Draft" ? "neutral" : "good"}`}
+                      className={`badge ${trade.status === "Confirmed" ? "good" : "neutral"}`}
                     >
                       {trade.status}
                     </span>
+                    {trade.confirmedAt && <small>Confirmed {time(trade.confirmedAt)} · User #{trade.confirmedBy}</small>}
+                    {trade.cancelledAt && <small>Cancelled {time(trade.cancelledAt)} · User #{trade.cancelledBy}: {trade.cancelReason}</small>}
                   </td>
                   <td className="number">
                     {trade.totalVnd == null
@@ -290,11 +375,13 @@ export function TradingPage({ receipt }: { receipt: boolean }) {
                   </td>
                   <td>
                     {trade.status === "Draft" ? (
-                      <button disabled={busy} onClick={() => confirm(trade)}>
-                        Confirm {receipt ? "receipt" : "sale"}
-                      </button>
+                      <div className="form-actions">
+                        <button disabled={busy} onClick={() => quote(trade)}>Review total</button>
+                        <button className="secondary" disabled={busy} onClick={() => edit(trade)}>Edit draft</button>
+                        <button className="secondary" disabled={busy} onClick={() => setDeleting(trade)}>Delete</button>
+                      </div>
                     ) : (
-                      <span className="muted">Recorded</span>
+                      trade.status === "Confirmed" && isAdmin ? <button className="secondary" disabled={busy} onClick={() => { setCancelling(trade); setReason(""); }}>Cancel document</button> : <span className="muted">Recorded</span>
                     )}
                   </td>
                 </tr>

@@ -91,7 +91,7 @@ export function App() {
           {view === "inventory" && <InventoryPage />}
           {view === "catalogue" && user.role === "Admin" && <CataloguePage />}
           {(view === "receipts" || view === "sales") && (
-            <TradingPage key={view} receipt={view === "receipts"} />
+            <TradingPage key={view} receipt={view === "receipts"} isAdmin={user.role === "Admin"} />
           )}
           {(view === "movements" || view === "replenishment") && (
             <OperationsPage key={view} suggestions={view === "replenishment"} />
