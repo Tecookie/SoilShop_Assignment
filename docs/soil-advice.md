@@ -84,6 +84,12 @@ pH accepts paired bounds 0–14 with two decimals. EC accepts paired nonnegative
 
 Run `./scripts/test.ps1` for PostgreSQL integration and rule tests. With Compose running and local `.env` credentials, run `scripts/browser_advice_check.py` using Python with Playwright/Chrome. It creates clearly labelled fictional fixtures, receives stock through a confirmed receipt, enters/reviews metadata through React, calls real gRPC, checks a positive result and creates a sale draft. It tests role restrictions, budget, EC mismatch/incomplete handling and review invalidation. It clears the fixture's review afterward so simulated measurements are not eligible for later advice. History remains inspectable. Existing seed products are not silently assigned or reviewed scientific values.
 
+### Ready-to-search demo
+
+Run `./scripts/seed-demo.ps1 -WithAdvice` (or add `-SkipBuild` when current images are built). This explicitly imports six separate `[mẫu tư vấn]` products, one SKU per group, and receives eight bags each through a confirmed receipt. Codes are `ADVICE-V1-P01` through `P06`; General is P01. Their fictional label supplies only a plant-use tag. Review records the seed Admin for that synthetic classification, not a real horticultural finding. All physical/scientific measurements remain unknown. Select only **Nhóm cây → Đa dụng** then **Tìm sản phẩm** for the simplest positive demo. Strict extra constraints can exclude unknown measurements; opt-in incomplete mode shows them explicitly. Bonsai and acid-loving groups need separately supplied metadata.
+
+Rerunning preserves metadata edits/review invalidation and never receives the same stock twice. Baseline `SEED-V1` products and staff-created products are not modified. A primary catalogue type never automatically establishes a source-reviewed advisory plant tag. The empty state explains this difference and the Admin save/review steps.
+
 ## Horticultural rationale and limitations
 
 Physical properties of container media must be balanced for roots and watering practice; a darker appearance or more fertilizer does not establish suitability. See [Rutgers: Growing Media for Container Production](https://extension.rutgers.edu/fs812) and [NC State: Plants Grown in Containers](https://content.ces.ncsu.edu/extension-gardener-handbook/18-plants-grown-in-containers).

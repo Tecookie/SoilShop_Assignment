@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "Employee selecting only General receives a positive source-reviewed demo match over real gRPC",
+    "Fictional source is visible; scientific measurements remain explicitly unknown",
+    "Strict physical requirement excludes unknown data; opt-in incomplete returns missing reason without points",
+    "Per-bag budget remains a hard filter"
+  ],
+  "consoleErrors": [],
+  "readOnly": true,
+  "tested_on": "2026-10-31",
+  "application_tests": {
+    "passed": 21,
+    "failed": 0,
+    "skipped": 0
+  },
+  "existing_advice_browser_checks": 5,
+  "explicit_import_applied": true,
+  "repeated_import_stock_unchanged": true,
+  "baseline_seed_metadata_preserved": true,
+  "legacy_pristine_seed_browser": {
+    "passed": false,
+    "reason": "Local SEED-V1 stocks have staff changes (10/7 versus pristine 0/1); no reset performed. Separate General and existing advice workflows passed."
+  }
+}

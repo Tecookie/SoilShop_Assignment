@@ -1,0 +1,27 @@
+{
+  "tested_on": "2026-10-31",
+  "target_framework": "net9.0",
+  "sdk": "9.0.310",
+  "direct_microsoft_ef_packages": "9.0.22",
+  "npgsql_ef_provider": "9.0.4",
+  "docker_runtime": "9.0.22",
+  "native_build": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "application_tests": {
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0
+  },
+  "browser_checks": {
+    "advice": 5,
+    "seed": 6,
+    "trading": 9,
+    "page_console_errors": 0
+  },
+  "ef_pending_model_changes": false,
+  "existing_stock_document_fingerprint_preserved": true,
+  "dependency_audit_known_vulnerabilities": 0,
+  "migration_ids_preserved": true
+}

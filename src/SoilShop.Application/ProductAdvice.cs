@@ -43,7 +43,9 @@ public sealed class ProductAdviceService(IAdviceCandidateRepository repository, 
         var byId = candidates.ToDictionary(x => x.Sku.Id);
         var results = ranking.Matches.Select(x => new ProductAdviceResult(byId[x.SkuId], x.Score, x.MaxScore, x.Reasons, x.Missing)).ToList();
         return new(DateTime.UtcNow, ranking.RuleVersion, candidates.Count, results,
-            results.Count == 0 ? "Chưa có sản phẩm đủ thông tin và khớp yêu cầu. Hãy kiểm tra nguồn, duyệt metadata hoặc điều chỉnh tiêu chí."
+            results.Count == 0 ? candidates.Count == 0
+                ? "Không có SKU đang bán, còn tồn và có thông tin nguồn đã duyệt trong bộ lọc này. Admin vào Catalogue → Thông số đất, chọn nhóm cây theo nguồn, Lưu rồi Duyệt. Loại mặt hàng Đa dụng không tự tạo nhóm cây tư vấn."
+                : "Có SKU đủ điều kiện nhưng chưa khớp tiêu chí. Kiểm tra nhóm cây trong thông số đã duyệt, bớt điều kiện hoặc cho phép thiếu thông tin. Loại mặt hàng khác với nhóm cây tư vấn."
                 : "Kết quả khớp tiêu chí đã nhập, không phải chứng nhận chất lượng hay bảo đảm cây phát triển. Thông tin thiếu được ghi rõ; phiếu bán sẽ kiểm tra lại giá và tồn.");
     }
 }

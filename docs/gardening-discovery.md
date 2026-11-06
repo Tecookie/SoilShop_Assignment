@@ -45,7 +45,7 @@ Status: Business scope Q1–Q17 and three enrichment workflows approved. On 23 O
 - Persistence: EF Core migrations; export SQL scripts for submission.
 - Messaging: Redis Streams. Stock confirmation remains synchronous PostgreSQL transactions; Worker handles low-stock notifications, daily summaries and backup requests.
 - Deployment: Docker Compose. Documentation remains design work; no application has been implemented.
-- Runtime major version remains an implementation choice: prefer a supported .NET/EF Core/provider combination; .NET 10 + EF Core 10 + Npgsql EF provider 10 is a verified compatible baseline. Do not mix mismatched EF/provider major versions.
+- Runtime: the user subsequently requested .NET 9. Use .NET 9 + EF Core 9 + Npgsql EF provider 9. Do not mix mismatched EF/provider major versions.
 - Backup design must use PostgreSQL tools (`pg_dump`/`pg_restore` with compatible versions), not SQL Server BACKUP DATABASE or `.bak` files.
 
 ## Concurrent sale requirement

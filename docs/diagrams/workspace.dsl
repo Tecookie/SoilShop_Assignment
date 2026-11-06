@@ -11,7 +11,7 @@ workspace "Potting Soil Shop" "Internal shop: explainable advice, atomic stock, 
         }
         shop = softwareSystem "Potting Soil Shop" "Internal catalogue, advice, stock documents, ledger, replenishment, stocktaking and background jobs." {
             web = container "React Web" "Plain CSS forms; advice reasons/source, receipts/sales, counts, suggestions, reports and Admin pages." "React / Vite / TypeScript / Nginx"
-            api = container "REST API" "JWT roles, layered Services/Repositories, AutoMapper DTOs, atomic stock/ledger/outbox; hosted outbox relay." "ASP.NET Core 10 / EF Core 10 / Npgsql"
+            api = container "REST API" "JWT roles, layered Services/Repositories, AutoMapper DTOs, atomic stock/ledger/outbox; hosted outbox relay." "ASP.NET Core 9 / EF Core 9 / Npgsql"
             rpc = container "Advisory and Calculation" "Stateless CalculateTotals and RecommendProducts; known metadata, positive-match ranking, explanations/rule version." ".NET gRPC / Protobuf / HTTP2"
             worker = container "Background Worker" "Redis consumer; low-stock rechecks, suggestion lifecycle, summaries, serial pg_dump and retention; retries/reconciliation." ".NET Worker / BackgroundService"
             pg = container "Shop Database" "Catalogue/tags, SKU stock/version, documents/prices, count approvals, ledger, suggestions, outbox and job state." "PostgreSQL 16" {

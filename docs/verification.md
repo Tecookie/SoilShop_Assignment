@@ -59,6 +59,29 @@ Evidence: [new trading checks](trading-checks.json),
 Commands and API details are in [trading-workflows.md](trading-workflows.md).
 Transient full TRX/browser outputs remain under ignored `test-results/`.
 
+## General advice demo availability — 31 October 2026
+
+Root cause: the local database had zero reviewed products. Baseline products had primary product types but no reviewed plant-use tags, so selecting General correctly had no eligible candidates. The normal demo import lacked a positive advice fixture.
+
+- Added explicit `seed-demo.ps1 -WithAdvice`: six separate fictional classification-only products/SKUs, source-reviewed use tags, eight bags each through one confirmed receipt. Existing staff and baseline metadata are preserved; physical/scientific values remain unknown. A repeated live import left the stock fingerprint unchanged.
+- All **21 application tests passed**, including General matching, unknown scientific fields, repeat-import stock/ledger preservation and staff-edit review invalidation.
+- Four read-only browser checks passed as Employee against real gRPC: General positive match, fictional source/unknown facts, strict versus incomplete physical constraints and budget exclusion. Five existing advice workflow checks also passed.
+- The legacy pristine-seed stock smoke failed its fixed expected 0/1-stock assumption because this shop already has staff-modified baseline balances 10/7. Those balances were preserved; that run is not reported as passed. The isolated seed integration test continues to cover pristine import.
+- Empty responses now explain eligibility/review steps and distinguish product type from reviewed advisory group. The field hint states that distinction before search.
+
+Evidence: [checks](general-advice-checks.json), [General result](screenshots/general-advice.png). This is synthetic demo availability, not a relaxation of source-review or conflict rules.
+
+## .NET 9 compatibility — 31 October 2026
+
+- All projects target `net9.0`; SDK 9.0.310, direct Microsoft/EF packages and EF tool 9.0.22, Npgsql EF provider 9.0.4. API, calculation and Worker containers report ASP.NET Core/.NET 9.0.22.
+- Native solution build passed with zero warnings/errors, and all **20 tests passed** on .NET 9 using an isolated PostgreSQL database. Dependency audit reported no known vulnerable direct/transitive packages from current sources.
+- EF9 reports no pending model changes. Existing migration IDs/history were preserved; the idempotent SQL export was regenerated with EF9. No schema-reset migration was added.
+- Before/after fingerprints matched for catalogue/document/ledger counts and SKU stock, stock versions and prices when switching the existing Compose database to the .NET 9 hosts.
+- All five advice, six seed and nine trading browser checks passed against the rebuilt Compose stack. Independent gRPC totals/advice and Redis/Worker replenishment were exercised. The trading smoke now selects its own SKU's document rather than clicking the first existing draft before list refresh.
+- Existing user-created launch settings were preserved outside this change.
+
+Evidence: [net9-checks.json](net9-checks.json). Transient build/test/browser logs remain under ignored `test-results/`.
+
 ## Nine-factor soil advice — 31 October 2026
 
 - All **20 application tests pass**, zero skipped. New tests cover nullable metadata, validation, version conflicts, source-required review and invalidation, candidate review/stock/budget eligibility, strict/incomplete rules, comparable EC, pH interval matching and top-three ordering. Integration tests use isolated PostgreSQL; the test advice adapter runs the actual Protobuf mapping and rule implementation in-process.

@@ -72,7 +72,10 @@ export function AdvicePage({ onSale }: { onSale: () => void }) {
       <section className="panel form-panel">
         <form onSubmit={search}>
           <div className="form-grid">
-            <Field label="Nhóm cây">
+            <Field
+              label="Nhóm cây"
+              hint="Theo thông số đã duyệt; khác với loại mặt hàng trong danh mục."
+            >
               <select name="plantGroup">
                 <Options values={groups} />
               </select>

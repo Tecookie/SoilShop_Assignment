@@ -6,7 +6,9 @@ $previousConnection = $env:SHOP_TEST_CONNECTION
 $previousPassword = $env:POSTGRES_PASSWORD
 $previousDotnetRoot = $env:DOTNET_ROOT
 try {
-    $dotnetPath = if (Test-Path '.tools/dotnet/dotnet.exe') { (Resolve-Path '.tools/dotnet/dotnet.exe').Path } else { (Get-Command dotnet).Source }
+    # Prefer the installed SDK selected by global.json; local SDK is an optional fallback.
+    $installedDotnet = Get-Command dotnet -ErrorAction SilentlyContinue
+    $dotnetPath = if ($installedDotnet) { $installedDotnet.Source } elseif (Test-Path '.tools/dotnet/dotnet.exe') { (Resolve-Path '.tools/dotnet/dotnet.exe').Path } else { throw 'Install the .NET 9 SDK specified by global.json.' }
     $env:DOTNET_ROOT = Split-Path $dotnetPath -Parent
     $env:POSTGRES_PASSWORD = [guid]::NewGuid().ToString('N')
     docker run -d --name $containerName --memory 512m -e POSTGRES_PASSWORD -e POSTGRES_DB=soilshop_test -p '127.0.0.1::5432' --tmpfs /var/lib/postgresql/data postgres:16-alpine | Out-Null

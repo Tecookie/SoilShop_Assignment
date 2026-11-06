@@ -56,6 +56,11 @@ if (app.Configuration.GetValue("DemoSeed:Run", false))
 {
     await using var scope = app.Services.CreateAsyncScope();
     var result = await new DemoDataSeeder(scope.ServiceProvider.GetRequiredService<ShopDbContext>(), scope.ServiceProvider.GetRequiredService<ShopService>(), app.Configuration).RunAsync();
+    if (app.Configuration.GetValue("DemoSeed:WithAdvice", false))
+    {
+        await new DemoAdviceSeeder(scope.ServiceProvider.GetRequiredService<ShopDbContext>(), scope.ServiceProvider.GetRequiredService<ShopService>()).RunAsync();
+        Console.WriteLine("Fictional classification-only advice fixtures prepared; existing metadata preserved.");
+    }
     Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(result));
     return;
 }

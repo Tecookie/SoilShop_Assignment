@@ -218,8 +218,8 @@ Only Level 1 and Level 2 C4 views exist. The additional Level 2 views are filter
 | Area | Selected design baseline |
 |---|---|
 | Frontend | React + Vite + TypeScript; plain CSS and reusable components; no Ant Design. |
-| Backend | .NET 10 LTS / ASP.NET Core Web API; DI, validation, exception middleware, structured logs. |
-| Persistence | EF Core 10 + Npgsql EF provider 10; migrations and exported PostgreSQL SQL scripts. |
+| Backend | .NET 9 / ASP.NET Core Web API; DI, validation, exception middleware, structured logs. |
+| Persistence | EF Core 9 + Npgsql EF provider 9; migrations and exported PostgreSQL SQL scripts. |
 | Database | PostgreSQL 16 baseline; native numeric/timestamptz/jsonb, explicit bigint version fields. |
 | Mapping | AutoMapper for explicit DTO/entity profiles; ignore trusted fields. Document installed version/license configuration; secrets stay outside source. |
 | RPC | Grpc.AspNetCore / Grpc.Net.Client / Protobuf; internal HTTP/2 endpoint. |
@@ -229,7 +229,7 @@ Only Level 1 and Level 2 C4 views exist. The additional Level 2 views are filter
 | Local deployment | Docker Desktop Linux containers and Compose; private service network and separate PG/Redis/backup volumes. |
 | Verification | xUnit integration tests against PostgreSQL during implementation; browser flow checks; restore drill. |
 
-The Npgsql provider supports [EF Core 10](https://www.npgsql.org/efcore/release-notes/10.0.html). Pin compatible patch versions/images during implementation. AutoMapper's current [license configuration](https://docs.automapper.io/en/stable/License-configuration.html) must be documented rather than hidden by suppressing logs. No package installation or license purchase is performed by this document.
+The Npgsql provider supports [EF Core 9](https://www.npgsql.org/efcore/release-notes/9.0.html). Pin compatible patch versions/images during implementation. AutoMapper's current [license configuration](https://docs.automapper.io/en/stable/License-configuration.html) must be documented rather than hidden by suppressing logs. No package installation or license purchase is performed by this document.
 
 Expose Web locally; keep Redis/PostgreSQL/gRPC internal unless a development tool explicitly needs a port. Configure gRPC as HTTP/2-only for the private plaintext demo endpoint; use HTTPS when exposing beyond the local demo. No database access from React, direct user-supplied SQL sort fragments, HTML metadata injection or subprocess shell concatenation.
 
@@ -342,7 +342,7 @@ Required application tests include concurrent last-bag sales, partial multi-line
 
 - [PostgreSQL transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html).
 - [EF Core ExecuteUpdate concurrency and transactions](https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete).
-- [Npgsql EF Core 10 provider](https://www.npgsql.org/efcore/release-notes/10.0.html).
+- [Npgsql EF Core 9 provider](https://www.npgsql.org/efcore/release-notes/9.0.html).
 - [Redis consumer groups](https://redis.io/docs/latest/commands/xreadgroup/) and [pending reclaim](https://redis.io/docs/latest/commands/xautoclaim/).
 - [PostgreSQL pg_dump](https://www.postgresql.org/docs/current/app-pgdump.html) and [pg_restore](https://www.postgresql.org/docs/current/app-pgrestore.html).
 - [AutoMapper license configuration](https://docs.automapper.io/en/stable/License-configuration.html).
