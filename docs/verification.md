@@ -1,6 +1,17 @@
-# Verification — latest increment 5 November 2026
+# Verification — latest increment 6 November 2026
 
 This report distinguishes tested design artifacts from an application implementation. The PostgreSQL tests use disposable isolated containers, not the user's running databases. The test containers and their own anonymous volumes are removed afterward.
+
+## Branch review and code organization — 6 November 2026
+
+- Reviewed feature/advice-receipts-sales (3555489): draft edit/delete, reviewable gRPC quotes, price conflict refresh, per-line price revalidation and Admin cancellation/reverse stock audit. The branch baseline passed 30 .NET10 tests. Integrating main retained .NET9 and explicit advice fixtures; the combined baseline passed 31 .NET9 tests.
+- Replaced catch-all application services/repository ports with Catalogue, Trading, Inventory and Authentication responsibilities. Split controllers and HTTP error middleware, grouped persistence/integration/seeding code, moved Domain entities by owner and separated pure total rules from the gRPC adapter.
+- Grouped React feature pages/types, extracted Catalogue product/SKU fields and Trading workflow panels, and placed shared transport/controls/formatting separately. Preserved labels, role controls, action keys and user flows.
+- Final native solution build passed with zero warnings/errors; all 31 tests passed with zero skipped. TypeScript/Vite and all Compose images built. EF reports no pending model changes; historical migration/entity identity remains intact.
+- Six new trading, nine original trading and five advice browser checks passed through the rebuilt stack, covering HTTP/2 gRPC, refreshed quotes, stock reversal/rollback and Redis/Worker follow-up. No new database migration was generated.
+- GitHub Desktop's existing stash was left untouched. All changes are committed locally; no publication/push was performed.
+
+Evidence: [organization guide](code-organization.md), [check results](code-organization-checks.json). Full transient build/test/browser logs remain under ignored test-results/.
 
 ## Advice, receipts and counter sales — 5 November 2026
 

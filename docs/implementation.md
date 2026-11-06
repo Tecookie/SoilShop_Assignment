@@ -109,3 +109,7 @@ Whole-VND unit prices/costs are capped at 1,000,000,000,000, bag quantities at 1
 - Broader broker interruption/recovery and job failure tests, complete demo seed/presentation and final assignment acceptance review.
 
 Selection forms explicitly show at most the first 100 SKUs/suppliers; packaging creation uses products on the current catalogue page. A searchable selector is a later usability improvement. Document filters and advanced list controls remain pending. Track subsequent slices in `.scratch/application/issues/04-remaining-workflows.md`; completed 5.2–5.4 follow-up is tracked in `.scratch/advice-receipts-sales/`.
+
+## Source organization
+
+Business-specific services, contracts and repository ports are grouped within each existing layer. React pages, models and forms are grouped by feature. See [code-organization.md](code-organization.md) for the folder map and rules for new code. The restructuring preserves HTTP routes, EF model/migrations, stock transactions and source-review rules.

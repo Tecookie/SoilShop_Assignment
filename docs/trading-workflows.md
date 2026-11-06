@@ -183,11 +183,11 @@ discounts or accounting valuation are added.
 
 | Layer | Files |
 |---|---|
-| API | `src/SoilShop.Api/Controllers.cs`, ProblemDetails in `Program.cs` |
-| Application | `Contracts.cs`, normalization/quote orchestration in `ShopService.cs` |
-| Infrastructure | `TradingRepository.cs`, `TradingDraftRepository.cs` |
-| Web | `TradingPage.tsx`, `api.ts`, shared `types.ts`, role passed by `App.tsx` |
-| Existing advice | `ProductAdvice.cs`, candidate repository, gRPC `AdviceRules`, `AdvicePage.tsx` |
+| API | `src/SoilShop.Api/Controllers/Trading/TradingController.cs`, ProblemDetails in `Middleware/ShopExceptionHandler.cs` |
+| Application | `SoilShop.Application/Trading/TradeContracts.cs` and `TradingService.cs` |
+| Infrastructure | `SoilShop.Infrastructure/Trading/TradingRepository.cs`, `.Drafts.cs`, `.Cancellation.cs` |
+| Web | `features/trading/TradingPage.tsx`, its `components/` and `types.ts`, `shared/api/client.ts`; role passed by `app/App.tsx` |
+| Existing advice | `Application/Advice/ProductAdviceService.cs`, `Infrastructure/Advice/AdviceCandidateRepository.cs`, gRPC `Advice/AdviceRules.cs`, React `features/advice/` |
 | Tests | `TradingWorkflowTests.cs`, existing trading/advice/rule tests |
 
 ## 5. Verification and demo
