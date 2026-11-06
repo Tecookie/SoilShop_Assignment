@@ -44,7 +44,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(o => { o.SwaggerDoc("v1", new OpenApiInfo { Title = "Soil Shop API", Version = "v1" }); o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme { Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT" }); });
 if (builder.Configuration.GetValue("Messaging:Enabled", true)) { builder.Services.AddSingleton<RedisBus>(); builder.Services.AddHostedService<OutboxRelay>(); }
 var app = builder.Build();
-if (app.Configuration["Jwt:Key"] is not string signingKey || Encoding.UTF8.GetByteCount(signingKey) < 32) throw new InvalidOperationException("Configure Jwt:Key with at least 32 bytes.");
+var signingKey = app.Configuration["Jwt:Key"];
+var signingKeyBytes = signingKey is null ? 0 : Encoding.UTF8.GetByteCount(signingKey);
+if (signingKeyBytes < 32)
+{
+    var problem = signingKey is null ? "is missing" : $"contains {signingKeyBytes} UTF-8 bytes; at least 32 are required";
+    throw new InvalidOperationException(
+        $"Jwt:Key {problem}. Environment: {app.Environment.EnvironmentName}. Content root: {app.Environment.ContentRootPath}. " +
+        $"Set Jwt__Key or Jwt:Key in appsettings.{app.Environment.EnvironmentName}.json. " +
+        "appsettings.Development.json is loaded only in Development; .env is not loaded by dotnet run. " +
+        "For local development, run: dotnet run --project src/SoilShop.Api --launch-profile SoilShop.Api.");
+}
 app.UseExceptionHandler();
 app.Use(async (context, next) => { context.Response.Headers["X-Content-Type-Options"] = "nosniff"; context.Response.Headers["X-Frame-Options"] = "DENY"; await next(); });
 app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization();

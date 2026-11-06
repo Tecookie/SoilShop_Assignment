@@ -58,3 +58,5 @@ See [soil metadata and advice](docs/soil-advice.md) for nine-factor filtering, s
 For searchable fictional advice fixtures, run `./scripts/seed-demo.ps1 -WithAdvice`, then choose **Nhóm cây → Đa dụng** in **Tìm đất phù hợp**. Scientific measurements remain unknown.
 
 Source folders and business ownership are documented in [Code organization](docs/code-organization.md).
+
+For native appsettings/environment setup and JWT startup errors, see [Local configuration](docs/configuration.md).
