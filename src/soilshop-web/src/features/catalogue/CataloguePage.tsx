@@ -1,9 +1,11 @@
-import { SoilMetadataPanel } from "./SoilMetadataPanel";
+import { CatalogueForm } from "./components/CatalogueForm";
+import { SoilMetadataPanel } from "../advice/components/SoilMetadataPanel";
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { api } from "./api";
-import { Empty, Field, Notice, Pagination } from "./components";
-import type { PageResult, Product, Sku, Supplier } from "./types";
+import { api } from "../../shared/api/client";
+import { Empty, Field, Notice, Pagination } from "../../shared/components";
+import type { PageResult } from "../../shared/types/paging";
+import type { Product, Sku, Supplier } from "./types";
 import { productTypes, productTypeName } from "./types";
 
 export function CataloguePage() {
@@ -143,187 +145,18 @@ export function CataloguePage() {
         ))}
       </div>
       {form && (
-        <section className="panel form-panel">
-          <h2>
-            {editing
-              ? "Edit product"
-              : `New ${form === "sku" ? "packaging variant" : form}`}
-          </h2>
-          <form key={`${form}-${editing?.id ?? "new"}`} onSubmit={submit}>
-            <div className="form-grid">
-              <Field label="Code">
-                <input
-                  name="code"
-                  maxLength={form === "sku" ? 50 : 40}
-                  defaultValue={editing?.code}
-                  required
-                />
-              </Field>
-              {form !== "sku" && (
-                <Field label="Name">
-                  <input
-                    name="name"
-                    maxLength={200}
-                    defaultValue={editing?.name}
-                    required
-                  />
-                </Field>
-              )}
-              {form === "product" && (
-                <>
-                  <Field label="Product type">
-                    <select
-                      name="productType"
-                      defaultValue={editing?.productType ?? "Unclassified"}
-                    >
-                      {productTypes.map((type) => (
-                        <option key={type.code} value={type.code}>
-                          {type.name}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Brand (optional)">
-                    <input
-                      name="brand"
-                      maxLength={150}
-                      defaultValue={editing?.brand ?? ""}
-                    />
-                  </Field>
-                  <Field label="Ingredients (optional)">
-                    <input
-                      name="ingredients"
-                      maxLength={5000}
-                      defaultValue={editing?.ingredients ?? ""}
-                    />
-                  </Field>
-                  <Field
-                    label="Source reference (optional)"
-                    hint="Record label or supplier information. Leave unknown data blank."
-                  >
-                    <input
-                      name="sourceReference"
-                      maxLength={2000}
-                      defaultValue={editing?.sourceReference ?? ""}
-                    />
-                  </Field>
-                  {editing && (
-                    <label className="check">
-                      <input
-                        name="isActive"
-                        type="checkbox"
-                        defaultChecked={editing.isActive}
-                      />
-                      Active product
-                    </label>
-                  )}
-                </>
-              )}
-              {form === "supplier" && (
-                <Field label="Contact note (optional)">
-                  <input name="contactNote" maxLength={2000} />
-                </Field>
-              )}
-              {form === "sku" && (
-                <>
-                  <Field
-                    label="Product"
-                    hint="Products on this catalogue page."
-                  >
-                    <select name="productId" required defaultValue="">
-                      <option value="" disabled>
-                        Select product
-                      </option>
-                      {products?.items
-                        .filter((p) => p.isActive)
-                        .map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.code} · {p.name}
-                          </option>
-                        ))}
-                    </select>
-                  </Field>
-                  <Field label="Package amount">
-                    <input
-                      name="packageAmount"
-                      type="number"
-                      min="0.01"
-                      max="1000000"
-                      step="0.01"
-                      required
-                    />
-                  </Field>
-                  <Field label="Package unit">
-                    <select name="packageUnit">
-                      <option value="kg">kg</option>
-                      <option value="L">L</option>
-                    </select>
-                  </Field>
-                  <Field label="Sale price (VND)">
-                    <input
-                      name="salePriceVnd"
-                      type="number"
-                      min="1"
-                      max="1000000000000"
-                      step="1"
-                      required
-                    />
-                  </Field>
-                  <Field label="Low-stock threshold (bags)">
-                    <input
-                      name="threshold"
-                      type="number"
-                      min="0"
-                      max="1000000"
-                      step="1"
-                      defaultValue="5"
-                      required
-                    />
-                  </Field>
-                  <Field label="Target stock (bags)">
-                    <input
-                      name="target"
-                      type="number"
-                      min="1"
-                      max="1000000"
-                      step="1"
-                      defaultValue="30"
-                      required
-                    />
-                  </Field>
-                  <Field label="Preferred supplier (optional)">
-                    <select name="supplierId" defaultValue="">
-                      <option value="">Not assigned</option>
-                      {suppliers
-                        .filter((s) => s.isActive)
-                        .map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name}
-                          </option>
-                        ))}
-                    </select>
-                  </Field>
-                </>
-              )}
-            </div>
-            <div className="form-actions">
-              <button type="submit" disabled={busy}>
-                {busy ? "Saving…" : "Save"}
-              </button>
-              <button
-                type="button"
-                className="secondary"
-                disabled={busy}
-                onClick={() => {
-                  setForm(null);
-                  setEditing(null);
-                }}
-              >
-                Close form
-              </button>
-            </div>
-          </form>
-        </section>
+        <CatalogueForm
+          form={form}
+          editing={editing}
+          products={products?.items ?? []}
+          suppliers={suppliers}
+          busy={busy}
+          submit={submit}
+          onClose={() => {
+            setForm(null);
+            setEditing(null);
+          }}
+        />
       )}
       <section className="panel">
         <div className="section-heading">

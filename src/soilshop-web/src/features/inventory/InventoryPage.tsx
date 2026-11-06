@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { api } from "./api";
-import { Empty, Notice, Pagination } from "./components";
-import type { PageResult, Product, Sku } from "./types";
-import { money, productTypes, productTypeName } from "./types";
+import { api } from "../../shared/api/client";
+import { Empty, Notice, Pagination } from "../../shared/components";
+import type { PageResult } from "../../shared/types/paging";
+import type { Product, Sku } from "../catalogue/types";
+import { money } from "../../shared/lib/format";
+import { productTypes, productTypeName } from "../catalogue/types";
 export function InventoryPage() {
   const [search, setSearch] = useState("");
   const [lowOnly, setLowOnly] = useState(false);

@@ -1,18 +1,12 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { api } from "./api";
-import { Field, Notice } from "./components";
-import {
-  contexts,
-  groups,
-  levels,
-  methods,
-  Options,
-  physical,
-  SoilFacts,
-} from "./soil";
-import type { AdviceResponse } from "./soil";
-import { money, time } from "./types";
+import { api } from "../../shared/api/client";
+import { Field, Notice } from "../../shared/components";
+import { contexts, groups, levels, methods, physical } from "./options";
+import { Options } from "./components/Options";
+import { SoilFacts } from "./components/SoilFacts";
+import type { AdviceResponse } from "./types";
+import { money, time } from "../../shared/lib/format";
 export function AdvicePage({ onSale }: { onSale: () => void }) {
   const [result, setResult] = useState<AdviceResponse>();
   const [busy, setBusy] = useState(false);

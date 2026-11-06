@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { api } from "./api";
-import { Empty, Notice, Pagination } from "./components";
-import type { Movement, PageResult, Suggestion } from "./types";
-import { time } from "./types";
+import { api } from "../../shared/api/client";
+import { Empty, Notice, Pagination } from "../../shared/components";
+import type { Movement, Suggestion } from "./types";
+import type { PageResult } from "../../shared/types/paging";
+import { time } from "../../shared/lib/format";
 export function OperationsPage({ suggestions }: { suggestions: boolean }) {
   const [movements, setMovements] = useState<PageResult<Movement>>();
   const [rows, setRows] = useState<Suggestion[]>([]);

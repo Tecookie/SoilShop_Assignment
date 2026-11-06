@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { api, setToken } from "./api";
-import { Field, Notice } from "./components";
+import { api, setToken } from "../../shared/api/client";
+import { Field, Notice } from "../../shared/components";
 import type { Login, User } from "./types";
 export function LoginPage({ onLogin }: { onLogin: (user: User) => void }) {
   const [error, setError] = useState("");

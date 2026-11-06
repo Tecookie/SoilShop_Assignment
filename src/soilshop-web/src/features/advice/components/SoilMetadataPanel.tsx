@@ -1,18 +1,11 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { api } from "./api";
-import { Field, Notice } from "./components";
-import {
-  contexts,
-  groups,
-  levels,
-  methods,
-  notes,
-  Options,
-  physical,
-  SoilFacts,
-} from "./soil";
-import type { Metadata } from "./soil";
+import { api } from "../../../shared/api/client";
+import { Field, Notice } from "../../../shared/components";
+import { contexts, groups, levels, methods, notes, physical } from "../options";
+import { Options } from "./Options";
+import { SoilFacts } from "./SoilFacts";
+import type { Metadata } from "../types";
 export function SoilMetadataPanel({
   productId,
   onChanged,

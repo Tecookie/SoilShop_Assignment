@@ -1,6 +1,10 @@
 let token: string | null = null;
 export class ApiError extends Error {
-  constructor(message: string, public status: number, public quote?: import("./types").TradeQuote) {
+  constructor(
+    message: string,
+    public status: number,
+    public quote?: import("../../features/trading/types").TradeQuote,
+  ) {
     super(message);
   }
 }

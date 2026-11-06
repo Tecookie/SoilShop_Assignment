@@ -1,12 +1,12 @@
-import { AdvicePage } from "./AdvicePage";
+import { AdvicePage } from "../features/advice/AdvicePage";
 import { useEffect, useState } from "react";
-import { setToken } from "./api";
-import { LoginPage } from "./LoginPage";
-import { InventoryPage } from "./InventoryPage";
-import { CataloguePage } from "./CataloguePage";
-import { TradingPage } from "./TradingPage";
-import { OperationsPage } from "./OperationsPage";
-import type { User } from "./types";
+import { setToken } from "../shared/api/client";
+import { LoginPage } from "../features/authentication/LoginPage";
+import { InventoryPage } from "../features/inventory/InventoryPage";
+import { CataloguePage } from "../features/catalogue/CataloguePage";
+import { TradingPage } from "../features/trading/TradingPage";
+import { OperationsPage } from "../features/inventory/OperationsPage";
+import type { User } from "../features/authentication/types";
 type View =
   | "inventory"
   | "receipts"
@@ -91,7 +91,11 @@ export function App() {
           {view === "inventory" && <InventoryPage />}
           {view === "catalogue" && user.role === "Admin" && <CataloguePage />}
           {(view === "receipts" || view === "sales") && (
-            <TradingPage key={view} receipt={view === "receipts"} isAdmin={user.role === "Admin"} />
+            <TradingPage
+              key={view}
+              receipt={view === "receipts"}
+              isAdmin={user.role === "Admin"}
+            />
           )}
           {(view === "movements" || view === "replenishment") && (
             <OperationsPage key={view} suggestions={view === "replenishment"} />
