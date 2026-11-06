@@ -10,7 +10,7 @@ public static class CalculationProgram
         builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(8082, listen => listen.Protocols = HttpProtocols.Http2));
         builder.Services.AddGrpc();
         var app = builder.Build();
-        app.MapGrpcService<TotalsService>();
+        app.MapGrpcService<CalculationGrpcService>();
         app.Run();
     }
 }

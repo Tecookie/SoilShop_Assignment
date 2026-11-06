@@ -1,0 +1,30 @@
+{
+  "tested_on": "2026-11-06",
+  "reviewed_branch": "feature/advice-receipts-sales",
+  "reviewed_commit": "3555489",
+  "baseline_tests": {
+    "branch_net10": 30,
+    "integrated_main_net9": 31
+  },
+  "final_tests": {
+    "framework": "net9.0",
+    "passed": 31,
+    "failed": 0,
+    "skipped": 0
+  },
+  "native_build": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "typescript_vite_build": "passed",
+  "ef_pending_model_changes": false,
+  "new_migrations": 0,
+  "compose_build": "passed",
+  "browser_checks": {
+    "new_trading": 6,
+    "original_trading": 9,
+    "advice": 5
+  },
+  "github_desktop_stash_preserved": true,
+  "push_performed": false
+}

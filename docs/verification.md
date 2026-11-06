@@ -1,6 +1,74 @@
-# Verification — latest increment 31 October 2026
+# Verification — latest increment 6 November 2026
 
 This report distinguishes tested design artifacts from an application implementation. The PostgreSQL tests use disposable isolated containers, not the user's running databases. The test containers and their own anonymous volumes are removed afterward.
+
+## Branch review and code organization — 6 November 2026
+
+- Reviewed feature/advice-receipts-sales (3555489): draft edit/delete, reviewable gRPC quotes, price conflict refresh, per-line price revalidation and Admin cancellation/reverse stock audit. The branch baseline passed 30 .NET10 tests. Integrating main retained .NET9 and explicit advice fixtures; the combined baseline passed 31 .NET9 tests.
+- Replaced catch-all application services/repository ports with Catalogue, Trading, Inventory and Authentication responsibilities. Split controllers and HTTP error middleware, grouped persistence/integration/seeding code, moved Domain entities by owner and separated pure total rules from the gRPC adapter.
+- Grouped React feature pages/types, extracted Catalogue product/SKU fields and Trading workflow panels, and placed shared transport/controls/formatting separately. Preserved labels, role controls, action keys and user flows.
+- Final native solution build passed with zero warnings/errors; all 31 tests passed with zero skipped. TypeScript/Vite and all Compose images built. EF reports no pending model changes; historical migration/entity identity remains intact.
+- Six new trading, nine original trading and five advice browser checks passed through the rebuilt stack, covering HTTP/2 gRPC, refreshed quotes, stock reversal/rollback and Redis/Worker follow-up. No new database migration was generated.
+- GitHub Desktop's existing stash was left untouched. All changes are committed locally; no publication/push was performed.
+
+Evidence: [organization guide](code-organization.md), [check results](code-organization-checks.json). Full transient build/test/browser logs remain under ignored test-results/.
+
+## Advice, receipts and counter sales — 5 November 2026
+
+### Results at a glance
+
+| Verification | Result | Evidence / boundary |
+| --- | --- | --- |
+| Application tests | **30 passed · 0 skipped** | Isolated PostgreSQL; calculation network replaced in integration tests |
+| .NET / React builds | **Passed** | .NET: zero warnings/errors; frontend production build succeeded |
+| New trading browser flow | **6 checks passed** | Real React → API → gRPC; [results](trading-checks.json) |
+| Original trading browser flow | **9 checks passed** | Includes Redis/Worker low-stock follow-up |
+| Advice browser flow | **5 checks passed** | Real gRPC; synthetic metadata review cleared afterward |
+| Responsive trading layout | **390px / 1440px checked** | [Mobile](screenshots/trading-mobile.png) · [Desktop](screenshots/trading-desktop.png) |
+
+### Application coverage
+
+- All **30 application tests pass**, zero skipped. This retains the baseline
+  advice/metadata/rule tests and adds Draft editing/deletion, unknown receipt
+  costs, duplicate-SKU merging, conflicting costs, stale expected totals with
+  refreshed quotes, per-line price changes whose combined total stays unchanged,
+  concurrent duplicate cancellation, inactive-SKU reversal, multi-line receipt
+  cancellation rollback, Employee cancellation denial and required reasons.
+- Additional checks verify immutable confirmed history, confirmation replay after
+  cancellation, changed replay payload rejection, linked-suggestion reopening on
+  Draft deletion, and calculation unavailability leaving stock/document/ledger
+  unchanged. HTTP integration tests use isolated real PostgreSQL and replace the
+  calculation network boundary; the explicit 503 test injects an unavailable client.
+### Build and browser coverage
+
+- .NET build passed with zero warnings/errors and the React production build passed.
+  No schema/migration change or new package was needed for the feature.
+- Four Docker images built and the six-service Compose stack ran. Six new browser
+  checks passed through React/Nginx/API and independent gRPC: receipt create/edit/
+  quote/confirm; stale sale price → 409 → refreshed quote → explicit confirmation;
+  refused receipt reversal; sale reversal; receipt reversal; Draft deletion.
+  Final fictional fixture stock is zero, with exactly Purchase, Sale, SaleCancel
+  and PurchaseCancel movement kinds. Expected 409 conflicts are intentional;
+  no server-500 or browser-page errors occurred.
+- Existing nine-check core trading and five-check advice browser scripts also
+  passed against this stack. Advice verification again included source/review
+  invalidation, Employee restrictions and real gRPC matching. Its synthetic metadata
+  review was cleared afterward; the new work does not claim authorship of the
+  baseline advice implementation.
+- Trading layouts were inspected at 390px and 1440px. Tables retain their existing
+  local horizontal scrolling on mobile; no whole-page overflow was detected.
+  The original trading smoke also checked 320/768/1024/1440px.
+### Local verification environment
+
+- Host-specific note: Docker Desktop could not locate the normalized Unicode
+  OneDrive build context. Verification used an ASCII junction to the same checkout,
+  with explicit Compose project-directory/file paths. The local ignored `.env`
+  uses web port 18085; no secrets, generated SDK or browser environment are committed.
+
+Evidence: [new trading checks](trading-checks.json),
+[desktop](screenshots/trading-desktop.png), [mobile](screenshots/trading-mobile.png).
+Commands and API details are in [trading-workflows.md](trading-workflows.md).
+Transient full TRX/browser outputs remain under ignored `test-results/`.
 
 ## General advice demo availability — 31 October 2026
 
@@ -93,4 +161,4 @@ The SQL functions in [concurrency-demo.sql](database/concurrency-demo.sql) are p
 
 ## Still pending during implementation
 
-Stock-count/adjustment permissions, cancellation/reversal, draft editing/deletion, account management, suggestion conversion, scheduled/manual summaries/backups, backup retention failure cases and Redis outage/recovery tests remain pending. The earlier physical-count and backup checks below exercise SQL/design prototypes only; those application workflows are not implemented yet.
+Stock-count/adjustment permissions, account management, suggestion conversion, scheduled/manual summaries/backups, backup retention failure cases and Redis outage/recovery tests remain pending. Draft editing/deletion and cancellation/reversal are covered by the 5 November application checks above. Earlier physical-count and backup checks exercise SQL/design prototypes only; those application workflows are not implemented yet.

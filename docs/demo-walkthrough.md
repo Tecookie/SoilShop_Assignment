@@ -41,15 +41,22 @@ docker compose logs -f --tail 0 api worker |
 | 3 | Create packaging/SKU code `DEMO-FLOW-01-5KG`, select that Product, amount `5`, unit `kg`, sale price `55000`, threshold `5`, target `30`, preferred Supplier created above. | Inventory has **0 bags** at **55,000 VND/bag**. | Product/SKU separation. A catalogue form cannot assign opening stock. |
 | 4 | Sign out; sign in as Employee. | Inventory/receipts/sales remain available; Catalogue navigation is absent. | Role-specific UI. Server-side 403 enforcement is separately covered by integration tests; hiding a button alone does not prove it. |
 | 5 | Purchase receipts → New receipt. Select the Supplier and SKU, enter **6 bags**, unit cost **30000**. Save draft. Check Inventory, then return to that receipt. | Draft exists and stock remains **0**. | Drafts have no stock effect. Remember the reference to avoid confirming another rehearsal's draft. |
-| 6 | Confirm that receipt. | Receipt total **180,000 VND**; stock **6**; a Purchase movement **+6 / balance 6**. Terminal A shows a calculation request. | API calls the independent gRPC host before the transaction. PostgreSQL commits document, stock, ledger and outbox together. |
+| 6 | Select **Review total**, inspect the quote, then **Confirm receipt**. | Receipt total **180,000 VND**; stock **6**; a Purchase movement **+6 / balance 6**. Terminal A shows a calculation request. | API calls the independent gRPC host before the transaction. PostgreSQL commits document, stock, ledger and outbox together. |
 | 7 | Sales → New sale. Select the same SKU and **2 bags**. Save draft and check stock before confirming. | Stock remains **6**. | Sales drafts do not reserve or deduct bags. Sale price is controlled by the catalogue/service. |
-| 8 | Confirm that sale. | Frozen total **110,000 VND**; stock **4**; a Sale movement **−2 / balance 4**. Terminal A logs another actual gRPC calculation. | Frozen sale prices, gRPC totals and transactional stock deduction. |
+| 8 | Select **Review total**, inspect the current price, then **Confirm sale**. | Frozen total **110,000 VND**; stock **4**; a Sale movement **−2 / balance 4**. Terminal A logs another actual gRPC calculation. | Frozen sale prices, gRPC totals and transactional stock deduction. |
 | 9 | Inventory: search by SKU code, select `Đất trồng đa dụng`, enable Low stock only. Then open Stock movements. | The SKU is Low stock at **4**; history contains its **+6** and **−2** movements. | Search/type/low-stock filters, correct accounting and persisted history. |
 | 10 | Observe Terminal B. Open Replenishment and Refresh after processing. Locate the demo SKU's numeric ID. | One active suggestion with observed quantity **4**, suggested quantity **26 = 30 − 4**. | API producer → Redis Streams → Worker consumer → PostgreSQL. Confirm delivery using the diagnostics below. |
 
 The newly created zero-stock SKU may already have an initial suggestion. Receiving six bags can resolve it; selling two can create a new active suggestion. Historical resolved suggestions may exist. The invariant is **one active suggestion per SKU**, not one suggestion ever.
 
 The main-flow checkpoint is: **received 6, sold 2, current 4, suggested replenishment 26**. Refresh read screens if they were open before a transaction; the UI does not push real-time updates automatically.
+
+After showing that checkpoint, demonstrate the [trading follow-up](trading-workflows.md):
+Admin cancellation of the six-bag receipt first fails at stock four; cancellation
+of the two-bag sale restores six, then the receipt can be cancelled in full.
+Inspect original totals/reasons and `SaleCancel`/`PurchaseCancel` movements.
+Demonstrate Draft edit/delete before confirmation on separate drafts; do not
+cancel the main walkthrough documents before recording the stock-four checkpoint.
 
 ## 3. Show the technology evidence
 
@@ -201,7 +208,7 @@ Allow reconnect/processing time. Confirm previously unpublished rows receive `pu
 
 A suitable closing statement is: “Staff confirm a sale through REST; the API obtains a total from gRPC, then commits stock and audit records in PostgreSQL. Redis carries post-commit work to Worker, so replenishment is asynchronous while stock correctness stays transactional.”
 
-Stocktaking/adjustments, cancellation, draft editing/deletion, replenishment conversion, reports and daily/manual backups remain pending. Do not present them as implemented. The independent gRPC service provides totals and product advice, and replenishment is a **read-only suggestion inbox**. Full status is in [implementation.md](implementation.md).
+Stocktaking/adjustments, replenishment conversion, reports and daily/manual backups remain pending. Do not present them as implemented. Draft editing/deletion and whole-document Admin cancellation are now covered by [trading workflows](trading-workflows.md). The independent gRPC service provides totals and product advice, and replenishment is a **read-only suggestion inbox**. Full status is in [implementation.md](implementation.md).
 
 Automated rehearsal: [browser_smoke.py](../scripts/browser_smoke.py) creates its own labelled demonstration records and exercises actual Compose services. [browser_seed_check.py](../scripts/browser_seed_check.py) performs read-only seed/filter/role checks. [test.ps1](../scripts/test.ps1) covers repeatable API/database edge cases.
 

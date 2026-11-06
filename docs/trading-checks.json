@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "Receipt unknown-cost draft, versioned edit, real gRPC quote and confirm",
+    "Sale draft/edit; stale reviewed price returns 409 and refreshed quote; explicit retry freezes new prices",
+    "Receipt cancellation shortage returns 409 with no partial stock reversal",
+    "Admin sale cancellation restores original bags, preserves price/reason/time and works at mobile/desktop widths",
+    "Admin receipt cancellation deducts all original quantities once stock is sufficient",
+    "Explicit draft deletion removes only the draft without changing stock"
+  ],
+  "serverOrPageErrors": [],
+  "fixtureCode": "TRADING-DEMO-07C8AD11",
+  "finalStock": 0
+}

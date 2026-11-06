@@ -13,6 +13,7 @@ The first runnable increment implements the core counter workflow. The complete 
 - Product search, active filter, allowlisted sort and pagination; inventory search/low-stock filter/pagination; paged documents and stock movements.
 - Product-type selection and catalogue/inventory filters for six packaged-mix groups, plus Unclassified for unknown data. A repeatable explicit demo seed populates catalogue and trading records; see [demo data](demo-data.md).
 - Receipt/sale draft creation and confirmation. Receipts record actual whole-VND costs. Sales freeze catalogue prices at confirmation. Drafts do not reserve bags.
+- [Complete receipt/sale workflow](trading-workflows.md): versioned Draft editing/deletion, duplicate-SKU merging, reviewed gRPC quotes, per-line price conflict checks and whole-document Admin cancellation with atomic reverse ledger/outbox. Audit actors/timestamps and frozen values remain readable.
 - Independent HTTP/2 gRPC host for deterministic totals, invoked by API before acquiring stock locks, with a three-second deadline.
 - PostgreSQL document locks, ordered SKU row locks, guarded stock updates and a single transaction containing document/line snapshots, movements and outbox records. Repeating a confirmed action key has one effect; other attempts to confirm the same document conflict.
 - API Redis Streams producer from its durable outbox; Worker consumer group with pending-entry reclaim, post-commit ACK and current-state low-stock reconciliation every minute. Duplicate delivery updates one active suggestion rather than creating duplicates.
@@ -32,6 +33,18 @@ docker compose up -d --build
 Open <http://localhost:8080>. Read `BOOTSTRAP_USERNAME` and `BOOTSTRAP_PASSWORD` from the ignored root `.env` locally to sign in; setup does not print secrets. Existing `.env` files are preserved. Changing `.env` bootstrap values after the first database initialization does not reset an existing account. Keep the original local credentials with the database volume.
 
 Only Web binds a host port, on loopback. PostgreSQL, Redis, API and gRPC communicate inside the Compose network. Change `WEB_PORT` in `.env` if needed. This is a local assignment setup; it does not configure an internet-facing HTTPS deployment.
+
+If Docker Compose on Windows normalizes a Unicode/OneDrive checkout path and
+reports that its build context does not exist, use an ASCII-path junction to
+the same checkout and pass its path explicitly. Do not change the project's
+build context or move existing database volumes to work around this host issue:
+
+```powershell
+$buildPath = Join-Path $env:TEMP 'soilshop-assignment-build'
+# Create once, only if this path does not already exist.
+New-Item -ItemType Junction -Path $buildPath -Target (Get-Location).Path
+docker compose --project-directory $buildPath -f "$buildPath/compose.yaml" up -d --build
+```
 
 ```powershell
 docker compose ps
@@ -90,10 +103,13 @@ Whole-VND unit prices/costs are capped at 1,000,000,000,000, bag quantities at 1
 ## Pending approved work
 
 - Full supplier/account management and SKU price editing in the UI.
-- Draft editing/deletion and whole-document Admin cancellation/reversal.
 - Physical count capture, stale-count handling, Admin approval and direct adjustments.
 - Replenishment-to-receipt conversion.
 - Daily/manual summaries and daily/manual PostgreSQL backups retaining seven successful archives. The Worker currently processes inventory events only; no automatic backup runs yet.
 - Broader broker interruption/recovery and job failure tests, complete demo seed/presentation and final assignment acceptance review.
 
-Selection forms explicitly show at most the first 100 SKUs/suppliers; packaging creation uses products on the current catalogue page. A searchable selector is a later usability improvement. Document filters and advanced list controls remain pending. Track subsequent slices in `.scratch/application/issues/04-remaining-workflows.md`.
+Selection forms explicitly show at most the first 100 SKUs/suppliers; packaging creation uses products on the current catalogue page. A searchable selector is a later usability improvement. Document filters and advanced list controls remain pending. Track subsequent slices in `.scratch/application/issues/04-remaining-workflows.md`; completed 5.2–5.4 follow-up is tracked in `.scratch/advice-receipts-sales/`.
+
+## Source organization
+
+Business-specific services, contracts and repository ports are grouped within each existing layer. React pages, models and forms are grouped by feature. See [code-organization.md](code-organization.md) for the folder map and rules for new code. The restructuring preserves HTTP routes, EF model/migrations, stock transactions and source-review rules.
