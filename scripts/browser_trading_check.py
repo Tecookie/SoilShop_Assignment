@@ -5,6 +5,7 @@ Reads ignored .env without printing credentials. Expected 409s are exercised.
 """
 from pathlib import Path
 import json
+import os
 import uuid
 from playwright.sync_api import sync_playwright, expect
 
@@ -13,7 +14,7 @@ OUT = ROOT / 'test-results'
 OUT.mkdir(exist_ok=True)
 settings = dict(line.split('=', 1) for line in (ROOT / '.env').read_text().splitlines()
                 if '=' in line and not line.startswith('#'))
-base = 'http://127.0.0.1:' + settings.get('WEB_PORT', '8080')
+base = 'http://127.0.0.1:' + os.environ.get('SHOP_CHECK_PORT', settings.get('WEB_PORT', '8080'))
 checks, errors = [], []
 
 with sync_playwright() as p:
@@ -62,7 +63,9 @@ with sync_playwright() as p:
 
         nav('Purchase receipts')
         page.get_by_role('button', name='+ New receipt', exact=True).click()
+        page.get_by_label('Search Supplier', exact=True).fill(code)
         page.get_by_label('Supplier', exact=True).select_option(str(supplier['id']))
+        page.get_by_label('Search SKU 1', exact=True).fill(code)
         page.get_by_label('SKU 1', exact=True).select_option(str(sku['id']))
         page.get_by_label('Bags 1', exact=True).fill('4')
         receipt = save('/purchase-receipts')  # Unknown actual cost is valid in a draft.
@@ -81,6 +84,7 @@ with sync_playwright() as p:
 
         nav('Sales')
         page.get_by_role('button', name='+ New sale', exact=True).click()
+        page.get_by_label('Search SKU 1', exact=True).fill(code)
         page.get_by_label('SKU 1', exact=True).select_option(str(sku['id']))
         sale = save('/sales')
         row(sale).get_by_role('button', name='Edit draft', exact=True).click()
@@ -134,6 +138,7 @@ with sync_playwright() as p:
 
         nav('Sales')
         page.get_by_role('button', name='+ New sale', exact=True).click()
+        page.get_by_label('Search SKU 1', exact=True).fill(code)
         page.get_by_label('SKU 1', exact=True).select_option(str(sku['id']))
         disposable = save('/sales')
         row(disposable).get_by_role('button', name='Delete', exact=True).click()
