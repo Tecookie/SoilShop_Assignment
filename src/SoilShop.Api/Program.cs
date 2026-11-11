@@ -16,6 +16,14 @@ builder.Services.AddDbContext<ShopDbContext>(o => o.UseNpgsql(builder.Configurat
 builder.Services.AddScoped<ICatalogueRepository, CatalogueRepository>();
 builder.Services.AddScoped<ITradingRepository, TradingRepository>();
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+builder.Services.AddScoped<IStockWorkflowRepository, StockWorkflowRepository>();
+builder.Services.AddScoped<StockWorkflowService>();
+builder.Services.AddScoped<IOperationsRepository, OperationsRepository>();
+builder.Services.AddScoped<OperationsService>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<IAdministrationRepository, AdministrationRepository>();
+builder.Services.AddScoped<AdministrationService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISoilMetadataRepository, SoilMetadataRepository>(); builder.Services.AddScoped<SoilMetadataService>();
 builder.Services.AddScoped<CatalogueService>(); builder.Services.AddScoped<TradingService>(); builder.Services.AddScoped<InventoryService>(); builder.Services.AddScoped<AuthService>();
