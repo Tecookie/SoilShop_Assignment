@@ -1,0 +1,21 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0.310 AS build
+WORKDIR /source
+COPY global.json Directory.Build.props ./
+COPY src/ src/
+RUN --mount=type=cache,id=soilshop-nuget,target=/root/.nuget/packages,sharing=locked dotnet publish src/SoilShop.Worker/SoilShop.Worker.csproj -c Release -o /publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim
+USER root
+# Match the PostgreSQL 16 server; use the official signed PGDG repository.
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
+    && mkdir -p /usr/share/postgresql-common/pgdg \
+    && curl --fail --silent --show-error https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+    && printf '%s\n' 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update && apt-get install -y --no-install-recommends postgresql-client-16 \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /backups && chown app:app /backups
+WORKDIR /app
+COPY --from=build /publish ./
+ENV PATH="/usr/lib/postgresql/16/bin:${PATH}"
+USER $APP_UID
+ENTRYPOINT ["dotnet", "SoilShop.Worker.dll"]
