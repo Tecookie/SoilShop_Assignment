@@ -1,12 +1,12 @@
 # PostgreSQL Backup and Restore
 
-Approved policy: daily at 00:15 Asia/Ho_Chi_Minh plus Admin manual trigger; keep the latest seven successful archives total. No per-mutation backup. The application scheduler/Worker is still to be implemented; the same backup/restore format has been exercised by the isolated schema verification script.
+Policy: daily at or after 00:15 Asia/Ho_Chi_Minh plus Admin manual trigger; keep the latest seven successful archives total. No per-mutation backup. The application Worker implements this policy in a separate job loop. [Verification](verification.md) includes an isolated real archive restore and failed-backup retention check.
 
 ## Worker design
 
-Install PostgreSQL 16 client tools in the Worker image to match the server baseline. Connect using configured host/user/database and a secret password mechanism; mount a separate backup volume at `/backups`. Unlike SQL Server server-side disk backups, **pg_dump runs in Worker and writes Worker's mounted path**.
+The Worker image installs PostgreSQL 16 client tools to match the server baseline. It connects using configured host/user/database and the environment-provided password; Compose mounts the separate `backup-data` volume at `/backups`. Unlike SQL Server server-side disk backups, **pg_dump runs in Worker and writes Worker's mounted path**.
 
-Run subprocesses with argument lists, not a shell command assembled from browser input. Filenames are generated from UTC time/run UUID. Write to a unique temporary name, check successful process exit and `pg_restore --list`, then rename as complete. Record the resulting filename and completion timestamp. A single backup loop prevents overlap; a durable BackupRun identity prevents duplicate logical requests.
+Subprocesses use argument lists, not a shell command assembled from browser input. Filenames use the run UUID. The Worker writes a `.partial` file, checks process exit and `pg_restore --list`, then renames it as a complete archive. A database advisory lock serializes runs across Workers; a durable BackupRun identity prevents duplicate logical requests. The password is passed through the subprocess environment rather than CLI arguments.
 
 ```sh
 # Examples use configured PGHOST, PGPORT, PGUSER and PGPASSFILE/PGPASSWORD.

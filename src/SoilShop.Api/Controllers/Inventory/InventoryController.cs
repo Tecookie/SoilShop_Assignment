@@ -11,4 +11,5 @@ public sealed class InventoryController(InventoryService service) : ControllerBa
 {
     [HttpGet("stock-movements")] public Task<PageResult<MovementDto>> Movements(CancellationToken ct, int? skuId = null, int page = 1, int pageSize = 20) => service.MovementsAsync(skuId, page, pageSize, ct);
     [HttpGet("restock-suggestions")] public Task<IReadOnlyList<SuggestionDto>> Suggestions(CancellationToken ct) => service.SuggestionsAsync(ct);
+    [HttpGet("restock-suggestions/search")] public Task<PageResult<SuggestionDto>> SearchSuggestions(CancellationToken ct,string? search=null,int page=1,int pageSize=20)=>service.SuggestionsPageAsync(search,page,pageSize,ct);
 }

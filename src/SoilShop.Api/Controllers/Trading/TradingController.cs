@@ -10,8 +10,8 @@ namespace SoilShop.Api;
 public sealed class TradingController(TradingService service) : ControllerBase
 {
     private int ActorId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-    [HttpGet("sales")] public Task<PageResult<TradeDto>> Sales(CancellationToken ct, int page = 1, int pageSize = 20) => service.TradesAsync(false, page, pageSize, ct);
-    [HttpGet("purchase-receipts")] public Task<PageResult<TradeDto>> Receipts(CancellationToken ct, int page = 1, int pageSize = 20) => service.TradesAsync(true, page, pageSize, ct);
+    [HttpGet("sales")] public Task<PageResult<TradeDto>> Sales(CancellationToken ct, int page = 1, int pageSize = 20,[FromQuery] TradeFilter? filter=null) => service.TradesAsync(false, page, pageSize, ct,filter);
+    [HttpGet("purchase-receipts")] public Task<PageResult<TradeDto>> Receipts(CancellationToken ct, int page = 1, int pageSize = 20,[FromQuery] TradeFilter? filter=null) => service.TradesAsync(true, page, pageSize, ct,filter);
     [HttpGet("sales/{id:int}")] public Task<TradeDto> Sale(int id, CancellationToken ct) => service.TradeAsync(false, id, ct);
     [HttpGet("purchase-receipts/{id:int}")] public Task<TradeDto> Receipt(int id, CancellationToken ct) => service.TradeAsync(true, id, ct);
     [HttpPost("sales")] public async Task<ActionResult<TradeDto>> CreateSale(TradeInput input, CancellationToken ct) { var item = await service.CreateTradeAsync(false, input, ActorId, ct); return Created($"/api/sales/{item.Id}", item); }

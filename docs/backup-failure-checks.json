@@ -1,0 +1,8 @@
+{
+  "passed": 2,
+  "checks": [
+    "Failed write preserves seven retained archives",
+    "A subsequent backup succeeds and retention remains seven"
+  ],
+  "scope": "isolated soilshop-completion-check only"
+}

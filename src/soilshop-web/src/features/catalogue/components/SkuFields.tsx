@@ -1,28 +1,22 @@
 import { Field } from "../../../shared/components";
 import type { Product, Supplier } from "../types";
-export function SkuFields({
-  products,
-  suppliers,
-}: {
+import { useState } from "react";
+import { SearchSelect } from "../../../shared/components/SearchSelect";
+export function SkuFields(_props: {
   products: Product[];
   suppliers: Supplier[];
 }) {
+  const [product, setProduct] = useState("");
+  const [supplier, setSupplier] = useState("");
   return (
     <>
-      <Field label="Product" hint="Products on this catalogue page.">
-        <select name="productId" required defaultValue="">
-          <option value="" disabled>
-            Select product
-          </option>
-          {products
-            .filter((p) => p.isActive)
-            .map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.code} · {p.name}
-              </option>
-            ))}
-        </select>
-      </Field>
+      <input type="hidden" name="productId" value={product} />
+      <SearchSelect
+        label="Product"
+        resource="/products"
+        value={product}
+        onChange={setProduct}
+      />
       <Field label="Package amount">
         <input
           name="packageAmount"
@@ -71,18 +65,14 @@ export function SkuFields({
           required
         />
       </Field>
-      <Field label="Preferred supplier (optional)">
-        <select name="supplierId" defaultValue="">
-          <option value="">Not assigned</option>
-          {suppliers
-            .filter((s) => s.isActive)
-            .map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-        </select>
-      </Field>
+      <input type="hidden" name="supplierId" value={supplier} />
+      <SearchSelect
+        label="Preferred supplier (optional)"
+        resource="/supplier-directory"
+        value={supplier}
+        onChange={setSupplier}
+        required={false}
+      />
     </>
   );
 }

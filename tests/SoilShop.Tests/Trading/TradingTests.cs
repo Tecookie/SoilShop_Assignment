@@ -20,15 +20,7 @@ public sealed partial class TradingTests : IClassFixture<ShopFactory>
     private readonly ShopFactory factory;
     public TradingTests(ShopFactory factory) => this.factory = factory;
 
-    private async Task<HttpClient> Login()
-    {
-        var client = factory.CreateClient();
-        var response = await client.PostAsJsonAsync("/api/auth/login", new { username = "test-admin", password = "Isolated-test-password-738!" });
-        response.EnsureSuccessStatusCode();
-        var login = await response.Content.ReadFromJsonAsync<LoginResult>();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", login!.Token);
-        return client;
-    }
+    private Task<HttpClient> Login()=>factory.AdminClientAsync();
     private static async Task<T> Post<T>(HttpClient client, string path, object body)
     {
         var response = await client.PostAsJsonAsync(path, body);

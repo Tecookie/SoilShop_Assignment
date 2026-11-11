@@ -1,6 +1,6 @@
-# Initial application increment
+# Application implementation
 
-The first runnable increment implements the core counter workflow. The complete target scope remains in [system-design.md](system-design.md); features listed as pending below are not implemented endpoints or screens.
+The runnable application implements the internal-shop workflows listed below. The complete scope and constraints are in [system-design.md](system-design.md); final team acceptance is still required.
 
 ## Implemented
 
@@ -17,7 +17,10 @@ The first runnable increment implements the core counter workflow. The complete 
 - Independent HTTP/2 gRPC host for deterministic totals, invoked by API before acquiring stock locks, with a three-second deadline.
 - PostgreSQL document locks, ordered SKU row locks, guarded stock updates and a single transaction containing document/line snapshots, movements and outbox records. Repeating a confirmed action key has one effect; other attempts to confirm the same document conflict.
 - API Redis Streams producer from its durable outbox; Worker consumer group with pending-entry reclaim, post-commit ACK and current-state low-stock reconciliation every minute. Duplicate delivery updates one active suggestion rather than creating duplicates.
-- React inventory, catalogue, receipts, sales, movement history and read-only replenishment inbox, using plain CSS. Six-service Docker Compose deployment.
+- [Stock and operations workflows](operations-workflows.md): count submission and version-checked Admin review, direct adjustments, idempotent replenishment-to-receipt conversion, searchable paginated selectors, document filters and Admin account/supplier/SKU management.
+- [Dashboard and Worker](dashboard-and-worker.md): daily/weekly confirmed sales and purchases; unprefixed validated Worker configuration; per-message bounded retries and dead-letter isolation.
+- Daily/refreshable Vietnam-date summaries with atomic stock snapshots. A separate Worker loop queues PostgreSQL 16 daily/manual backups, checks archives and retains seven successes in a dedicated volume.
+- React inventory, catalogue, receipts, sales, count approval, replenishment, summary and administration screens, using plain CSS. Six-service Docker Compose deployment.
 
 ## Run locally
 
@@ -69,7 +72,7 @@ The automated browser smoke creates clearly labelled demo catalogue records and 
 
 ## Development and verification
 
-Install .NET SDK 9.0.310 or a later .NET 9 SDK according to `global.json` and Node 22.12+ for native development. The test script prefers the installed `dotnet`; an optional ignored `.tools/dotnet` fallback must also provide .NET 9. An older local .NET 10-only SDK cannot run the .NET 9 test host.
+Install .NET SDK 9.0.304 or a later compatible .NET 9 SDK selected by `global.json`, and Node 22.12+ for native development. Docker builds use SDK 9.0.310. The test script prefers the installed `dotnet`; a .NET 10-only SDK cannot run the .NET 9 test host.
 
 ```powershell
 dotnet tool restore
@@ -100,15 +103,14 @@ AutoMapper license configuration accepts `AutoMapper__LicenseKey` / the Compose 
 
 Whole-VND unit prices/costs are capped at 1,000,000,000,000, bag quantities at 1,000,000 per line and documents at 100 distinct SKU lines. Document totals are capped at 9,000,000,000,000,000 VND so integer totals remain exact in browser numbers. Package amounts support at most two decimal places. PostgreSQL uses `numeric(18,0)` for money and rejects negative stock.
 
-## Pending approved work
+## Remaining submission work
 
-- Full supplier/account management and SKU price editing in the UI.
-- Physical count capture, stale-count handling, Admin approval and direct adjustments.
-- Replenishment-to-receipt conversion.
-- Daily/manual summaries and daily/manual PostgreSQL backups retaining seven successful archives. The Worker currently processes inventory events only; no automatic backup runs yet.
-- Broader broker interruption/recovery and job failure tests, complete demo seed/presentation and final assignment acceptance review.
+- Team members must review the assignment rubric, assign named responsibilities and perform the final presentation/demo.
+- The local Compose setup is not an internet-facing production deployment. PostgreSQL archives share the host failure domain.
+- A token remains in browser memory only; refresh signs out. Existing sessions are rejected after account changes.
+- The stock-movement endpoint filters by SKU; additional date, actor and movement-kind filters remain a possible usability enhancement. Catalogue list filters are narrower than the separate advice criteria; see the API map in the system design.
 
-Selection forms explicitly show at most the first 100 SKUs/suppliers; packaging creation uses products on the current catalogue page. A searchable selector is a later usability improvement. Document filters and advanced list controls remain pending. Track subsequent slices in `.scratch/application/issues/04-remaining-workflows.md`; completed 5.2–5.4 follow-up is tracked in `.scratch/advice-receipts-sales/`.
+Product/SKU/supplier selectors query and page through the server; sales and receipt lists expose code, status, date and actor filters. The replenishment inbox supports search and pagination. See [operations workflows](operations-workflows.md) and [verification](verification.md) for API contracts and test boundaries.
 
 ## Source organization
 

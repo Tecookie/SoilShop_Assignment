@@ -1,24 +1,56 @@
 import { useEffect, useState } from "react";
 import { api } from "../../shared/api/client";
-import { Empty, Notice, Pagination } from "../../shared/components";
+import { Empty, Field, Notice, Pagination } from "../../shared/components";
 import type { Movement, Suggestion } from "./types";
 import type { PageResult } from "../../shared/types/paging";
 import { time } from "../../shared/lib/format";
-export function OperationsPage({ suggestions }: { suggestions: boolean }) {
+import { SearchSelect } from "../../shared/components/SearchSelect";
+export function OperationsPage({
+  suggestions,
+  onReceipt,
+}: {
+  suggestions: boolean;
+  onReceipt: () => void;
+}) {
   const [movements, setMovements] = useState<PageResult<Movement>>();
-  const [rows, setRows] = useState<Suggestion[]>([]);
+  const [suggestionData, setSuggestionData] =
+    useState<PageResult<Suggestion>>();
+  const [search, setSearch] = useState("");
+  const rows = suggestionData?.items ?? [];
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [refresh, setRefresh] = useState(0);
+  const [converting, setConverting] = useState<Suggestion>();
+  const [supplier, setSupplier] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function convert() {
+    if (!converting) return;
+    setBusy(true);
+    setError("");
+    try {
+      await api(`/restock-suggestions/${converting.id}/convert`, {
+        expectedVersion: converting.version,
+        supplierId: Number(supplier),
+      });
+      setConverting(undefined);
+      onReceipt();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError("");
     const load = async () => {
       if (suggestions) {
-        const data = await api<Suggestion[]>("/restock-suggestions");
-        if (active) setRows(data);
+        const data = await api<PageResult<Suggestion>>(
+          `/restock-suggestions/search?page=${page}&search=${encodeURIComponent(search)}`,
+        );
+        if (active) setSuggestionData(data);
       } else {
         const data = await api<PageResult<Movement>>(
           `/stock-movements?page=${page}`,
@@ -36,7 +68,7 @@ export function OperationsPage({ suggestions }: { suggestions: boolean }) {
     return () => {
       active = false;
     };
-  }, [suggestions, page, refresh]);
+  }, [suggestions, page, refresh, search]);
   return (
     <>
       <div className="page-heading">
@@ -47,7 +79,7 @@ export function OperationsPage({ suggestions }: { suggestions: boolean }) {
           <h1>{suggestions ? "Replenishment" : "Stock movements"}</h1>
           <p className="muted">
             {suggestions
-              ? "Low-stock suggestions are refreshed asynchronously from current stock. First 100 active suggestions."
+              ? "Low-stock suggestions are refreshed asynchronously from current stock."
               : "Every confirmed stock change records its resulting bag balance."}
           </p>
         </div>
@@ -56,7 +88,44 @@ export function OperationsPage({ suggestions }: { suggestions: boolean }) {
         </button>
       </div>
       <Notice error={error} />
+      {converting && (
+        <section className="panel form-panel">
+          <h2>Prepare receipt for SKU #{converting.skuId}</h2>
+          <p className="muted">
+            Creates a Draft only. Review quantities and actual cost in Purchase
+            receipts before confirming.
+          </p>
+          <SearchSelect
+            label="Supplier"
+            resource="/supplier-directory"
+            value={supplier}
+            onChange={setSupplier}
+          />
+          <div className="form-actions">
+            <button disabled={busy || !supplier} onClick={convert}>
+              Create receipt draft
+            </button>
+            <button
+              className="secondary"
+              onClick={() => setConverting(undefined)}
+            >
+              Close
+            </button>
+          </div>
+        </section>
+      )}
       <section className="panel">
+        {suggestions && (
+          <Field label="Search suggestions by SKU or product">
+            <input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+          </Field>
+        )}
         <div className="table-wrap" aria-busy={loading}>
           {suggestions ? (
             <table>
@@ -68,6 +137,7 @@ export function OperationsPage({ suggestions }: { suggestions: boolean }) {
                   <th>Supplier</th>
                   <th>State</th>
                   <th>Updated</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,6 +156,23 @@ export function OperationsPage({ suggestions }: { suggestions: boolean }) {
                         <span className="badge warning">{r.status}</span>
                       </td>
                       <td>{time(r.updatedAt)}</td>
+                      <td>
+                        {r.status === "Open" ? (
+                          <button
+                            className="secondary"
+                            onClick={() => {
+                              setConverting(r);
+                              setSupplier(r.supplierId?.toString() ?? "");
+                            }}
+                          >
+                            Prepare receipt
+                          </button>
+                        ) : (
+                          <button className="secondary" onClick={onReceipt}>
+                            Open receipts
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
               </tbody>
@@ -134,6 +221,13 @@ export function OperationsPage({ suggestions }: { suggestions: boolean }) {
         </div>
         {!suggestions && movements && (
           <Pagination page={page} total={movements.total} onChange={setPage} />
+        )}
+        {suggestions && suggestionData && (
+          <Pagination
+            page={page}
+            total={suggestionData.total}
+            onChange={setPage}
+          />
         )}
       </section>
     </>

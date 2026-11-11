@@ -22,7 +22,8 @@ export function TradeReviewPanel({
       <ul className="document-lines">
         {review.quote.lines.map((line) => (
           <li key={line.skuId}>
-            {skus.find((s) => s.id === line.skuId)?.code ??
+            {review.trade.lines.find((s) => s.skuId === line.skuId)?.skuCode ??
+              skus.find((s) => s.id === line.skuId)?.code ??
               `SKU #${line.skuId}`}{" "}
             · {line.quantity} bags × {money(line.unitPriceVnd)}
           </li>

@@ -7,6 +7,7 @@ public sealed class RedisBus(IConfiguration config) : IDisposable
 {
     public const string Stream = "soilshop:events";
     public const string Group = "soilshop-worker";
+    public const string DeadLetterStream = "soilshop:events:dead-letter";
     private ConnectionMultiplexer? connection;
     public async Task<IDatabase> DatabaseAsync()
     {

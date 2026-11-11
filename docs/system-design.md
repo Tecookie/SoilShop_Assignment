@@ -4,7 +4,7 @@
 
 This is the approved design for an internal shop selling pre-packed potting-soil bags. The previous real-estate work is [archived](archive/real-estate/system-design.md). Business decisions are in [gardening-discovery.md](gardening-discovery.md); terminology is in the [glossary](../GLOSSARY.md).
 
-This document specifies the approved target scope. The first React/API/gRPC/Worker increment now runs locally; see [implementation status](implementation.md) for exactly which features are implemented and which remain pending. The earlier SQL-only design prototype remains separate evidence from application verification.
+This document specifies the approved target scope. The React/API/gRPC/Worker application now runs locally; see [implementation status](implementation.md) and [operations workflows](operations-workflows.md) for current coverage. The earlier SQL-only design prototype remains separate evidence from application verification.
 
 ## 1. Context
 
@@ -205,7 +205,7 @@ React sends staff intent to API; API loads current catalogue/prices, calls gRPC 
 
 ![C2 Async View](diagrams/images/c4-l2-asynchronous.png)
 
-The SQL outbox closes the gap between a committed stock change and Redis publishing. The API relay sends with XADD then records publication. Worker consumes with XREADGROUP, commits an idempotent result, then XACKs. A publish/mark or consume/ACK crash can cause duplicates; unique suggestion/run identities and fresh stock reads make repeated handling safe.
+The SQL outbox closes the gap between a committed stock change and Redis publishing. The API relay sends with XADD then records publication. For `InventoryChanged`, the Worker consumes with XREADGROUP, commits idempotent reconciliation, then XACKs. Summary/backup requests are also stored as durable queued database rows; their separate Worker loops poll those rows, and the consumer can acknowledge the notification independently of job completion. A publish/mark or consume/ACK crash can cause duplicates; unique suggestion/run identities and fresh stock reads make repeated handling safe. Invalid or repeatedly failing events are isolated in a dead-letter stream after bounded retries; see [Worker operations](dashboard-and-worker.md).
 
 Pending messages are reclaimed with XAUTOCLAIM after a configured idle timeout. Retry transient failures with backoff, persist/log terminal errors, and do not trim unprocessed stream records. For this assignment, one Worker instance owns stateful low-stock handling and serial backups. API mutations emit InventoryChanged; Admin threshold/target/product availability changes emit the same recheck event even without a stock movement.
 
@@ -286,20 +286,21 @@ Unique action keys, one active suggestion per SKU, one adjustment per count and 
 | Screen / resource | Main operations |
 |---|---|
 | Login / `/api/auth/login` | JWT login; no public registration. |
-| Accounts / `/api/users` | Admin create/update/deactivate; protect last Admin. |
-| Catalogue / `/api/products`, `/api/skus`, `/api/plant-tags` | Admin master CRUD, metadata review/source and pricing; Employee search/read. |
-| Suppliers / `/api/suppliers` | Admin master CRUD; Employee selects/reads supplier. |
+| Accounts / `/api/accounts` | Admin create/update/deactivate; protect last Admin. |
+| Catalogue / `/api/products`, `/api/skus` | Admin product CRUD, SKU create/update, metadata review/source and pricing; Employee search/read. Plant-group options are maintained through metadata rather than a separate tag CRUD endpoint. |
+| Suppliers / `/api/suppliers`, `/api/supplier-directory` | Admin create/update/deactivate; Employee searches and selects suppliers. |
 | Advice / `/api/product-advice` | POST preferences → ranked IDs/reasons, then add chosen SKU to Draft. |
+| Dashboard / `/api/dashboard` | Current confirmed sales and purchase metrics grouped by day/week. |
 | Purchase receipts / `/api/purchase-receipts` | Draft CRUD; confirm; Admin cancel; frozen history read. |
 | Sales / `/api/sales` | Draft CRUD; quote; confirm; Admin cancel. |
-| Stock ledger / `/api/stock-movements` | Read-only history by SKU, date, kind, actor/reference. |
+| Stock ledger / `/api/stock-movements` | Read-only paginated history, optionally filtered by SKU. |
 | Counts / `/api/stock-counts` | Capture snapshot, submit physical result; Admin approve/reject/recount. |
 | Adjustments / `/api/stock-adjustments` | Admin reasoned signed correction; immutable afterward. |
-| Replenishment / `/api/restock-suggestions` | List, refresh current suggestions, convert to one receipt Draft. |
-| Reports / `/api/daily-summaries` | Date-based read, manual refresh request and status. |
+| Replenishment / `/api/restock-suggestions` | List/search current suggestions and convert to one receipt Draft. |
+| Reports / `/api/summaries` | Date-based read, manual refresh request and status. |
 | Backup / `/api/backups` | Admin list, manual request and result; no restore/download endpoint. |
 
-Lists support meaningful search/filter/sort/pagination. Product filters: name/code/tag/known drainage/retention/active; SKU filters: Product, package unit/amount, price range, availability/low-stock. Documents filter by code, status, date and creator; receipts also by Supplier. Default page 20/max 100 and allowlisted sort fields with ID tie-breakers. Operational times are UTC timestamptz; display in Vietnam time.
+Implemented list controls include product name/code, active state, type and allowlisted sort; SKU name/code, product, product type and low-stock status; and document code, status, date and creator, with supplier for receipts. Product-advice requests separately filter preferences, package and budget. Stock history currently filters by SKU only. Default page 20/max 100; operational times are UTC timestamptz and displayed in Vietnam time.
 
 Errors: 400 for invalid quantities/metadata, 401/403 for auth, 404 for missing resource, 409 for stale data, conflicting document state, duplicate conversion or insufficient stock, 503 for unavailable gRPC. Use ProblemDetails and correlation IDs; suppress database traces from UI. Normal business conflicts must not generate an unhandled server exception.
 

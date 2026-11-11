@@ -17,6 +17,23 @@ namespace SoilShop.Tests;
 
 public sealed class ShopFactory : WebApplicationFactory<Program>
 {
+    private readonly SemaphoreSlim loginLock=new(1,1);
+    private LoginResult? cachedLogin;
+    public async Task<HttpClient> AdminClientAsync()
+    {
+        await loginLock.WaitAsync();
+        try
+        {
+            if(cachedLogin is null || cachedLogin.ExpiresAt<=DateTime.UtcNow.AddMinutes(1))
+            {
+                using var loginClient=CreateClient();
+                var response=await loginClient.PostAsJsonAsync("/api/auth/login",new {username="test-admin",password="Isolated-test-password-738!"});
+                response.EnsureSuccessStatusCode();cachedLogin=(await response.Content.ReadFromJsonAsync<LoginResult>())!;
+            }
+            var client=CreateClient();client.DefaultRequestHeaders.Authorization=new AuthenticationHeaderValue("Bearer",cachedLogin.Token);return client;
+        }
+        finally { loginLock.Release(); }
+    }
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         var connection = Environment.GetEnvironmentVariable("SHOP_TEST_CONNECTION")

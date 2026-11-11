@@ -49,10 +49,18 @@ services:
   worker:
     build:
       context: .
-      args: { PROJECT: SoilShop.Worker }
+      dockerfile: Dockerfile.worker
     environment:
       ConnectionStrings__Shop: Host=postgres;Database=soilshop;Username=soilshop;Password=${POSTGRES_PASSWORD}
       ConnectionStrings__Redis: redis:6379,abortConnect=false
+      Backups__Directory: /backups
+      BatchSize: ${BatchSize:-25}
+      PollSeconds: ${PollSeconds:-2}
+      ReclaimSeconds: ${ReclaimSeconds:-60}
+      ReconcileSeconds: ${ReconcileSeconds:-60}
+      MaxRetries: ${MaxRetries:-3}
+      JobPollSeconds: ${JobPollSeconds:-10}
+    volumes: [backup-data:/backups]
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -64,3 +72,4 @@ services:
 volumes:
   shop-data:
   redis-data:
+  backup-data:

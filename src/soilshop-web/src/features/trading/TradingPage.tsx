@@ -7,7 +7,7 @@ import type { DraftLine } from "./draft";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { api, ApiError } from "../../shared/api/client";
-import { Empty, Notice, Pagination } from "../../shared/components";
+import { Empty, Field, Notice, Pagination } from "../../shared/components";
 import type { PageResult } from "../../shared/types/paging";
 import type { Sku, Supplier } from "../catalogue/types";
 import type { Trade, TradeQuote } from "./types";
@@ -24,6 +24,18 @@ export function TradingPage({
   const [skus, setSkus] = useState<Sku[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({
+    search: "",
+    status: "",
+    from: "",
+    to: "",
+    createdBy: "",
+    supplierId: "",
+  });
+  const query = new URLSearchParams(
+    Object.entries(filters).filter(([, v]) => v),
+  );
+  const filterQuery = query.toString();
   const [lines, setLines] = useState<DraftLine[]>([emptyLine()]);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -39,14 +51,14 @@ export function TradingPage({
   const [deleting, setDeleting] = useState<Trade>();
   const load = useCallback(async () => {
     const [trades, inventory, partners] = await Promise.all([
-      api<PageResult<Trade>>(`${resource}?page=${page}`),
+      api<PageResult<Trade>>(`${resource}?page=${page}&${filterQuery}`),
       api<PageResult<Sku>>("/skus?pageSize=100"),
       api<Supplier[]>("/suppliers"),
     ]);
     setData(trades);
     setSkus(inventory.items);
     setSuppliers(partners);
-  }, [resource, page]);
+  }, [resource, page, filterQuery]);
   useEffect(() => {
     load().catch((e) => setError(e.message));
   }, [load]);
@@ -224,6 +236,77 @@ export function TradingPage({
         </button>
       </div>
       <Notice error={error} text={notice} />
+      <section className="panel">
+        <div className="form-grid">
+          <Field label="Search document code">
+            <input
+              value={filters.search}
+              onChange={(e) => {
+                setFilters((f) => ({ ...f, search: e.target.value }));
+                setPage(1);
+              }}
+            />
+          </Field>
+          <Field label="Document status">
+            <select
+              value={filters.status}
+              onChange={(e) => {
+                setFilters((f) => ({ ...f, status: e.target.value }));
+                setPage(1);
+              }}
+            >
+              <option value="">All states</option>
+              <option>Draft</option>
+              <option>Confirmed</option>
+              <option>Cancelled</option>
+            </select>
+          </Field>
+          <Field label="Created from (Vietnam)">
+            <input
+              type="date"
+              value={filters.from}
+              onChange={(e) => {
+                setFilters((f) => ({ ...f, from: e.target.value }));
+                setPage(1);
+              }}
+            />
+          </Field>
+          <Field label="Created through (Vietnam)">
+            <input
+              type="date"
+              value={filters.to}
+              onChange={(e) => {
+                setFilters((f) => ({ ...f, to: e.target.value }));
+                setPage(1);
+              }}
+            />
+          </Field>
+          <Field label="Created by account ID">
+            <input
+              type="number"
+              min="1"
+              value={filters.createdBy}
+              onChange={(e) => {
+                setFilters((f) => ({ ...f, createdBy: e.target.value }));
+                setPage(1);
+              }}
+            />
+          </Field>
+          {receipt && (
+            <Field label="Supplier ID">
+              <input
+                type="number"
+                min="1"
+                value={filters.supplierId}
+                onChange={(e) => {
+                  setFilters((f) => ({ ...f, supplierId: e.target.value }));
+                  setPage(1);
+                }}
+              />
+            </Field>
+          )}
+        </div>
+      </section>
       {open && (
         <TradeDraftForm
           receipt={receipt}
@@ -311,6 +394,7 @@ export function TradingPage({
                         <li key={line.skuId}>
                           <strong>{line.quantity} bags</strong> ·{" "}
                           {line.label ??
+                            line.skuCode ??
                             skus.find((s) => s.id === line.skuId)?.code ??
                             `SKU #${line.skuId}`}
                           {line.unitPriceVnd != null && (

@@ -4,6 +4,7 @@
 **/dist
 .tools
 .git
+.vs*
 .env
 .env.*
 .serena
