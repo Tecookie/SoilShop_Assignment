@@ -16,6 +16,7 @@ export interface Trade {
     quantity: number;
     unitPriceVnd: number | null;
     label: string | null;
+    skuCode: string | null;
   }[];
 }
 
