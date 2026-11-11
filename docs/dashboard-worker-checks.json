@@ -1,0 +1,12 @@
+{
+  "passed": 6,
+  "checks": [
+    "Daily and weekly confirmed sales and purchase totals",
+    "Cancelled sale excluded on refresh",
+    "Dashboard visible at mobile and desktop widths",
+    "Known event kinds dispatched independently",
+    "Unknown/malformed messages quarantined after two retries",
+    "Later valid event processed before failed message was quarantined"
+  ],
+  "scope": "isolated soilshop-worker-verification only"
+}

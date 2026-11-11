@@ -1,6 +1,6 @@
 # PostgreSQL Physical Data Dictionary
 
-Generated from the schema model. Application implementation and EF migrations are pending. All non-CASCADE foreign keys restrict deletion. Prices are whole VND; Services reject fractional values before PostgreSQL numeric conversion.
+Generated from the schema design model. The application uses EF migrations and the corresponding [exported migration SQL](ef-migrations.sql). All non-CASCADE foreign keys restrict deletion. Prices are whole VND; Services reject fractional values before PostgreSQL numeric conversion.
 
 ## users
 

@@ -1,0 +1,28 @@
+{
+  "checks": [
+    "Browser count submission and Admin approval with ledger",
+    "Browser direct adjustment preserves nonnegative stock and history",
+    "Browser replenishment conversion creates one receipt Draft without changing stock",
+    "Browser supplier/SKU/account management; Employee admin boundaries",
+    "Browser asynchronous summary with dated stock snapshot",
+    "Browser backup request produces verified PostgreSQL 16 archive",
+    "Mobile 390px and desktop 1440px without page overflow",
+    "Isolated Redis outage: sale commits, outbox recovers, no duplicate active suggestion",
+    "Worker restart recovers queued summary and backup",
+    "Retention keeps exactly seven successful Daily/Manual archives combined",
+    "Failed backup preserves all seven previous successful archives",
+    "Real isolated pg_restore matches catalogue, stock, ledger, adjustments and documents"
+  ],
+  "passed": 12,
+  "errors": [],
+  "scope": "isolated soilshop-completion-check only",
+  "pgClient": "pg_dump (PostgreSQL) 16.15 (Debian 16.15-1.pgdg12+2)",
+  "restoreCounts": [
+    411,
+    15,
+    13,
+    4,
+    9,
+    5
+  ]
+}

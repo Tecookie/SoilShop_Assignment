@@ -85,6 +85,18 @@ For a new behavior, identify its owner first. Add its DTO and repository port to
 
 No C4 container boundary changed, so the existing C1/C2 figures remain applicable.
 
+## Added operational owners
+
+`StockWorkflowService` / `StockWorkflowRepository` own count, adjustment and
+suggestion conversion transactions. `AdministrationService` /
+`AdministrationRepository` own accounts and supplier updates. `OperationsService`
+and `OperationsRepository` queue and expose summary/backup runs;
+`SummaryProcessor`, `SummaryWorker` and `BackupWorker` implement independent
+background loops. React adds `inventory/StockCountsPage`, `operations/`,
+`administration/` and a reusable paginated `shared/components/SearchSelect`.
+See [operations workflows](operations-workflows.md) for contracts and
+[verification](verification.md) for runtime boundaries.
+
 ## Reviewed branch and integration
 
 Reviewed `feature/advice-receipts-sales` at 3555489. It adds draft replacement/deletion, reviewable gRPC quotes, refreshed quote conflicts, per-line price revalidation and Admin whole-document cancellation with reversal audit/outbox. API role restrictions, expected versions/action keys and transaction rollback were retained. The branch originally used .NET10 and lacked main's later advice fixtures; main was merged into it first to retain the requested .NET9 runtime and advice demo fixes. Merge conflicts combined both verification histories and kept both SKU-scoped browser selection and the new Review total step.
