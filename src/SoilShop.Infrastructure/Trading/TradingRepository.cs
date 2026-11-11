@@ -35,7 +35,7 @@ public sealed partial class TradingRepository(ShopDbContext db) : ITradingReposi
         {
             var doc = await db.PurchaseReceipts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
             if (doc is null) return null;
-            var lines = await db.PurchaseReceiptLines.AsNoTracking().Where(x => x.ReceiptId == id).OrderBy(x => x.SkuId).Select(x => new TradeLineDto(x.SkuId, x.Quantity, x.UnitCostVnd, null)).ToListAsync(ct);
+            var lines = await db.PurchaseReceiptLines.AsNoTracking().Where(x => x.ReceiptId == id).OrderBy(x => x.SkuId).Select(x => new TradeLineDto(x.SkuId, x.Quantity, x.UnitCostVnd, null,db.Skus.Where(s=>s.Id==x.SkuId).Select(s=>s.Code).Single())).ToListAsync(ct);
             return new(doc.Id, doc.Code, doc.Status, doc.SupplierId, doc.TotalVnd, doc.Version, doc.CreatedAt, lines,
                 doc.CreatedBy, doc.ConfirmedBy, doc.ConfirmedAt, doc.CancelledBy, doc.CancelledAt, doc.CancelReason);
         }
@@ -43,14 +43,22 @@ public sealed partial class TradingRepository(ShopDbContext db) : ITradingReposi
         {
             var doc = await db.Sales.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
             if (doc is null) return null;
-            var lines = await db.SaleLines.AsNoTracking().Where(x => x.SaleId == id).OrderBy(x => x.SkuId).Select(x => new TradeLineDto(x.SkuId, x.Quantity, x.UnitPriceVnd, x.SkuLabelSnapshot)).ToListAsync(ct);
+            var lines = await db.SaleLines.AsNoTracking().Where(x => x.SaleId == id).OrderBy(x => x.SkuId).Select(x => new TradeLineDto(x.SkuId, x.Quantity, x.UnitPriceVnd, x.SkuLabelSnapshot,db.Skus.Where(s=>s.Id==x.SkuId).Select(s=>s.Code).Single())).ToListAsync(ct);
             return new(doc.Id, doc.Code, doc.Status, null, doc.TotalVnd, doc.Version, doc.CreatedAt, lines,
                 doc.CreatedBy, doc.ConfirmedBy, doc.ConfirmedAt, doc.CancelledBy, doc.CancelledAt, doc.CancelReason);
         }
     }
-    public async Task<PageResult<TradeDto>> TradesAsync(bool receipt, int page, int size, CancellationToken ct)
+    public async Task<PageResult<TradeDto>> TradesAsync(bool receipt, int page, int size, CancellationToken ct,TradeFilter? filter=null)
     {
-        var ids = receipt ? db.PurchaseReceipts.Select(x => x.Id) : db.Sales.Select(x => x.Id);
+        var receipts=db.PurchaseReceipts.AsNoTracking(); var sales=db.Sales.AsNoTracking();
+        if(!string.IsNullOrWhiteSpace(filter?.Search)) { var term=filter.Search.ToLower(); receipts=receipts.Where(x=>x.Code.ToLower().Contains(term));sales=sales.Where(x=>x.Code.ToLower().Contains(term)); }
+        if(!string.IsNullOrEmpty(filter?.Status)) { receipts=receipts.Where(x=>x.Status==filter.Status); sales=sales.Where(x=>x.Status==filter.Status); }
+        if(filter?.CreatedBy is int actor) { receipts=receipts.Where(x=>x.CreatedBy==actor); sales=sales.Where(x=>x.CreatedBy==actor); }
+        if(filter?.SupplierId is int supplier) receipts=receipts.Where(x=>x.SupplierId==supplier);
+        var zone=TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+        if(filter?.From is DateOnly fromDate) { var from=TimeZoneInfo.ConvertTimeToUtc(fromDate.ToDateTime(TimeOnly.MinValue),zone); receipts=receipts.Where(x=>x.CreatedAt>=from);sales=sales.Where(x=>x.CreatedAt>=from); }
+        if(filter?.To is DateOnly toDate) { var until=TimeZoneInfo.ConvertTimeToUtc(toDate.AddDays(1).ToDateTime(TimeOnly.MinValue),zone); receipts=receipts.Where(x=>x.CreatedAt<until);sales=sales.Where(x=>x.CreatedAt<until); }
+        var ids = receipt ? receipts.Select(x => x.Id) : sales.Select(x => x.Id);
         var total = await ids.CountAsync(ct); var result = new List<TradeDto>();
         foreach (var id in await ids.OrderByDescending(x => x).Skip((page - 1) * size).Take(size).ToListAsync(ct)) result.Add((await TradeAsync(receipt, id, ct))!);
         return new(result, total, page, size);

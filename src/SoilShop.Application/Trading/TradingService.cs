@@ -52,7 +52,14 @@ public sealed class TradingService(ITradingRepository repository, ICalculationCl
 
     public async Task<TradeDto> TradeAsync(bool receipt, int id, CancellationToken ct) => await repository.TradeAsync(receipt, id, ct) ?? throw new BusinessException(404, "Document not found.");
 
-    public Task<PageResult<TradeDto>> TradesAsync(bool receipt, int page, int size, CancellationToken ct) { Pagination.Validate(page, size); return repository.TradesAsync(receipt, page, size, ct); }
+    public Task<PageResult<TradeDto>> TradesAsync(bool receipt, int page, int size, CancellationToken ct,TradeFilter? filter=null)
+    {
+        Pagination.Validate(page,size);
+        if(filter?.Status is not (null or "" or "Draft" or "Confirmed" or "Cancelled")) throw new BusinessException(400,"Unknown document status.");
+        if(filter?.From>filter?.To) throw new BusinessException(400,"Start date must not follow end date.");
+        if(filter?.To==DateOnly.MaxValue) throw new BusinessException(400,"End date exceeds the supported range.");
+        return repository.TradesAsync(receipt,page,size,ct,filter);
+    }
 
     public async Task<TradeDto> ConfirmAsync(bool receipt, int id, ConfirmInput input, int actorId, CancellationToken ct)
     {
