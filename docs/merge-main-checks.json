@@ -1,0 +1,56 @@
+{
+  "tested_on": "2026-11-14",
+  "target": "main",
+  "included_branches": {
+    "feature/advice-receipts-sales": "eed7816",
+    "codex/complete-shop-workflows": "3411ed2"
+  },
+  "advice_branch_already_ancestor_of_main": true,
+  "merge_conflicts": [
+    "docs/diagrams/static-checks.json (regenerated)"
+  ],
+  "native_build": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "frontend_build": "passed",
+  "application_tests": {
+    "passed": 47,
+    "failed": 0,
+    "skipped": 0,
+    "framework": "net9.0"
+  },
+  "ef_pending_model_changes": false,
+  "isolated_compose_build": "passed",
+  "operations_verification": {
+    "checks": [
+      "Browser count submission and Admin approval with ledger",
+      "Browser direct adjustment preserves nonnegative stock and history",
+      "Browser replenishment conversion creates one receipt Draft without changing stock",
+      "Browser supplier/SKU/account management; Employee admin boundaries",
+      "Browser asynchronous summary with dated stock snapshot",
+      "Browser backup request produces verified PostgreSQL 16 archive",
+      "Mobile 390px and desktop 1440px without page overflow",
+      "Isolated Redis outage: sale commits, outbox recovers, no duplicate active suggestion",
+      "Worker restart recovers queued summary and backup",
+      "Retention keeps exactly seven successful Daily/Manual archives combined",
+      "Failed backup preserves all seven previous successful archives",
+      "Real isolated pg_restore matches catalogue, stock, ledger, adjustments and documents"
+    ],
+    "passed": 12,
+    "errors": [],
+    "scope": "isolated soilshop-completion-check only",
+    "pgClient": "pg_dump (PostgreSQL) 16.16 (Debian 16.16-1.pgdg12+1)",
+    "restoreCounts": [
+      1,
+      4,
+      3,
+      2,
+      1,
+      1
+    ]
+  },
+  "main_jwt_configuration_diagnostics_preserved": true,
+  "user_untracked_folder_preserved": "SoilShop_OnTap/",
+  "push_performed": false
+}

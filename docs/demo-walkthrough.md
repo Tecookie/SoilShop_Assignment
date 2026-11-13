@@ -192,7 +192,29 @@ docker compose start redis
 
 Allow reconnect/processing time. Confirm previously unpublished rows receive `published_at`, Redis entries appear, Worker logs consumption and lag/pending settle. A repeated delivery must not create a second active suggestion. No SQL stock transaction depends on a Redis distributed lock.
 
-## 6. Feature boundary and closing explanation
+## 6. Counts, administration and backup demo
+
+Use a fresh SKU and an isolated demonstration database for this extension.
+
+1. Open **Stock counts**, search for the SKU and capture its system quantity.
+   Enter a physical count and reason; note that submitting the Pending count does
+   not change Inventory. As Admin, review it and show its resulting movement.
+   To demonstrate a stale count, submit another count, confirm a separate stock
+   movement, then approve the older count: its status becomes `RecountRequired`.
+2. In **Replenishment**, search for a low-stock SKU and select **Prepare receipt**.
+   Choose an active supplier. Show the linked Draft and confirm that no bags were
+   added merely by creating it. Confirm only after entering an actual cost.
+3. In **Daily summaries**, request a date refresh and reload until `Completed`.
+   Explain the revenue/quantity totals and that the displayed SKU values are a
+   snapshot at generation time, not reconstructed historical closing stock.
+4. As Admin open **Database backups**, request a manual backup and refresh until
+   it is `Completed` and `Retained`. Show the separate Worker logs and the
+   [isolated restore evidence](verification.md). A queued request is not a
+   successful archive; never restore over the shop during a demonstration.
+5. Show **Staff accounts**, **Suppliers** and **SKU prices & stock rules**. Use
+   a fictional Employee account to show that Admin-only operations return 403.
+
+## 7. Feature boundary and closing explanation
 
 | Technology | Concrete evidence |
 |---|---|
@@ -208,7 +230,7 @@ Allow reconnect/processing time. Confirm previously unpublished rows receive `pu
 
 A suitable closing statement is: “Staff confirm a sale through REST; the API obtains a total from gRPC, then commits stock and audit records in PostgreSQL. Redis carries post-commit work to Worker, so replenishment is asynchronous while stock correctness stays transactional.”
 
-Stocktaking/adjustments, replenishment conversion, reports and daily/manual backups remain pending. Do not present them as implemented. Draft editing/deletion and whole-document Admin cancellation are now covered by [trading workflows](trading-workflows.md). The independent gRPC service provides totals and product advice, and replenishment is a **read-only suggestion inbox**. Full status is in [implementation.md](implementation.md).
+Stocktaking/adjustments, replenishment conversion, reports and daily/manual backups are now implemented; use [operations workflows](operations-workflows.md) for their steps and role boundaries. Draft editing/deletion and whole-document Admin cancellation are covered by [trading workflows](trading-workflows.md). The independent gRPC service provides totals and product advice. Full status is in [implementation.md](implementation.md).
 
 Automated rehearsal: [browser_smoke.py](../scripts/browser_smoke.py) creates its own labelled demonstration records and exercises actual Compose services. [browser_seed_check.py](../scripts/browser_seed_check.py) performs read-only seed/filter/role checks. [test.ps1](../scripts/test.ps1) covers repeatable API/database edge cases.
 

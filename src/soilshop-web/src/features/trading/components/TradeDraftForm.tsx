@@ -2,15 +2,13 @@ import type { FormEvent } from "react";
 import type { Sku, Supplier } from "../../catalogue/types";
 import type { DraftLine } from "../draft";
 import { Field } from "../../../shared/components";
-import { money } from "../../../shared/lib/format";
+import { SearchSelect } from "../../../shared/components/SearchSelect";
 export function TradeDraftForm({
   receipt,
   editing,
   supplierId,
   onSupplierChange,
-  suppliers,
   lines,
-  skus,
   changeLine,
   onRemoveLine,
   onAddLine,
@@ -38,59 +36,26 @@ export function TradeDraftForm({
         {editing ? "Edit" : "New"} {receipt ? "receipt" : "sale"} draft
       </h2>
       <p className="muted">
-        Select from the first 100 SKUs. Each SKU may appear once.
+        Search all SKUs and suppliers. Duplicate SKU lines with equal costs are
+        merged on save.
       </p>
       <form onSubmit={create}>
         {receipt && (
-          <Field label="Supplier">
-            <select
-              name="supplierId"
-              required
-              value={supplierId}
-              onChange={(e) => onSupplierChange(e.target.value)}
-            >
-              <option value="" disabled>
-                Select supplier
-              </option>
-              {suppliers
-                .filter((s) => s.isActive)
-                .map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-            </select>
-          </Field>
+          <SearchSelect
+            label="Supplier"
+            resource="/supplier-directory"
+            value={supplierId}
+            onChange={onSupplierChange}
+          />
         )}
         {lines.map((line, index) => (
           <div className="line-editor" key={line.key}>
-            <Field label={`SKU ${index + 1}`}>
-              <select
-                required
-                value={line.skuId}
-                onChange={(e) =>
-                  changeLine(line.key, { skuId: e.target.value })
-                }
-              >
-                <option value="" disabled>
-                  Select packaging
-                </option>
-                {skus
-                  .filter(
-                    (s) =>
-                      s.isActive &&
-                      !lines.some(
-                        (l) => l.key !== line.key && l.skuId === String(s.id),
-                      ),
-                  )
-                  .map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.code} · {s.packageAmount} {s.packageUnit} ·{" "}
-                      {s.stockQty} bags · {money(s.salePriceVnd)}
-                    </option>
-                  ))}
-              </select>
-            </Field>
+            <SearchSelect
+              label={`SKU ${index + 1}`}
+              resource="/skus"
+              value={line.skuId}
+              onChange={(value) => changeLine(line.key, { skuId: value })}
+            />
             <Field label={`Bags ${index + 1}`}>
               <input
                 type="number"

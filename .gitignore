@@ -1,6 +1,7 @@
 **/bin/
 **/obj/
 .vs/
+.vs-before-relocation-fix-*/
 node_modules/
 .env
 .env.*

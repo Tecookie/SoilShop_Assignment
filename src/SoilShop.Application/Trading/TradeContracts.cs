@@ -3,6 +3,8 @@ using SoilShop.Domain;
 
 namespace SoilShop.Application;
 
+public sealed record TradeFilter(string? Search=null,string? Status=null,DateOnly? From=null,DateOnly? To=null,int? CreatedBy=null,int? SupplierId=null);
+
 public sealed record TradeLineInput([Range(1, int.MaxValue)] int SkuId, [Range(1, 1000000)] int Quantity, decimal? UnitCostVnd = null);
 
 public sealed record TradeInput([Required, MinLength(1), MaxLength(100)] List<TradeLineInput> Lines, int? SupplierId = null);
@@ -17,7 +19,7 @@ public sealed record TradeQuoteLine(int SkuId, int Quantity, decimal UnitPriceVn
 
 public sealed record TradeQuote(long Version, decimal TotalVnd, IReadOnlyList<TradeQuoteLine> Lines);
 
-public sealed record TradeLineDto(int SkuId, int Quantity, decimal? UnitPriceVnd, string? Label);
+public sealed record TradeLineDto(int SkuId, int Quantity, decimal? UnitPriceVnd, string? Label, string? SkuCode=null);
 
 public sealed record TradeDto(int Id, string Code, string Status, int? SupplierId, decimal? TotalVnd,
     long Version, DateTime CreatedAt, IReadOnlyList<TradeLineDto> Lines,

@@ -2,7 +2,7 @@
 
 Internal application for a shop that purchases pre-packed potting-soil bags and records stock receipts, counter sales and stock adjustments.
 
-**Current state: first runnable application increment.** JWT login, catalogue, receipt/sale confirmation, stock history, gRPC totals and Redis/Worker low-stock suggestions run together in Docker Compose. The remaining approved workflows are listed in the [implementation guide](docs/implementation.md).
+**Current state: runnable internal shop workflows.** JWT login, catalogue and advice, trading, stocktaking, replenishment, reports and backups run together in Docker Compose. See [implementation status](docs/implementation.md) and the remaining submission tasks there.
 
 ## Run
 
@@ -26,7 +26,10 @@ To populate the six product groups with reviewable demo data, run `./scripts/see
 - [Confirmed scope and technology](docs/gardening-discovery.md).
 - [Implemented features, installation and tests](docs/implementation.md).
 - [Receipts, counter sales, quotes and Admin cancellation](docs/trading-workflows.md).
+- [Stock counts, replenishment, reports, backups and administration](docs/operations-workflows.md).
+- [Dashboard statistics and Worker tuning/retries](docs/dashboard-and-worker.md).
 - [End-to-end demo flow and technology evidence](docs/demo-walkthrough.md).
+- [Assignment requirements and presentation checklist](docs/assignment-traceability.md).
 - [System design](docs/system-design.md): Context, Problems, Solutions, Actors, Features, C4 C1/C2, Technology, conceptual ERD and Physical DB.
 - [Diagram gallery](docs/diagrams/index.html): C1, full C2 and focused synchronous/async C2 views, plus conceptual/physical models.
 - [PostgreSQL schema](docs/database/schema.sql) and [data dictionary](docs/database/data-dictionary.md).
@@ -47,8 +50,9 @@ React/Vite/TypeScript with plain CSS, ASP.NET Core 9, EF Core 9 with Npgsql, Pos
 - [x] Dockerfiles and Docker Compose for the current six-service increment.
 - [x] OpenAPI JSON and working local installation/deployment steps.
 - [x] Source-reviewed advice, versioned receipt/sale drafts, quotes and Admin cancellation.
-- [ ] Remaining approved features, including counts, replenishment conversion, summaries and backups.
-- [ ] Integration checks, restore drill and end-to-end demonstration.
+- [x] Stock counts/adjustments, replenishment conversion, summaries, backups and administration.
+- [x] Automated integration checks and isolated restore drill; see [verification](docs/verification.md).
+- [ ] Team-run final end-to-end demonstration and assignment acceptance review.
 - [ ] Named team responsibilities and presentation.
 
 Repository publication is handled by the user.

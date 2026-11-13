@@ -7,6 +7,13 @@ import { CataloguePage } from "../features/catalogue/CataloguePage";
 import { TradingPage } from "../features/trading/TradingPage";
 import { OperationsPage } from "../features/inventory/OperationsPage";
 import type { User } from "../features/authentication/types";
+import { StockCountsPage } from "../features/inventory/StockCountsPage";
+import { ReportsPage } from "../features/operations/ReportsPage";
+import { BackupsPage } from "../features/operations/BackupsPage";
+import { AccountsPage } from "../features/administration/AccountsPage";
+import { SuppliersPage } from "../features/administration/SuppliersPage";
+import { SkuAdminPage } from "../features/administration/SkuAdminPage";
+import { DashboardPage } from "../features/operations/DashboardPage";
 type View =
   | "inventory"
   | "receipts"
@@ -15,7 +22,21 @@ type View =
   | "replenishment"
   | "catalogue"
   | "advice";
-const views: { id: View; label: string; icon: string; admin?: boolean }[] = [
+type ExtraView =
+  | "dashboard"
+  | "counts"
+  | "reports"
+  | "backups"
+  | "accounts"
+  | "suppliers"
+  | "sku-admin";
+const views: {
+  id: View | ExtraView;
+  label: string;
+  icon: string;
+  admin?: boolean;
+}[] = [
+  { id: "dashboard", label: "Dashboard", icon: "▤" },
   { id: "advice", label: "Tìm đất phù hợp", icon: "✧" },
   { id: "inventory", label: "Inventory", icon: "▦" },
   { id: "receipts", label: "Purchase receipts", icon: "↙" },
@@ -23,20 +44,47 @@ const views: { id: View; label: string; icon: string; admin?: boolean }[] = [
   { id: "movements", label: "Stock movements", icon: "≡" },
   { id: "replenishment", label: "Replenishment", icon: "↻" },
   { id: "catalogue", label: "Catalogue", icon: "◇", admin: true },
+  { id: "counts", label: "Stock counts", icon: "☷" },
+  { id: "reports", label: "Daily summaries", icon: "▤" },
+  { id: "backups", label: "Database backups", icon: "▣", admin: true },
+  { id: "suppliers", label: "Suppliers", icon: "⇄", admin: true },
+  {
+    id: "sku-admin",
+    label: "SKU prices & stock rules",
+    icon: "⊞",
+    admin: true,
+  },
+  { id: "accounts", label: "Staff accounts", icon: "♙", admin: true },
 ];
 export function App() {
   const [user, setUser] = useState<User | null>(null);
-  const [view, setView] = useState<View>("inventory");
+  const [view, setView] = useState<View | ExtraView>("inventory");
+  const [sessionMessage, setSessionMessage] = useState("");
   function logout() {
     setToken(null);
     setUser(null);
     setView("inventory");
   }
   useEffect(() => {
-    window.addEventListener("session-expired", logout);
-    return () => window.removeEventListener("session-expired", logout);
+    const expired = () => {
+      logout();
+      setSessionMessage(
+        "Your session expired or your account changed. Please sign in again.",
+      );
+    };
+    window.addEventListener("session-expired", expired);
+    return () => window.removeEventListener("session-expired", expired);
   }, []);
-  if (!user) return <LoginPage onLogin={setUser} />;
+  if (!user)
+    return (
+      <LoginPage
+        message={sessionMessage}
+        onLogin={(u) => {
+          setUser(u);
+          setSessionMessage("");
+        }}
+      />
+    );
   return (
     <div className="workspace">
       <a href="#main" className="skip-link">
@@ -89,6 +137,15 @@ export function App() {
         <main id="main" tabIndex={-1}>
           {view === "advice" && <AdvicePage onSale={() => setView("sales")} />}
           {view === "inventory" && <InventoryPage />}
+          {view === "dashboard" && <DashboardPage />}
+          {view === "counts" && (
+            <StockCountsPage isAdmin={user.role === "Admin"} />
+          )}
+          {view === "reports" && <ReportsPage />}
+          {view === "backups" && user.role === "Admin" && <BackupsPage />}
+          {view === "accounts" && user.role === "Admin" && <AccountsPage />}
+          {view === "suppliers" && user.role === "Admin" && <SuppliersPage />}
+          {view === "sku-admin" && user.role === "Admin" && <SkuAdminPage />}
           {view === "catalogue" && user.role === "Admin" && <CataloguePage />}
           {(view === "receipts" || view === "sales") && (
             <TradingPage
@@ -98,7 +155,11 @@ export function App() {
             />
           )}
           {(view === "movements" || view === "replenishment") && (
-            <OperationsPage key={view} suggestions={view === "replenishment"} />
+            <OperationsPage
+              key={view}
+              suggestions={view === "replenishment"}
+              onReceipt={() => setView("receipts")}
+            />
           )}
         </main>
         <footer className="app-footer">

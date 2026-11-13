@@ -11,6 +11,53 @@
   --white: #fff;
   --space: 1rem;
 }
+.dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.dashboard-chart {
+  padding: 1.5rem;
+}
+.dashboard-metrics section {
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 5px;
+  padding: 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+.dashboard-metrics section > span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.dashboard-metrics strong {
+  font-size: 1.3rem;
+  overflow-wrap: anywhere;
+}
+.dashboard-bars {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
+}
+.dashboard-bar-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 200px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.8rem;
+}
+.dashboard-bar {
+  min-height: 8px;
+  margin: 3px 0;
+}
+.dashboard-bar.sale {
+  background: #2d5f9d;
+}
+.dashboard-bar.purchase {
+  background: var(--cyan);
+}
 .type-filter {
   max-width: 220px;
 }
@@ -756,4 +803,21 @@ summary {
 .advice-card {
   padding: 24px;
   margin: 16px 0;
+}
+.search-select {
+  min-width: 0;
+  margin-bottom: 1rem;
+}
+.search-select .form-actions {
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+}
+.line-editor > .search-select {
+  flex: 2 1 280px;
+}
+.sidebar {
+  overflow-y: auto;
+}
+td {
+  overflow-wrap: anywhere;
 }

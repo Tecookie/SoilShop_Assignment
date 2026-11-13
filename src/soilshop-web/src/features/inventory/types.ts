@@ -16,4 +16,6 @@ export interface Suggestion {
   suggestedQty: number;
   status: string;
   updatedAt: string;
+  version: number;
+  receiptId: number | null;
 }

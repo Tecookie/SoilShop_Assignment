@@ -1,6 +1,63 @@
-# Verification — latest increment 6 November 2026
+# Verification — latest increment 14 November 2026
 
 This report distinguishes tested design artifacts from an application implementation. The PostgreSQL tests use disposable isolated containers, not the user's running databases. The test containers and their own anonymous volumes are removed afterward.
+
+## Main branch integration — 14 November 2026
+
+The advice-receipts-sales branch (eed7816) was already an ancestor of main. Integrated the local codex/complete-shop-workflows head (3411ed2) into main, preserving main's missing-versus-short JWT diagnostics and native configuration guide. The only textual conflict was the generated static document-check report, which was regenerated.
+
+- Native .NET9 solution build: zero warnings/errors; frontend TypeScript/Vite build passed.
+- All 47 application tests passed against isolated PostgreSQL; EF reports no pending model changes.
+- Built the full Compose stack in the separate soilshop-completion-check project. All 12 operations browser/recovery checks passed, including stock count approval/staleness, adjustments, suggestion conversion, administration, report generation, Redis recovery and duplicate delivery, backup retention/failure preservation and an actual isolated pg_restore.
+- PostgreSQL tools in the Worker report major version 16. Existing shop database/volumes were not used for these end-to-end tests. The verification stack was stopped afterward, retaining its test volumes.
+- Kept the user's untracked SoilShop_OnTap folder and existing GitHub Desktop stash. No push/publication performed.
+
+Evidence: [merge-main-checks.json](merge-main-checks.json). Full transient logs are under ignored test-results/.
+
+## Dashboard and Worker dispatch — 11 November 2026
+
+- **47 .NET tests passed**, including daily/weekly boundary aggregation, cancelled
+  sales, invalid dashboard ranges, root-key configuration validation and blocking
+  a deactivated supplier while preserving confirmed history.
+- **6 isolated end-to-end checks passed** against the `soilshop-worker-verification`
+  project with real PostgreSQL, gRPC and Redis. Two malformed/unknown events reached
+  the dead-letter stream after two configured retries, while valid inventory,
+  summary and backup events were acknowledged; the later valid inventory event
+  completed before quarantine. [Machine-readable results](dashboard-worker-checks.json).
+- Dashboard rendered and was visually inspected at 390px and 1440px. Values are
+  based on confirmed document status; purchase totals are not treated as profit.
+- Native .NET/React builds and the API/Worker/Web container builds passed. Tests
+  target isolated data only; no existing shop database was fault-tested.
+
+## Stock, operations and recovery — 11 November 2026
+
+| Check | Result | Boundary |
+| --- | --- | --- |
+| .NET integration and rule tests | **44 passed**, zero skipped | Disposable PostgreSQL 16; gRPC boundary substituted in tests |
+| Native .NET and frontend builds | **Passed** | .NET 9.0.304, zero warnings/errors; TypeScript/Vite build |
+| Compose build | **Passed** | PostgreSQL 16, Redis, API, Web, Calculation and Worker |
+| New operations browser/recovery | **12 passed** | Isolated project, real gRPC/Redis/Worker; [machine-readable results](operations-checks.json) |
+| Backup failure/retry on final Worker | **2 passed** | Seven retained archives survived a failed write; next run succeeded; [results](backup-failure-checks.json) |
+| Trading and advice regression | **9 + 6 + 5 passed** | Browser against the isolated stack and real gRPC |
+| Large selectors and inbox | **4 passed** | Selected a SKU/supplier, preserved selections on search change and searched a suggestion beyond the first 100; [results](large-catalogue-checks.json) |
+| Responsive screens | **Passed** | Operations at 390/1440px; baseline at 320/768/1024/1440px; local table scrolling retained |
+
+The new checks cover stale counts and atomic approval, direct-adjustment replay
+and negative-stock rejection, conversion without changing stock, Admin/Employee
+boundaries, summaries excluding cancelled sales, and account token invalidation.
+In the **isolated `soilshop-completion-check` Compose project only**, Redis was
+stopped during a sale and restarted: stock committed to PostgreSQL, the outbox
+event eventually published and only one active suggestion remained. Stopping and
+restarting that project's Worker recovered queued summary/backup work. Eight
+additional backups established the seven-success limit; denying write permission
+for a test run preserved all seven previous successes. A retained PostgreSQL 16
+archive was restored into a separate disposable PostgreSQL 16 container and
+matched catalogue, stock, movements, adjustments, receipt and sale counts.
+
+These checks did not switch, restore over or fault-test a user's existing shop
+database. The browser and restore scripts create fictional records in the isolated
+test stack. Test logs/screenshots remain under ignored `test-results/`. Team-owned
+presentation, named responsibilities and final rubric acceptance remain open.
 
 ## Branch review and code organization — 6 November 2026
 
@@ -159,6 +216,8 @@ The SQL functions in [concurrency-demo.sql](database/concurrency-demo.sql) are p
 - Structurizr `validate` executed successfully in the official Docker image for [workspace.dsl](diagrams/workspace.dsl).
 - Static checks validate local file links, schema FK names/types, unique constraint names, SVG marker references, image dimensions and expected C4 view levels. Machine-readable outputs are [static-checks.json](diagrams/static-checks.json) and [render-checks.json](diagrams/render-checks.json).
 
-## Still pending during implementation
+## Historical note
 
-Stock-count/adjustment permissions, account management, suggestion conversion, scheduled/manual summaries/backups, backup retention failure cases and Redis outage/recovery tests remain pending. Draft editing/deletion and cancellation/reversal are covered by the 5 November application checks above. Earlier physical-count and backup checks exercise SQL/design prototypes only; those application workflows are not implemented yet.
+Earlier SQL-only count and backup prototype checks did not verify the application.
+The 11 November section above records the later application implementation and
+isolated runtime checks. Final team presentation and assignment acceptance remain.

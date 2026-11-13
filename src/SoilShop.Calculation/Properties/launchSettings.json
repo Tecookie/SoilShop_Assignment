@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "SoilShop.Calculation": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:58476;http://localhost:58478"
+    }
+  }
+}

@@ -5,6 +5,7 @@ Never prints credentials, tokens or browser storage.
 """
 from pathlib import Path
 import json
+import os
 import re
 import uuid
 from playwright.sync_api import sync_playwright, expect
@@ -13,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'test-results'
 OUT.mkdir(exist_ok=True)
 settings = dict(line.split('=', 1) for line in (ROOT / '.env').read_text().splitlines() if '=' in line and not line.startswith('#'))
-base = 'http://localhost:' + settings.get('WEB_PORT', '8080')
+base = 'http://localhost:' + os.environ.get('SHOP_CHECK_PORT', settings.get('WEB_PORT', '8080'))
 suffix = uuid.uuid4().hex[:8].upper()
 code = 'DEMO-MIX-' + suffix
 name = 'Đất trồng đa dụng (mẫu ' + suffix + ')'
@@ -55,9 +56,11 @@ with sync_playwright() as p:
         expect(page.locator('.notice[role="status"]')).to_contain_text('Saved.')
         page.get_by_role('button', name='+ Packaging / SKU', exact=True).click()
         page.get_by_label('Code', exact=True).fill(code + '-5KG')
+        page.get_by_label('Search Product', exact=True).fill(code)
         page.get_by_label(re.compile('^Product')).select_option(str(product['id']))
         page.get_by_label('Package amount', exact=True).fill('5')
         page.get_by_label('Sale price (VND)', exact=True).fill('55000')
+        page.get_by_label('Search Preferred supplier (optional)', exact=True).fill('DEMO-SUP-' + suffix)
         page.get_by_label('Preferred supplier (optional)', exact=True).select_option(str(supplier['id']))
         with page.expect_response(lambda r: r.request.method == 'POST' and r.url.endswith('/api/skus')) as created:
             page.get_by_role('button', name='Save', exact=True).click()
@@ -68,7 +71,9 @@ with sync_playwright() as p:
 
         page.get_by_role('button', name='Purchase receipts', exact=True).click()
         page.get_by_role('button', name='+ New receipt', exact=True).click()
+        page.get_by_label('Search Supplier', exact=True).fill('DEMO-SUP-' + suffix)
         page.get_by_label('Supplier', exact=True).select_option(str(supplier['id']))
+        page.get_by_label('Search SKU 1', exact=True).fill(code)
         page.get_by_label('SKU 1', exact=True).select_option(str(sku['id']))
         page.get_by_label('Bags 1', exact=True).fill('6')
         page.get_by_label('Unit cost 1 (VND)', exact=True).fill('30000')
@@ -82,6 +87,7 @@ with sync_playwright() as p:
         checks.append('Receipt draft/confirm adds 6 bags using independent gRPC totals')
         page.get_by_role('button', name='Sales', exact=True).click()
         page.get_by_role('button', name='+ New sale', exact=True).click()
+        page.get_by_label('Search SKU 1', exact=True).fill(code)
         page.get_by_label('SKU 1', exact=True).select_option(str(sku['id']))
         page.get_by_label('Bags 1', exact=True).fill('2')
         page.get_by_role('button', name='Save draft', exact=True).click()
@@ -110,6 +116,7 @@ with sync_playwright() as p:
 
         page.set_viewport_size({'width': 1440, 'height': 1000})
         page.get_by_role('button', name='Replenishment', exact=True).click()
+        page.get_by_label('Search suggestions by SKU or product', exact=True).fill(code)
         suggestion = page.get_by_role('row').filter(has_text=f'SKU #{sku["id"]}')
         for attempt in range(20):
             if suggestion.count() == 1 and suggestion.locator('td').nth(2).inner_text() == '26':

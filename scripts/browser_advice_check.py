@@ -2,12 +2,12 @@
 Reads local credentials without printing them. Leaves labelled fixtures/history.
 """
 from pathlib import Path
-import json, uuid
+import json, uuid, os
 from playwright.sync_api import sync_playwright, expect
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'test-results'
 settings=dict(line.split('=',1) for line in (ROOT/'.env').read_text().splitlines() if '=' in line and not line.startswith('#'))
-base='http://localhost:'+settings.get('WEB_PORT','8080')
+base='http://localhost:'+os.environ.get('SHOP_CHECK_PORT',settings.get('WEB_PORT','8080'))
 checks=[]; errors=[]
 with sync_playwright() as p:
  browser=p.chromium.launch(channel='chrome',headless=True)
@@ -79,7 +79,12 @@ with sync_playwright() as p:
   card.get_by_role('button',name='Tạo phiếu bán nháp · 1 bao',exact=True).click();expect(page.get_by_role('heading',name='Sales',exact=True)).to_be_visible()
   fresh=call('/skus?search='+sku['code'],method='GET')['items'];assert next(x for x in fresh if x['id']==sku['id'])['stockQty']==3
   checks.append('Choosing result creates one-bag sale draft without reserving or decrementing stock')
-  employee=login(settings['DEMO_EMPLOYEE_USERNAME'],settings['DEMO_EMPLOYEE_PASSWORD'])
+  if os.environ.get('SHOP_CHECK_PROJECT') in ('soilshop-completion-check','soilshop-worker-verification'):
+   employee_user='advice-employee-'+uuid.uuid4().hex[:8]; employee_password=uuid.uuid4().hex+'!aA1'
+   call('/accounts',{'username':employee_user,'displayName':'Fictional advice employee','role':'Employee','isActive':True,'password':employee_password})
+  else:
+   employee_user=settings['DEMO_EMPLOYEE_USERNAME'];employee_password=settings['DEMO_EMPLOYEE_PASSWORD']
+  employee=login(employee_user,employee_password)
   prefs={'plantGroup':'Foliage','drainage':'High','maxPriceVnd':60000,'packageUnit':'L','packageAmount':5}
   def contains(response): return any(x['candidate']['sku']['id']==sku['id'] for x in response['results'])
   assert contains(call('/product-advice',prefs,headers=employee))

@@ -3,7 +3,13 @@ import type { FormEvent } from "react";
 import { api, setToken } from "../../shared/api/client";
 import { Field, Notice } from "../../shared/components";
 import type { Login, User } from "./types";
-export function LoginPage({ onLogin }: { onLogin: (user: User) => void }) {
+export function LoginPage({
+  onLogin,
+  message,
+}: {
+  onLogin: (user: User) => void;
+  message?: string;
+}) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -47,7 +53,7 @@ export function LoginPage({ onLogin }: { onLogin: (user: User) => void }) {
           <p className="eyebrow">STAFF ACCESS</p>
           <h2>Welcome to the stockroom</h2>
           <p className="muted">Sign in with your shop account.</p>
-          <Notice error={error} />
+          <Notice error={error} text={message} />
           <Field label="Username">
             <input
               name="username"

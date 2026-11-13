@@ -1,0 +1,12 @@
+{
+  "passed": 4,
+  "skuCountCreated": 101,
+  "supplierCountCreated": 101,
+  "checks": [
+    "Search and select SKU beyond first 100 and show its code on the saved receipt",
+    "Search and select supplier beyond first 100",
+    "Preserve both selections when search results change",
+    "Search suggestions beyond first 100"
+  ],
+  "scope": "isolated soilshop-worker-verification only"
+}

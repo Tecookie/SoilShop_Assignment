@@ -170,7 +170,7 @@ Errors use the existing **ProblemDetails** format. Price-related `409` responses
   current Cancelled document and never reapplies the sale/receipt.
 - Deleting a receipt Draft linked to a replenishment suggestion clears its FK,
   reopens the suggestion and increments its version in the same transaction.
-  Suggestion-to-receipt conversion itself remains another owner's pending workflow.
+  Suggestion-to-receipt conversion is described in [operations workflows](operations-workflows.md).
 
 ### Existing database structure
 
