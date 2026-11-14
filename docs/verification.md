@@ -2,6 +2,31 @@
 
 This report distinguishes tested design artifacts from an application implementation. The PostgreSQL tests use disposable isolated containers, not the user's running databases. The test containers and their own anonymous volumes are removed afterward.
 
+## Workspace UI refresh — 14 November 2026
+
+The whole-workspace visual refresh uses the existing React/plain-CSS components
+and API contracts. `npm run build` passed after the final styling changes.
+`scripts/browser_ui_review.py` passed 12 grouped checks in headless Edge:
+
+- Real Admin login and read-only navigation through all 14 screens at 1440, 768
+  and 390px, without whole-page horizontal overflow.
+- Receipt, sale, product and account forms opened at all three widths; supplier
+  and SKU options loaded from the real API. Nothing was saved or confirmed.
+- Password visibility toggle, sign-out, mobile drawer focus containment,
+  Shift+Tab/Tab cycling, Escape closure and return to the menu control.
+- Dashboard quick range loaded real API data. Inventory empty and error responses
+  were intercepted only in the test browser; removing the intercept and refreshing
+  recovered the normal screen. No uncaught browser exceptions were observed.
+
+Screenshots were visually reviewed for login, inventory, dashboard, mobile
+navigation and receipt forms; cramped filter spacing and overly narrow trade
+columns were corrected before the final run. Evidence is generated in ignored
+`test-results/ui-redesign/`, including `checks.json`.
+
+Unlike the earlier isolated mutation tests below, this UI review used the running
+local development stack for login and reads. It did not mutate shop inventory,
+trades or account records, and did not rerun the complete backend regression suite.
+
 ## Main branch integration — 14 November 2026
 
 The advice-receipts-sales branch (eed7816) was already an ancestor of main. Integrated the local codex/complete-shop-workflows head (3411ed2) into main, preserving main's missing-versus-short JWT diagnostics and native configuration guide. The only textual conflict was the generated static document-check report, which was regenerated.
