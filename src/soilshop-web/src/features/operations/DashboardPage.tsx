@@ -77,7 +77,32 @@ export function DashboardPage() {
         </div>
       </div>
       <Notice error={error} />
-      <section className="panel form-panel">
+      <section className="panel form-panel dashboard-filter">
+        <div className="dashboard-presets" aria-label="Quick date ranges">
+          {[
+            { label: "Today", days: 0 },
+            { label: "Last 7 days", days: 6 },
+            { label: "Last 30 days", days: 29 },
+          ].map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              className="secondary"
+              disabled={loading}
+              aria-pressed={
+                from === offsetDate(today, -preset.days) && to === today
+              }
+              onClick={() => {
+                const start = offsetDate(today, -preset.days);
+                setFrom(start);
+                setTo(today);
+                void load(start, today, groupBy);
+              }}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -118,7 +143,7 @@ export function DashboardPage() {
           <button disabled={loading}>
             {loading ? "Loading…" : "View statistics"}
           </button>{" "}
-          <span className="muted">Maximum range: 366 days.</span>
+          <small>Vietnam business dates · Maximum range: 366 days.</small>
         </form>
       </section>
       {loading && !data && <p role="status">Loading statistics…</p>}
@@ -156,6 +181,16 @@ export function DashboardPage() {
               These totals are based on current document status. Purchase total
               is not cost of goods sold; this is not a profit report.
             </p>
+            <div className="chart-legend">
+              <span>
+                <i aria-hidden="true" />
+                Sales
+              </span>
+              <span>
+                <i aria-hidden="true" />
+                Purchase receipts
+              </span>
+            </div>
             <div
               className="dashboard-bars"
               aria-label="Sales and purchase comparison"
@@ -166,12 +201,18 @@ export function DashboardPage() {
                     {x.from}
                     {x.from !== x.to ? ` – ${x.to}` : ""}
                   </span>
-                  <div>
+                  <div
+                    role="img"
+                    aria-label={`Sales ${money(x.saleVnd)}; purchases ${money(x.receiptVnd)}`}
+                  >
                     <div
                       className="dashboard-bar sale"
                       style={{ width: `${(100 * x.saleVnd) / maximum}%` }}
                       title={`Sales ${money(x.saleVnd)}`}
                     />
+                    {x.saleVnd === 0 && x.receiptVnd === 0 && (
+                      <small className="chart-zero">No transactions</small>
+                    )}
                     <div
                       className="dashboard-bar purchase"
                       style={{ width: `${(100 * x.receiptVnd) / maximum}%` }}
@@ -181,7 +222,9 @@ export function DashboardPage() {
                 </div>
               ))}
             </div>
-            <p className="muted">Blue = sales · Teal = purchase receipts</p>
+            <p className="muted">
+              Exact quantities and amounts are listed below.
+            </p>
             <div className="table-wrap">
               <table>
                 <thead>
