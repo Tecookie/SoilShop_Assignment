@@ -10,7 +10,10 @@ export function Pagination({
   return (
     <div className="pagination">
       <span>
-        {total} records · page {page} of {Math.max(1, Math.ceil(total / 20))}
+        {total === 0
+          ? "0 records"
+          : `${(page - 1) * 20 + 1}–${Math.min(page * 20, total)} of ${total} records`}{" "}
+        · Page {page} of {Math.max(1, Math.ceil(total / 20))}
       </span>
       <div>
         <button

@@ -39,7 +39,7 @@ export function TradeCancellationPanel({
           />
         </Field>
         <div className="form-actions">
-          <button disabled={busy || !reason.trim()}>
+          <button className="danger" disabled={busy || !reason.trim()}>
             Confirm cancellation
           </button>
           <button

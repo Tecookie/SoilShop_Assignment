@@ -236,7 +236,7 @@ export function TradingPage({
         </button>
       </div>
       <Notice error={error} text={notice} />
-      <section className="panel">
+      <section className="panel trade-filters">
         <div className="form-grid">
           <Field label="Search document code">
             <input
@@ -369,7 +369,7 @@ export function TradingPage({
           </button>
         </div>
         <div className="table-wrap">
-          <table>
+          <table className="trade-table">
             <thead>
               <tr>
                 <th>Reference / created</th>

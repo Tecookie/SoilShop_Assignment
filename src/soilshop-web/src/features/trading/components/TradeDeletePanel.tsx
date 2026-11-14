@@ -15,7 +15,7 @@ export function TradeDeletePanel({
       <h2>Delete draft {deleting.code.slice(0, 12).toUpperCase()}?</h2>
       <p>Only this draft will be removed. It has not changed stock.</p>
       <div className="form-actions">
-        <button disabled={busy} onClick={removeDraft}>
+        <button className="danger" disabled={busy} onClick={removeDraft}>
           Delete draft
         </button>
         <button className="secondary" disabled={busy} onClick={() => onClose()}>
