@@ -59,6 +59,33 @@ docker compose down
 
 OpenAPI JSON is available at <http://localhost:8080/api/openapi/v1.json>. Swagger UI is registered on the API host; only the JSON contract is proxied through the default Web configuration. Send JWT bearer tokens for authenticated API requests.
 
+## Debug the API in Visual Studio
+
+With Docker Desktop running, execute from the repository root:
+
+```powershell
+.\scripts\setup-debug.ps1
+```
+
+This opt-in setup starts only PostgreSQL, Redis and Calculation using
+`compose.yaml` plus `compose.debug.yaml`. It exposes those dependencies on
+loopback ports 15432, 16379 and 18092, and copies connection settings, JWT key
+and bootstrap credentials from the ignored `.env` into API User Secrets.
+The normal Compose deployment remains private unless the debug override is selected.
+Existing database volumes and credentials are preserved.
+
+Select `SoilShop.Api` as the Visual Studio startup project and use its
+Development launch profile, then press F5. The API initializes/migrates the
+configured local database on startup. Its HTTP address is
+`http://localhost:58477`, with Swagger at `/swagger` and health at `/health`.
+The Worker is a separate process; this API debug setup does not start it.
+
+If dependencies are stopped, rerun the setup script. To inspect them:
+
+```powershell
+docker compose -f compose.yaml -f compose.debug.yaml ps
+```
+
 ## First business walkthrough
 
 1. In Catalogue, create a product with optional brand/source information; leave unknown fields blank.

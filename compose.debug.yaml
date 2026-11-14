@@ -1,0 +1,9 @@
+# Opt in when running the API from Visual Studio on the Windows host.
+# Keep normal Compose deployment private; expose dependencies only on loopback.
+services:
+  postgres:
+    ports: ['127.0.0.1:15432:5432']
+  redis:
+    ports: ['127.0.0.1:16379:6379']
+  calculation:
+    ports: ['127.0.0.1:18092:8082']
